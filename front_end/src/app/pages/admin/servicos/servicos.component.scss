@@ -1,0 +1,21 @@
+.page-container { animation: fadeIn 0.5s; }
+.page-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; .icon-box { background: var(--primary-gradient); padding: 10px; border-radius: 12px; color: white; } h1 { font-size: 1.8rem; color: var(--secondary-color); margin: 0; } p { color: #888; margin: 0; font-size: 0.9rem; } }
+.form-card { margin-bottom: 30px; border-left: 5px solid var(--primary-color); &.editing { border-left-color: #FFBB33; } }
+.card-header { display: flex; justify-content: space-between; margin-bottom: 20px; h3 { margin: 0; display: flex; gap: 10px; font-size: 1.1rem; align-items: center; } }
+.btn-cancel { background: none; border: none; cursor: pointer; color: #666; display: flex; gap: 5px; align-items: center; }
+.form-row { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+.input-group { display: flex; flex-direction: column; gap: 8px; &.flex-2 { flex: 2; min-width: 200px; } &.flex-1 { flex: 1; min-width: 120px; } label { font-size: 0.85rem; font-weight: 600; color: #666; } input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; } .uppercase { text-transform: uppercase; letter-spacing: 1px; font-weight: bold; } }
+.btn-warn { background: #FFBB33 !important; color: #333 !important; }
+.list-card { padding: 0; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: #F8F9FA; th { padding: 15px; text-align: left; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; } }
+td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+.text-right { text-align: right; }
+.fw-bold { font-weight: 600; color: var(--secondary-color); }
+.badge { background: #E0F7FA; color: var(--primary-color); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; }
+.empty { text-align: center; padding: 40px; color: #999; }
+.inactive { background: #f9f9f9; opacity: 0.6; }
+.btn-toggle { border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; display: flex; gap: 5px; font-size: 0.75rem; font-weight: bold; background: #eee; color: #666; align-items: center; &.active { background: #e8f5e9; color: #2e7d32; } }
+.btn-icon { background: white; border: 1px solid #ddd; padding: 6px; border-radius: 6px; cursor: pointer; color: #666; margin-left: 5px; display: inline-flex; &:hover { background: #f0f0f0; } }
+.delete { color: #dc3545; border-color: #ffe6e6; background: #fff5f5; &:hover { background: #ffe0e0; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

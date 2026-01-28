@@ -1,0 +1,7 @@
+.atendimento-container { padding: 20px; animation: fadeIn 0.5s; }
+.cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.control, .display { padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.guiche { font-size: 2rem; font-weight: bold; color: var(--secondary-color); background: #f4f6f9; padding: 10px 30px; border-radius: 10px; margin: 20px 0; }
+.senha { font-size: 5rem; font-weight: 800; color: var(--primary-color); }
+.status { background: #eee; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

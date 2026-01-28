@@ -1,0 +1,44 @@
+.page-container { animation: fadeIn 0.5s; }
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+  .icon-box { background: var(--primary-gradient); padding: 10px; border-radius: 12px; color: white; }
+  h1 { font-size: 1.8rem; color: var(--secondary-color); margin: 0; }
+  p { color: #888; margin: 0; font-size: 0.9rem; }
+}
+
+/* Filtros */
+.filters-card { margin-bottom: 20px; padding: 20px; }
+.filters-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
+.input-group {
+  display: flex; flex-direction: column; gap: 5px;
+  &.flex-2 { flex: 2; min-width: 200px; }
+  &.flex-1 { flex: 1; min-width: 150px; }
+  
+  label { font-size: 0.85rem; font-weight: 600; color: #666; }
+  input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+  .input-wrapper { position: relative; input { padding-left: 35px; } .icon-small { position: absolute; left: 10px; top: 10px; color: #aaa; width: 16px; } }
+}
+.actions-group { display: flex; gap: 10px; }
+.btn-filter { background: var(--secondary-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.btn-clear { background: #f0f0f0; border: 1px solid #ddd; color: #666; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; &:hover { background: #e0e0e0; } }
+
+/* Tabela */
+.list-card { padding: 0; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: #F8F9FA; th { padding: 15px; text-align: left; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; } }
+td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.fw-bold { font-weight: 600; color: var(--secondary-color); }
+
+.badge { 
+  background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; 
+  &.inactive { background: #ffebee; color: #c62828; }
+}
+
+.btn-icon { background: white; border: 1px solid #ddd; padding: 6px; border-radius: 6px; cursor: pointer; color: #666; margin-left: 5px; &:hover { background: #f0f0f0; } }
+.delete { color: #dc3545; border-color: #ffe6e6; background: #fff5f5; &:hover { background: #ffe0e0; } }
+.empty-msg, .loading-state { padding: 50px; text-align: center; color: #999; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
