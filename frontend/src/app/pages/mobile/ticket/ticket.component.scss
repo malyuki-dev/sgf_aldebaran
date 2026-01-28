@@ -1,0 +1,10 @@
+.mobile-container { min-height: 100vh; background: #f4f6f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+.ticket { width: 100%; text-align: center; padding: 40px 20px; border-top: 6px solid var(--primary-color); margin-bottom: 20px; }
+.ticket.chamado { border-top-color: var(--success-color); }
+.numero { font-size: 4rem; font-weight: 800; color: var(--secondary-color); margin: 10px 0; }
+.status { display: inline-flex; align-items: center; gap: 5px; background: #e0f7fa; color: var(--primary-color); padding: 10px 20px; border-radius: 50px; font-weight: bold; }
+.chamado .status { background: #e8f5e9; color: var(--success-color); }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+.info { text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+.val { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+.lbl { font-size: 0.8rem; color: #888; }

@@ -1,0 +1,44 @@
+<div class="login-container">
+  <!-- LADO ESQUERDO (BRANDING) -->
+  <div class="login-brand">
+    <div class="content">
+      <div class="logo-box">
+        <lucide-icon [img]="icons.droplets" [size]="64" color="white"></lucide-icon>
+      </div>
+      <h1>Aldebaran</h1>
+      <p>Sistema Profissional de Gestão de Filas.</p>
+    </div>
+  </div>
+
+  <!-- LADO DIREITO (FORMULÁRIO) -->
+  <div class="login-form-wrapper">
+    <div class="form-card">
+      <h2>Login</h2>
+      <p class="subtitle">Acesso restrito aos colaboradores.</p>
+
+      <form (ngSubmit)="handleLogin()">
+        <div class="input-group">
+          <label>Usuário</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.user" class="field-icon"></lucide-icon>
+            <input type="text" name="login" [(ngModel)]="form.login" placeholder="Ex: admin" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Senha</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.lock" class="field-icon"></lucide-icon>
+            <input type="password" name="senha" [(ngModel)]="form.senha" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <div *ngIf="erro" class="error-msg">{{ erro }}</div>
+
+        <button type="submit" class="btn-primary full-width" [disabled]="loading">
+          {{ loading ? 'Entrando...' : 'Acessar Painel' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

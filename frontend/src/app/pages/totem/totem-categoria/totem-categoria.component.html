@@ -1,0 +1,31 @@
+<div class="categoria-container">
+  <button class="btn-back" (click)="voltar()">
+    <lucide-icon [img]="icons.back"></lucide-icon> Voltar
+  </button>
+
+  <h2>Selecione a Categoria</h2>
+  <p>Toque na opção de atendimento que você precisa.</p>
+
+  <div *ngIf="carregando" style="text-align: center; padding: 40px; color: #666;">
+    <p>Carregando serviços...</p>
+  </div>
+
+  <div *ngIf="!carregando && servicos.length === 0" style="text-align: center; padding: 40px; color: #999;">
+    <p>Nenhum serviço disponível.</p>
+    <small>Cadastre novos serviços no painel Admin.</small>
+  </div>
+
+  <div class="grid-servicos" *ngIf="!carregando && servicos.length > 0">
+    @for (servico of servicos; track servico.id) {
+      <div class="card card-servico" (click)="gerarSenha(servico.id)">
+        <div class="icon-box">
+          <lucide-icon [img]="getIcon(servico.nome)" class="servico-icon"></lucide-icon>
+        </div>
+        <div class="info">
+          <h3>{{ servico.nome }}</h3>
+          <span>Clique para gerar &gt;</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -5,12 +5,12 @@ import { UsuarioService } from './usuario.service';
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
-  @Post('setup') // Rota para criar o admin inicial
+  @Post('setup') // Cria o primeiro admin (se não existir)
   setup() {
     return this.usuarioService.criar('admin', '123456', 'Administrador');
   }
 
-  @Post('login') // Rota que o Frontend vai chamar
+  @Post('login')
   login(@Body() body: { login: string; senha: string }) {
     return this.usuarioService.validarLogin(body.login, body.senha);
   }

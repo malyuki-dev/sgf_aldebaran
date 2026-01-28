@@ -1,29 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn, DeleteDateColumn } from 'typeorm'; // <--- Adicione DeleteDateColumn
 
-// 1. Tabela de Serviços
 @Entity()
 export class Servico {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  nome: string;       // Ex: "Pagamento"
+  nome: string;
 
   @Column()
-  sigla: string;      // Ex: "PAG"
+  sigla: string;
 
   @Column({ default: 1 })
   prioridadePeso: number;
+  
+  @Column({ default: true })
+  ativo: boolean;
+
+  @DeleteDateColumn() // <--- NOVO: Isso ativa o Soft Delete
+  deletadoEm: Date;
 }
 
-// 2. Tabela de Senhas
 @Entity()
 export class Senha {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  numeroDisplay: string; // Ex: "PAG-001"
+  numeroDisplay: string;
 
   @Column({ default: 'AGUARDANDO' })
   status: string;
@@ -31,16 +35,14 @@ export class Senha {
   @CreateDateColumn()
   dataCriacao: Date;
 
-  // Relacionamento: Uma Senha pertence a um Serviço
   @ManyToOne(() => Servico)
   @JoinColumn({ name: 'servico_id' })
   servico: Servico;
 
   @Column()
-  servico_id: number; // Coluna auxiliar para facilitar leitura
+  servico_id: number;
 }
 
-// 3. Tabela de Atendimentos
 @Entity()
 export class Atendimento {
   @PrimaryGeneratedColumn()
@@ -61,4 +63,32 @@ export class Atendimento {
 
   @Column({ nullable: true })
   notaAvaliacao: number;
+}
+
+@Entity()
+export class Agendamento {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  nomeCliente: string;
+
+  @Column({ nullable: true })
+  documento: string;
+
+  @Column()
+  data: string;
+
+  @Column()
+  hora: string;
+
+  @ManyToOne(() => Servico)
+  @JoinColumn({ name: 'servico_id' })
+  servico: Servico;
+
+  @Column()
+  servico_id: number;
+
+  @Column({ default: 'PENDENTE' })
+  status: string;
 }
