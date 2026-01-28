@@ -1,0 +1,43 @@
+/* Design System Aldebaran */
+:root {
+  --primary-color: #00A8CC;
+  --primary-gradient: linear-gradient(135deg, #00A8CC 0%, #0085A1 100%);
+  --secondary-color: #142850;
+  --bg-color: #F0F4F8;
+  --surface-color: #FFFFFF;
+  --success-color: #00C851;
+  --text-primary: #333333;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Classes Utilitárias */
+.btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.2s;
+  
+  &:hover { opacity: 0.9; }
+}
+
+.card {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
