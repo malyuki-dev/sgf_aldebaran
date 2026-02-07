@@ -1,0 +1,65 @@
+<div class="split-layout">
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="logo-box">
+        <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="hero-logo-white">
+      </div>
+      <h1>Bem-vindo ao<br>Sistema Fila</h1>
+      <p>Gestão Inteligente de Atendimento</p>
+      <div class="stats-row">
+        <div class="stat"><strong>24/7</strong><span>Online</span></div>
+        <div class="sep"></div>
+        <div class="stat"><strong>100%</strong><span>Digital</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="form-container">
+      
+      <div class="lang-switch-container">
+        <div class="lang-switch-totem">
+          <button class="active">PT</button>
+          <button>EN</button>
+        </div>
+      </div>
+
+      <div class="header-text">
+        <h2>Fazer Login</h2>
+        <p>Selecione a Filial: <span>Matriz Centro</span></p>
+      </div>
+
+      <form (submit)="fazerLogin()">
+        <div class="input-group">
+          <label>E-MAIL</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.mail" size="20"></lucide-icon>
+            <input type="email" [(ngModel)]="email" name="email" placeholder="seu@email.com" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>SENHA</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.lock" size="20"></lucide-icon>
+            <input type="password" [(ngModel)]="senha" name="senha" placeholder="Sua senha" required>
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="checkbox-item"><input type="checkbox"> Lembrar-me</label>
+          <a routerLink="/client/recover">Esqueci a senha</a>
+        </div>
+
+        <button class="btn-primary" [disabled]="carregando">
+          <span *ngIf="!carregando">Entrar</span>
+          <span *ngIf="carregando" class="loader"></span>
+        </button>
+      </form>
+
+      <div class="footer-msg">
+        Ainda não é cliente? <a routerLink="/client/signup">Crie sua conta</a>
+      </div>
+    </div>
+  </section>
+</div>

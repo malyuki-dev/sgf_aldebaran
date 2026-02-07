@@ -1,8 +1,39 @@
-.tv-container { height: 100vh; display: grid; grid-template-columns: 2fr 1fr; background: #F0F4F8; }
-.left-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; }
-.brand { display: flex; align-items: center; gap: 15px; color: var(--primary-color); margin-bottom: 50px; h1 { font-size: 3rem; margin: 0; } }
-.main-display { background: var(--primary-gradient); color: white; padding: 60px 100px; border-radius: 30px; text-align: center; }
-.numero { font-size: 10rem; font-weight: 800; line-height: 1; }
-.guiche { font-size: 4rem; font-weight: 600; margin-top: 20px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 15px; }
-.right-panel { background: var(--secondary-color); color: white; padding: 40px; }
-.history-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 20px; margin-bottom: 15px; font-size: 2rem; font-weight: bold; border-radius: 10px; }
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap');
+$blue: #0284C7;
+
+.tv-container {
+  width: 100vw; height: 100vh; background: #F3F4F6; font-family: 'Roboto Condensed', sans-serif;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+header {
+  height: 15vh; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 80px;
+  .brand { h1 { font-size: 80px; color: $blue; margin: 0; line-height: 0.8; } span { color: #6B7280; letter-spacing: 2px; } }
+  .time-box { text-align: right; .time { font-size: 80px; font-weight: 700; line-height: 0.9; } .date { font-size: 24px; color: #6B7280; text-transform: uppercase; } }
+}
+
+main {
+  flex: 1; display: flex; padding: 40px 80px; gap: 60px;
+  h2 { color: $blue; font-size: 36px; margin-bottom: 20px; }
+}
+
+.left-panel {
+  flex: 3; display: flex; flex-direction: column;
+  .big-card {
+    flex: 1; background: white; border-radius: 32px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;
+    .number { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 350px; font-weight: 900; color: #111827; letter-spacing: -10px; }
+    .footer-info { height: 140px; background: $blue; display: flex; align-items: center; justify-content: center; font-size: 80px; font-weight: 800; color: white; }
+  }
+}
+
+.right-panel {
+  flex: 2; display: flex; flex-direction: column;
+  .history-list { display: flex; flex-direction: column; gap: 30px; }
+  .hist-card {
+    background: white; height: 140px; border-radius: 20px; display: flex; align-items: center; padding: 0 40px; justify-content: space-between;
+    .h-num { font-size: 90px; font-weight: 800; }
+    .h-loc { font-size: 36px; font-weight: 700; color: $blue; }
+  }
+}
+
+footer { height: 10vh; background: $blue; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; letter-spacing: 2px; }

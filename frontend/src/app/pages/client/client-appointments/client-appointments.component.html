@@ -1,0 +1,46 @@
+<div class="page-container">
+  
+  <app-client-menu *ngIf="menuAberto" (close)="menuAberto = false"></app-client-menu>
+
+  <header class="app-header">
+    <div class="header-left">
+      <button class="icon-btn" routerLink="/client/home" style="margin-right: 10px;">
+        <lucide-angular [img]="icons.chevron" size="24" style="transform: rotate(180deg);"></lucide-angular>
+      </button>
+      
+      <button class="icon-btn" (click)="menuAberto = true">
+        <lucide-angular [img]="icons.menu" size="24"></lucide-angular>
+      </button>
+      <h1>Meus Agendamentos</h1>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn notification">
+        <lucide-angular [img]="icons.bell" size="24"></lucide-angular>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="schedule-grid">
+      
+      <div class="card action-item">
+        <div class="icon-circle teal"><lucide-angular [img]="icons.file" size="24"></lucide-angular></div>
+        <div class="text">
+          <h4>Pedido #1234</h4>
+          <p>15 Jan • Confirmado</p>
+        </div>
+        <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
+      </div>
+
+      <div class="card action-item">
+        <div class="icon-circle beige"><lucide-angular [img]="icons.file" size="24"></lucide-angular></div>
+        <div class="text">
+          <h4>Pedido #1230</h4>
+          <p>10 Jan • Concluído</p>
+        </div>
+        <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
+      </div>
+
+    </div>
+  </main>
+</div>

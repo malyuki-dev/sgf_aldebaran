@@ -1,43 +1,258 @@
-/* Design System Aldebaran */
+/* src/styles.scss */
+
+/* --- VARIÁVEIS GLOBAIS (Baseadas na imagem de referência) --- */
 :root {
-  --primary-color: #00A8CC;
-  --primary-gradient: linear-gradient(135deg, #00A8CC 0%, #0085A1 100%);
-  --secondary-color: #142850;
-  --bg-color: #F0F4F8;
-  --surface-color: #FFFFFF;
-  --success-color: #00C851;
-  --text-primary: #333333;
-  --radius-lg: 16px;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+  --auth-gradient-start: #0EA5E9; /* Azul Claro (Topo) */
+  --auth-gradient-end: #0F766E;   /* Verde Petróleo (Base) */
+  --auth-primary: #0EA5E9;        /* Cor de Ação */
+  --auth-text-dark: #0F172A;
+  --auth-text-gray: #64748B;
+  --auth-bg-light: #F8FAFC;
+  --auth-border: #E2E8F0;
 }
 
+/* Reset Básico */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  margin: 0;
+  margin: 0; padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--auth-bg-light);
 }
 
-/* Classes Utilitárias */
-.btn-primary {
-  background: var(--primary-gradient);
+/* ============================================================
+   LAYOUT DE AUTENTICAÇÃO (Login, Signup, Recover)
+   ============================================================ */
+
+/* Container Principal (Split Screen) */
+.split-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: white;
+
+  /* Responsividade: Empilha no celular/tablet */
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+/* --- LADO ESQUERDO (HERO / DEGRADÊ) --- */
+.hero-section {
+  flex: 1;
+  /* GRADIENTE VERTICAL EXATO */
+  background: linear-gradient(to bottom, var(--auth-gradient-start) 0%, var(--auth-gradient-end) 100%);
   color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  transition: opacity 0.2s;
-  
-  &:hover { opacity: 0.9; }
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  /* Efeito de fundo sutil */
+  &::before {
+    content: '';
+    position: absolute;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    top: -20%;
+    left: -20%;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 40px;
+
+    .logo-box {
+      margin-bottom: 30px;
+      /* Sem fundo, logo flutuando */
+    }
+
+    /* LOGO BRANCA PURA */
+    .hero-logo-white {
+      height: 90px;
+      width: auto;
+      filter: brightness(0) invert(1) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+      opacity: 1;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      font-style: italic;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+
+    /* Estatísticas */
+    .stats-row {
+      display: inline-flex;
+      gap: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px 30px;
+      border-radius: 50px;
+
+      .stat {
+        display: flex; flex-direction: column;
+        strong { font-size: 20px; font-weight: 800; }
+        span { font-size: 11px; text-transform: uppercase; opacity: 0.8; }
+      }
+      .sep { width: 1px; background: rgba(255, 255, 255, 0.3); }
+    }
+  }
+
+  /* Ajuste Mobile Hero */
+  @media (max-width: 900px) {
+    flex: none; min-height: 280px; padding: 20px;
+    h1 { font-size: 28px; }
+    .hero-logo-white { height: 70px; }
+  }
 }
 
-.card {
-  background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
+/* --- LADO DIREITO (FORMULÁRIO) --- */
+.form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 40px;
+
+  .form-container {
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  /* SELETOR DE IDIOMA (ESTILO TOTEM PÍLULA) */
+  .lang-switch-container {
+    display: flex; justify-content: flex-end; margin-bottom: 30px;
+  }
+  .lang-switch-totem {
+    display: inline-flex; background: var(--auth-bg-light); border: 1px solid var(--auth-border); border-radius: 50px; padding: 4px;
+    button {
+      border: none; background: transparent; padding: 6px 18px; border-radius: 40px; font-size: 13px; font-weight: 800; color: var(--auth-text-gray); cursor: pointer; transition: all 0.2s ease;
+      &.active { background: var(--auth-primary); color: white; box-shadow: 0 2px 5px rgba(14, 165, 233, 0.2); }
+      &:hover:not(.active) { color: var(--auth-primary); background: rgba(14, 165, 233, 0.05); }
+    }
+  }
+
+  /* Textos do Cabeçalho */
+  .header-text {
+    margin-bottom: 30px;
+    h2 { font-size: 32px; font-weight: 800; color: var(--auth-text-dark); font-style: italic; margin: 0 0 5px 0; }
+    p { color: var(--auth-text-gray); font-size: 15px; span { color: var(--auth-primary); font-weight: 700; } }
+  }
+
+  /* Inputs */
+  .input-group {
+    margin-bottom: 20px;
+    label {
+      display: block; font-size: 11px; font-weight: 800; color: var(--auth-text-gray);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .input-wrapper {
+      position: relative;
+      lucide-icon { position: absolute; left: 15px; top: 14px; color: #94A3B8; }
+      input {
+        width: 100%; box-sizing: border-box;
+        padding: 16px 16px 16px 45px; /* Espaço pro ícone */
+        border: 2px solid var(--auth-border); border-radius: 12px;
+        font-size: 16px; outline: none; transition: 0.2s; background: var(--auth-bg-light);
+        &:focus {
+          border-color: var(--auth-primary); background: white;
+          box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+      }
+    }
+  }
+
+  /* Opções (Checkbox, Links) */
+  .options {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 30px; font-size: 14px; color: var(--auth-text-gray);
+
+    a { color: var(--auth-primary); font-weight: 700; text-decoration: none; }
+    
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      input { accent-color: var(--auth-primary); width: 16px; height: 16px; }
+    }
+  }
+
+  /* Botão Principal */
+  .btn-primary {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(90deg, var(--auth-gradient-start), var(--auth-gradient-end));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    font-style: italic;
+    cursor: pointer;
+    transition: transform 0.1s;
+    margin-top: 10px;
+
+    &:active { transform: scale(0.98); }
+    &:disabled { opacity: 0.6; cursor: wait; }
+
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  /* Rodapé do Form */
+  .footer-msg {
+    margin-top: 30px; text-align: center; color: var(--auth-text-gray); font-size: 14px;
+    a { color: var(--auth-primary); font-weight: 700; text-decoration: none; }
+  }
 }
+
+/* --- UTILITÁRIOS --- */
+
+/* Abas (Pills) do Cadastro */
+.tabs-pills {
+  display: flex; background: var(--auth-bg-light); padding: 5px; border-radius: 12px; margin-bottom: 30px;
+  button {
+    flex: 1; border: none; background: transparent; padding: 12px;
+    font-weight: 700; color: var(--auth-text-gray); cursor: pointer; border-radius: 8px; transition: 0.2s;
+    &.active { background: white; color: var(--auth-primary); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); }
+  }
+}
+
+/* Tela de Sucesso */
+.success-view {
+  text-align: center; padding: 20px 0; animation: fadeIn 0.5s ease;
+  .icon-circle {
+    width: 100px; height: 100px; background: rgba(14, 165, 233, 0.1);
+    color: var(--auth-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;
+  }
+  h2 { font-size: 32px; font-weight: 800; color: var(--auth-text-dark); margin-bottom: 10px; font-style: italic; }
+  p { font-size: 18px; color: var(--auth-text-gray); margin-bottom: 40px; }
+}
+
+/* Link Voltar */
+.back-link {
+  display: inline-flex; align-items: center; gap: 5px; color: var(--auth-text-gray);
+  font-size: 14px; font-weight: 700; text-decoration: none; margin-bottom: 20px; cursor: pointer;
+  &:hover { color: var(--auth-primary); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.3s ease; }

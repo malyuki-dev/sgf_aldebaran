@@ -1,16 +1,38 @@
 <div class="tv-container">
-  <div class="left-panel">
-    <div class="brand"><lucide-icon [img]="icons.droplets" size="64"></lucide-icon> <h1>Aldebaran</h1></div>
-    <div class="main-display">
-      <h2>SENHA ATUAL</h2>
-      <div class="numero">{{ senha?.numeroDisplay || '---' }}</div>
-      <div class="guiche">GUICHÊ 01</div>
+  <header>
+    <div class="brand">
+      <h1>SGF</h1>
+      <span>ALDEBARAN</span>
     </div>
-  </div>
-  <div class="right-panel">
-    <h2>Últimas Chamadas</h2>
-    <div class="history-item" *ngFor="let item of history">
-      <span>{{ item.numeroDisplay }}</span> <span>Guichê 01</span>
+    <div class="time-box">
+      <div class="time">{{ dataAtual | date:'HH:mm' }}</div>
+      <div class="date">{{ dataAtual | date:"EEEE, d 'de' MMMM" }}</div>
     </div>
-  </div>
+  </header>
+
+  <main>
+    <section class="left-panel">
+      <h2>SENHA CHAMADA</h2>
+      <div class="big-card">
+        <div class="number">{{ senhaAtual?.numero || '---' }}</div>
+        <div class="footer-info">
+          <span>GUICHÊ {{ senhaAtual?.guiche || '--' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="right-panel">
+      <h2>ÚLTIMAS CHAMADAS</h2>
+      <div class="history-list">
+        <div class="hist-card" *ngFor="let item of ultimasChamadas">
+          <span class="h-num">{{ item.numero }}</span>
+          <span class="h-loc">GUICHÊ {{ item.guiche }}</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>BEM-VINDO À ALDEBARAN. POR FAVOR, AGUARDE SUA VEZ.</p>
+  </footer>
 </div>

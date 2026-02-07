@@ -1,29 +1,58 @@
-<div class="senha-container">
-  <div class="success-icon">
-    <lucide-icon [img]="icons.check" [size]="64"></lucide-icon>
+<div class="page-container">
+  
+  <div class="screen-logo">
+    <img src="assets/logo-aldebaran.png" alt="Aldebaran">
   </div>
 
-  <h2>Senha Gerada com Sucesso!</h2>
+  <div class="content-split">
+    
+    <div class="left-message no-print">
+      <div class="success-circle">
+        <lucide-icon [img]="icons.check" [size]="50" strokeWidth="4"></lucide-icon>
+      </div>
+      
+      <h1>Tudo pronto!</h1>
+      <p>Retire sua senha impressa ao lado.</p>
 
-  <div class="card ticket-card">
-    <span class="label">Sua Senha</span>
-    <div class="numero-gigante">{{ senhaNumero }}</div>
-
-    <div class="qr-box">
-      <img [src]="qrCodeUrl" alt="QR Code" style="display: block; margin: 0 auto; border-radius: 8px;">
-      <p>Escaneie para acompanhar</p>
+      <div class="tv-box">
+        Aguarde o chamado na TV
+      </div>
     </div>
 
-    <div class="ticket-footer">
-      <span>Data: {{ dataHoje | date:'dd/MM/yyyy' }}</span>
-      <span>Hora: {{ dataHoje | date:'HH:mm' }}</span>
-    </div>
+    <div class="right-ticket">
+      
+      <div class="ticket-paper printable" *ngIf="ticket">
+        
+        <div class="ticket-header">
+          <img src="assets/logo-aldebaran.png" alt="Logo" class="print-logo">
+        </div>
+
+        <div class="lbl-sua-senha">Sua Senha</div>
+        <div class="senha-value">{{ ticket.senha }}</div>
+
+        <div class="dashed-divider"></div>
+
+        <div class="ticket-body">
+          <h2 class="tipo-atendimento">{{ ticket.tipo || 'Convencional' }}</h2>
+          
+          <span class="lbl-categoria">Categoria</span>
+          <h3 class="nome-categoria">{{ ticket.categoria | uppercase }}</h3>
+
+          <div class="time-group">
+            <div class="hora">{{ ticket.dataHora | date:'HH:mm' }}</div>
+            <div class="data">{{ ticket.dataHora | date:'dd/MM/yyyy' }}</div>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <img [src]="qrCodeUrl" class="qr-img">
+          <p>ESCANEIE PARA ACOMPANHAR A FILA</p>
+        </div>
+
+        <div class="rip-effect"></div>
+
+      </div>
+      </div>
+
   </div>
-
-  <button class="btn-primary" (click)="imprimir()">
-    <lucide-icon [img]="icons.print"></lucide-icon>
-    Imprimir Senha
-  </button>
-
-  <p class="redirect-msg">Redirecionando em 10 segundos...</p>
 </div>

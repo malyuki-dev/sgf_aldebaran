@@ -1,0 +1,42 @@
+<div class="menu-overlay" (click)="fechar()">
+  <div class="menu-sidebar" (click)="$event.stopPropagation()">
+    
+    <div class="menu-header">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo">
+      <button class="close-btn" (click)="fechar()">
+        <lucide-angular [img]="icons.close" size="24"></lucide-angular>
+      </button>
+    </div>
+
+    <nav class="menu-nav">
+      <a routerLink="/client/home" routerLinkActive="active" (click)="fechar()" class="nav-item">
+        <lucide-angular [img]="icons.home" size="20"></lucide-angular>
+        Início
+      </a>
+      <a routerLink="/client/agendar" routerLinkActive="active" (click)="fechar()" class="nav-item">
+        <lucide-angular [img]="icons.calendar" size="20"></lucide-angular>
+        Agendar
+      </a>
+      <a routerLink="/client/agendamentos" routerLinkActive="active" (click)="fechar()" class="nav-item">
+        <lucide-angular [img]="icons.file" size="20"></lucide-angular>
+        Meus Agendamentos
+      </a>
+      <a class="nav-item">
+        <lucide-angular [img]="icons.user" size="20"></lucide-angular>
+        Minha Conta
+      </a>
+      <a class="nav-item">
+        <lucide-angular [img]="icons.help" size="20"></lucide-angular>
+        Ajuda e Suporte
+      </a>
+    </nav>
+
+    <div class="menu-footer">
+      <button class="logout-btn" (click)="logout()">
+        <lucide-angular [img]="icons.logout" size="20"></lucide-angular>
+        Sair da Conta
+      </button>
+    </div>
+
+  </div>
+</div>

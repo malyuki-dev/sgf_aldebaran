@@ -1,22 +1,27 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideAngularModule, Ticket } from 'lucide-angular'; 
 
 @Component({
   selector: 'app-totem-inicial',
   standalone: true,
-  imports: [LucideAngularModule], 
+  imports: [CommonModule],
   templateUrl: './totem-inicial.component.html',
-  styleUrl: './totem-inicial.component.scss'
+  styleUrls: ['./totem-inicial.component.scss']
 })
 export class TotemInicialComponent {
-  // Registra o ícone para usar no HTML
-  readonly ticketIcon = Ticket;
 
   constructor(private router: Router) {}
 
-  navegar() {
-    // Navega para a próxima tela (que criaremos depois)
-    this.router.navigate(['/totem/categoria']);
+  // Ação do botão "Tenho Agendamento"
+  navegarParaCheckin() {
+    console.log('Navegando para Check-in...');
+    this.router.navigate(['/totem/checkin']);
+  }
+
+  // Ação do botão "Retirar Senha"
+  navegarParaSenha() {
+    console.log('Navegando para Retirada de Senha...');
+    this.router.navigate(['/totem/tipo-atendimento']);
   }
 }

@@ -1,65 +1,51 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
-import { Cliente } from './entities/cliente.entity';
-import { CreateClienteDto } from './dto/create-client.dto';
-import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { Repository } from 'typeorm';
+import { Client } from './entities/client.entity';
 
 @Injectable()
-export class ClienteService {
+export class ClientService {
   constructor(
-    @InjectRepository(Cliente)
-    private clienteRepo: Repository<Cliente>,
+    @InjectRepository(Client)
+    private clienteRepo: Repository<Client>,
   ) {}
 
-  async create(createClienteDto: CreateClienteDto) {
-    // RN01: CPF/CNPJ único
-    const existe = await this.clienteRepo.findOne({ 
-      where: { documento: createClienteDto.documento },
-      withDeleted: true // Checa até nos excluídos para evitar conflito
-    });
-
-    if (existe) {
-      throw new BadRequestException('Já existe um cliente com este CPF/CNPJ.');
+  async create(createClienteDto: any) {
+    let whereClause = {};
+    if (createClienteDto.tipo === 'PF') {
+      if (!createClienteDto.cpf) throw new BadRequestException('CPF obrigatório');
+      whereClause = { cpf: createClienteDto.cpf };
+    } else {
+      if (!createClienteDto.cnpj) throw new BadRequestException('CNPJ obrigatório');
+      whereClause = { cnpj: createClienteDto.cnpj };
     }
+
+    const existe = await this.clienteRepo.findOne({ where: whereClause, withDeleted: true });
+    if (existe) throw new BadRequestException('Cliente já existe.');
 
     const novo = this.clienteRepo.create(createClienteDto);
     return await this.clienteRepo.save(novo);
   }
 
-  // Listagem com Filtros (RNF01 - Otimização básica)
-  async findAll(filtros: { nome?: string, documento?: string }) {
-    const where: any = {};
-    
-    if (filtros.nome) {
-      where.nome = Like(`%${filtros.nome}%`); // Busca parcial
-    }
-    if (filtros.documento) {
-      where.documento = Like(`%${filtros.documento}%`);
-    }
-
-    return await this.clienteRepo.find({
-      where,
-      order: { nome: 'ASC' } // Critério de aceitação: Ordenação por nome
-    });
+  // CORREÇÃO: Método simples sem argumentos obrigatórios
+  async findAll() {
+    return await this.clienteRepo.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const cliente = await this.clienteRepo.findOne({ where: { id } });
-    if (!cliente) throw new NotFoundException('Cliente não encontrado');
+    if (!cliente) throw new NotFoundException('Cliente não encontrado.');
     return cliente;
   }
 
-  async update(id: number, updateClienteDto: UpdateClienteDto) {
-    // RN03: Identificador fixo (se quiser bloquear troca de CPF, cheque aqui)
+  async update(id: string, updateClienteDto: any) {
     const cliente = await this.findOne(id);
     this.clienteRepo.merge(cliente, updateClienteDto);
     return await this.clienteRepo.save(cliente);
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const cliente = await this.findOne(id);
-    // RN06: Exclusão Lógica (Soft Delete)
-    return await this.clienteRepo.softRemove(cliente);
+    return await this.clienteRepo.remove(cliente);
   }
 }

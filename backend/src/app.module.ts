@@ -4,10 +4,13 @@ import { FilaModule } from './fila/fila.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { ClienteModule } from './cliente/client.module'; 
 
+// 1. IMPORTANTE: Importar o AuthModule
+import { AuthModule } from './auth/auth.module'; 
+
 // Importe as entidades
 import { Servico, Senha, Atendimento, Agendamento } from './fila/entities/fila.entity';
 import { Usuario } from './usuario/entities/usuario.entity';
-import { Cliente } from './cliente/entities/cliente.entity';
+import { Client } from './cliente/entities/client.entity'; 
 
 @Module({
   imports: [
@@ -16,18 +19,23 @@ import { Cliente } from './cliente/entities/cliente.entity';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'Ufal82',
-      database: 'sgf_aldebaran',
+      password: 'Ufal82',       // Sua senha original
+      database: 'sgf_aldebaran', // Seu banco original
       
-      // IMPORTANTE: Adicione Cliente na lista de entidades
-      entities: [Servico, Senha, Atendimento, Usuario, Agendamento, Cliente], 
+      // Lista de todas as tabelas
+      entities: [Servico, Senha, Atendimento, Usuario, Agendamento, Client], 
       
       synchronize: true,
     }),
+    
+    // Módulos do Sistema
     FilaModule,
     UsuarioModule,
-    // IMPORTANTE: Adicione ClienteModule na lista de imports
-    ClienteModule, 
+    ClienteModule,
+    
+    // 2. IMPORTANTE: Adicionar AuthModule na lista
+    // Sem isso, o erro "Cannot POST /auth/..." continua
+    AuthModule, 
   ],
   controllers: [],
   providers: [],

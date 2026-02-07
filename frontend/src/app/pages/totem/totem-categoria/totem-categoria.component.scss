@@ -1,67 +1,393 @@
-.categoria-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
-  animation: slideUp 0.4s;
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-  h2 {
-    font-size: 2rem;
-    color: var(--secondary-color);
-    margin-bottom: 10px;
+
+* { box-sizing: border-box; }
+
+
+:host {
+
+  display: block;
+
+  width: 100%;
+
+  min-height: 100vh;
+
+}
+
+
+// CORES
+
+$bg-gradient-start: #F8FAFC;
+
+$bg-gradient-end: #E0F2FE;  
+
+$text-dark: #1E293B;
+
+$text-gray: #64748B;
+
+$card-white: #FFFFFF;
+
+$primary-blue: #0099CC;
+
+$icon-bg: #E0F7FA;
+
+
+.totem-container {
+
+  width: 100%;
+
+  min-height: 100vh;
+
+  background: radial-gradient(circle at 50% 40%, $bg-gradient-start 0%, $bg-gradient-end 100%);
+
+  display: flex;
+
+  flex-direction: column;
+
+  font-family: 'Inter', sans-serif;
+
+  overflow-x: hidden;
+
+  overflow-y: auto;
+
+}
+
+
+/* --- HEADER --- */
+
+header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 20px 30px;
+
+  width: 100%;
+
+  flex-shrink: 0;
+
+
+  .brand-area .brand-logo {
+
+    height: 50px;
+
+    width: auto;
+
+    object-fit: contain;
+
+    display: block;
+
+    @media (min-width: 768px) { height: 70px; }
+
   }
+
+
+  .lang-switch {
+
+    display: flex;
+
+    background-color: #FFFFFF;
+
+    border: 2px solid rgba(255, 255, 255, 0.7);
+
+    border-radius: 99px;
+
+    padding: 4px;
+
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+
+
+    .lang-option {
+
+      padding: 8px 16px;
+
+      border-radius: 99px;
+
+      font-size: 13px;
+
+      font-weight: 700;
+
+      color: #64748B;
+
+      cursor: pointer;
+
+      transition: all 0.3s ease;
+
+      white-space: nowrap;
+
+
+      @media (min-width: 768px) { padding: 10px 24px; font-size: 15px; }
+
+
+      &.active {
+
+        background: linear-gradient(90deg, #0EA5E9 0%, #0891B2 100%);
+
+        color: #FFFFFF;
+
+      }
+
+    }
+
+  }
+
+}
+
+
+/* --- MAIN CONTENT --- */
+
+.main-content {
+
+  flex-grow: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: flex-start;
+
+  width: 100%;
+
+  padding-top: 5vh;
+
+  padding-bottom: 40px;
+
+}
+
+
+.center-wrapper {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  width: 100%;
+
+  max-width: 1300px; // Largura maior para caber 3 cards lado a lado
+
+  padding: 0 20px;
+
+}
+
+
+.heading-group {
+
+  text-align: center;
+
+  padding: 0 10px;
+
+  margin-bottom: 50px;
+
+
+  h1 {
+
+    font-weight: 800;
+
+    font-size: clamp(32px, 4vw, 48px);
+
+    color: $text-dark;
+
+    margin: 0 0 15px 0; // Mais espaço abaixo do título
+
+    letter-spacing: -1px;
+
+  }
+
 
   p {
-    color: #666;
-    margin-bottom: 40px;
+
+    font-size: clamp(16px, 2.5vw, 18px);
+
+    color: $text-gray;
+
+    margin: 0;
+
   }
+
 }
 
-.btn-back {
-  background: none;
-  border: none;
+
+/* --- ROW DE CARTÕES --- */
+
+.cards-row {
+
   display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 1rem;
-  cursor: pointer;
+
+  flex-wrap: wrap;
+
+  justify-content: center; // Centraliza os cards
+
+  gap: 30px; // Espaço entre eles
+
+  width: 100%;
+
+  padding: 10px;
+
 }
 
-.grid-servicos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
 
-.card-servico {
-  cursor: pointer;
+.category-card {
+
+  // Flexível, mas com base larga para parecer com a imagem
+
+  flex: 1 1 300px;
+
+  max-width: 380px;
+
+  min-height: 350px; // Altura mínima generosa
+
+
+  background: $card-white;
+
+  border-radius: 32px; // Bordas bem arredondadas
+
+  padding: 40px 30px;
+
+ 
+
   display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start; // Alinha texto à esquerda (ou center se preferir)
+
+  // Na imagem parece alinhado à esquerda ou centro?
+
+  // Olhando bem, parece CENTRADO. Vamos centralizar:
+
   align-items: center;
-  gap: 20px;
-  padding: 30px;
-  border: 2px solid transparent;
-  transition: all 0.2s;
+
+  text-align: center;
+
+
+  box-shadow: 0 20px 50px -12px rgba(2, 132, 199, 0.1); // Sombra suave
+
+  cursor: pointer;
+
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+
 
   &:hover {
-    border-color: var(--primary-color);
+
+    @media (hover: hover) {
+
+      transform: translateY(-10px);
+
+      box-shadow: 0 35px 60px -10px rgba(2, 132, 199, 0.2);
+
+    }
+
   }
+
 
   .icon-box {
-    background: #F0F2F5;
-    padding: 15px;
-    border-radius: 12px;
-    color: var(--primary-color);
+
+    width: 90px;
+
+    height: 90px;
+
+    background-color: $icon-bg;
+
+    border-radius: 24px;
+
     display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 30px;
+
+
+    svg {
+
+      width: 50%;
+
+      height: 50%;
+
+      // stroke: já definido no HTML
+
+    }
+
   }
 
-  .info {
-    h3 { font-size: 1.2rem; margin: 0 0 5px 0; }
-    span { font-size: 0.9rem; color: #888; }
+
+  h2 {
+
+    font-weight: 800;
+
+    font-size: 24px;
+
+    color: $text-dark;
+
+    margin: 0 0 15px 0;
+
   }
+
+
+  p {
+
+    font-size: 16px;
+
+    color: $text-gray;
+
+    line-height: 1.5;
+
+    margin: 0;
+
+    max-width: 90%; // Evita que texto encoste nas bordas
+
+  }
+
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
+/* --- BOTÃO VOLTAR --- */
+
+.footer-action {
+
+  margin-top: 80px; // Bastante espaço do conteúdo
+
+ 
+
+  .btn-back {
+
+    background: transparent;
+
+    border: none;
+
+    color: $text-gray;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    cursor: pointer;
+
+    padding: 10px 20px;
+
+    transition: color 0.2s;
+
+
+    &:hover { color: $text-dark; }
+
+    &:hover svg { transform: translateX(-4px); }
+
+  }
+
+} 

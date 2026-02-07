@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn, DeleteDateColumn } from 'typeorm'; // <--- Adicione DeleteDateColumn
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn, DeleteDateColumn } from 'typeorm';
 
 @Entity()
 export class Servico {
@@ -17,7 +17,7 @@ export class Servico {
   @Column({ default: true })
   ativo: boolean;
 
-  @DeleteDateColumn() // <--- NOVO: Isso ativa o Soft Delete
+  @DeleteDateColumn()
   deletadoEm: Date;
 }
 
@@ -31,6 +31,10 @@ export class Senha {
 
   @Column({ default: 'AGUARDANDO' })
   status: string;
+
+  // --- NOVO: Tipo (Preferencial/Convencional) ---
+  @Column({ nullable: true })
+  tipo: string;
 
   @CreateDateColumn()
   dataCriacao: Date;
@@ -69,6 +73,10 @@ export class Atendimento {
 export class Agendamento {
   @PrimaryGeneratedColumn()
   id: number;
+
+  // --- NOVO: Código do Check-in ---
+  @Column({ unique: true, nullable: true })
+  codigo: string;
 
   @Column()
   nomeCliente: string;

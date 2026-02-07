@@ -1,0 +1,87 @@
+// Variáveis
+$primary: #0099BD;
+$text-dark: #1F2937;
+$text-gray: #6B7280;
+$bg-body: #F8FAFC; // Fundo cinza claro para toda a página
+$bg-white: #ffffff;
+$border: #E5E7EB;
+
+:host { display: block; }
+
+// === LAYOUT WEB APP ===
+.page-container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: $bg-body;
+  display: flex;
+  flex-direction: column;
+}
+
+// Cabeçalho Full Width
+.app-header {
+  background: $bg-white;
+  padding: 16px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid $border;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+
+  // Ajuste padding no mobile
+  @media (max-width: 768px) { padding: 16px 20px; }
+
+  .header-left { display: flex; align-items: center; gap: 16px; .logo { height: 28px; } }
+  .header-right { display: flex; align-items: center; gap: 16px; .lang-pill { background: #F3F4F6; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; span { padding: 4px 8px; color: #9CA3AF; &.active { background: #008BAE; color: $bg-white; border-radius: 4px; } } } .notification { position: relative; background: none; border: none; padding: 0; .dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: #EF4444; border-radius: 50%; border: 2px solid $bg-white; } } }
+  .icon-btn { background: none; border: none; cursor: pointer; color: $text-dark; padding: 0; }
+}
+
+// Container do Conteúdo
+.main-content {
+  width: 100%;
+  max-width: 1100px; // Limite para Desktop (Não estica infinitamente)
+  margin: 0 auto;    // Centraliza na tela
+  padding: 32px 20px;
+  flex: 1;
+}
+
+.welcome-header { margin-bottom: 32px; h1 { font-size: 24px; font-weight: 800; color: $text-dark; margin: 0; } p { font-size: 12px; font-weight: 700; color: #9CA3AF; letter-spacing: 1px; margin-top: 6px; } }
+
+// === GRID RESPONSIVO ===
+.dashboard-grid {
+  display: flex;
+  flex-direction: column; // Mobile: Vertical
+  gap: 32px;
+
+  // Desktop: Vira Grid (Lado a Lado)
+  @media (min-width: 900px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr; // Duas colunas iguais
+    gap: 40px;
+    align-items: start;
+  }
+}
+
+// Cards Genéricos
+.card { background: $bg-white; border-radius: 20px; border: 1px solid $border; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: transform 0.2s; }
+
+// Status
+.status-card {
+  padding: 40px; text-align: center; position: relative;
+  .badge { position: absolute; top: 20px; left: 20px; background: #F3F4F6; color: $text-gray; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
+  .calendar-icon { width: 80px; height: 80px; background: #F9FAFB; border-radius: 16px; margin: 30px auto; display: flex; flex-direction: column; overflow: hidden; border: 1px solid $border; .top-bar { height: 24px; background: #EF5350; display: flex; justify-content: center; gap: 4px; align-items: center; .dot { width: 3px; height: 3px; background: rgba(255,255,255,0.7); border-radius: 50%; } } .number { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: $text-dark; } }
+  h2 { font-size: 20px; font-weight: 700; color: $text-dark; margin-bottom: 8px; } .desc { font-size: 14px; color: $text-gray; margin-bottom: 32px; line-height: 1.5; }
+  .btn-primary { width: 100%; background: linear-gradient(90deg, $primary, #007A9A); color: $bg-white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s; &:active { transform: scale(0.98); } }
+}
+
+// Ações
+.actions-section {
+  .section-title { font-size: 12px; font-weight: 800; color: #9CA3AF; letter-spacing: 1px; margin-bottom: 16px; }
+  .actions-list { display: flex; flex-direction: column; gap: 16px; }
+}
+
+.action-item {
+  padding: 20px; display: flex; align-items: center; gap: 16px; cursor: pointer;
+  &:hover { border-color: $primary; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+  .icon-circle { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; &.teal { background: #E0F2F1; color: #00897B; } &.beige { background: #EFEBE9; color: #8D6E63; } &.pink { background: #FFEBEE; color: #E57373; } }
+  .text { flex: 1; h4 { margin: 0; font-size: 16px; font-weight: 700; color: $text-dark; } p { margin: 4px 0 0; font-size: 12px; color: #9CA3AF; } }
+  .arrow { color: #D1D5DB; }
+}

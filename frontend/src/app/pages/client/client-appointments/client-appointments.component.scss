@@ -1,0 +1,118 @@
+$bg-app: #F8FAFC;
+$white: #ffffff;
+$primary: #0099BD;
+$text-dark: #1F2937;
+$text-gray: #6B7280;
+
+// Cores de Status
+$green-bg: #DCFCE7; $green-text: #166534;
+$orange-bg: #FEF3C7; $orange-text: #D97706;
+$red-bg: #FEE2E2; $red-text: #991B1B;
+
+.appointments-layout {
+  background-color: $bg-app;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex; flex-direction: column;
+}
+
+.page-header {
+  background: $white; padding: 15px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05); // Corrigido
+  
+  h1 { font-size: 16px; font-weight: bold; margin: 0; color: $text-dark; }
+  .icon-btn { background: none; border: none; cursor: pointer; color: $text-dark; padding: 0; }
+  .notification-badge {
+    position: relative;
+    .dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: #EF4444; border-radius: 50%; border: 1px solid $white; }
+  }
+}
+
+.tabs-container {
+  padding: 20px 20px 0;
+  max-width: 1200px; width: 100%; margin: 0 auto;
+  
+  .tabs-bg {
+    background: $white; border-radius: 12px; padding: 4px;
+    display: flex; border: 1px solid #E5E7EB; max-width: 400px;
+    
+    .tab {
+      flex: 1; border: none; background: none; padding: 10px;
+      font-weight: bold; font-size: 14px; color: $text-gray;
+      border-radius: 8px; cursor: pointer; transition: all 0.2s;
+      
+      &.active {
+        // --- CORREÇÃO DO ERRO DE CSS ---
+        background: $primary; 
+        color: $white; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); // Era 'shadow', agora é 'box-shadow'
+      }
+    }
+  }
+}
+
+.cards-list {
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 15px;
+  width: 100%; max-width: 1200px; margin: 0 auto;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    align-items: start;
+  }
+}
+
+.appointment-card {
+  background: $white; border-radius: 16px; padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #E5E7EB;
+  display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start;
+  transition: transform 0.2s;
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+  
+  .date-box {
+    width: 50px; height: 50px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: $white; font-weight: bold; flex-shrink: 0;
+    &.blue { background: #0099BD; }
+    &.teal { background: #0D9488; }
+    .day { font-size: 18px; line-height: 1; }
+    .month { font-size: 10px; text-transform: uppercase; }
+  }
+  
+  .info-box {
+    flex: 1;
+    .header-info {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+      h3 { margin: 0; font-size: 14px; font-weight: bold; color: $text-dark; }
+    }
+    
+    .status {
+      font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: bold;
+      &.confirmed { background: $green-bg; color: $green-text; }
+      &.pending { background: $orange-bg; color: $orange-text; }
+      &.canceled { background: $red-bg; color: $red-text; }
+    }
+    
+    .details p {
+      margin: 4px 0; font-size: 12px; color: $text-gray;
+      display: flex; align-items: center; gap: 5px;
+    }
+  }
+  
+  .actions {
+    width: 100%; display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px;
+    border-top: 1px solid #F3F4F6; padding-top: 12px;
+    
+    button {
+      padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;
+      border: 1px solid #E5E7EB; background: $white; color: $text-gray; transition: all 0.2s;
+      
+      &.filled { background: #0099BD; color: $white; border: none; }
+      &:hover { filter: brightness(0.95); transform: scale(1.02); }
+    }
+  }
+}

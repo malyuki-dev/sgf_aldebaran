@@ -1,69 +1,74 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // <--- Importar ChangeDetectorRef
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { ApiService } from '../../../services/api.service';
-import { LucideAngularModule, Truck, Package, Zap, ChevronLeft } from 'lucide-angular';
+import { Router, RouterLink } from '@angular/router';
+// Importe o serviço do Totem para gerar a senha real
+import { TotemService } from '../../../services/totem.service';
 
 @Component({
   selector: 'app-totem-categoria',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './totem-categoria.component.html',
-  styleUrl: './totem-categoria.component.scss'
+  styleUrls: ['./totem-categoria.component.scss']
 })
-export class TotemCategoriaComponent implements OnInit {
-  servicos: any[] = [];
-  carregando = true;
-  
-  readonly icons = {
-    truck: Truck,
-    package: Package,
-    zap: Zap,
-    back: ChevronLeft
-  };
+export class TotemCategoriaComponent {
 
-  // Injete o cdr no construtor
+  tipoAtendimentoAnterior: string = '';
+
+  // Lista FIXA para garantir que seu design (ícones e descrições) funcione perfeitamente
+  categorias = [
+    { 
+      id: 1, 
+      nome: 'Caminhão', 
+      descricao: 'Carga pesada e grandes volumes', 
+      icone: 'truck' 
+    },
+    { 
+      id: 2, 
+      nome: 'Retirada Pesada', 
+      descricao: 'Garrafões e vasilhames em quantidade', 
+      icone: 'box' 
+    },
+    { 
+      id: 3, 
+      nome: 'Cliente Rápido', 
+      descricao: 'Atendimento expresso e dúvidas rápidas', 
+      icone: 'zap' 
+    }
+  ];
+
   constructor(
-    private api: ApiService, 
     private router: Router,
-    private cdr: ChangeDetectorRef // <--- Injeção aqui
-  ) {}
-
-  ngOnInit() {
-    this.api.get<any[]>('/fila/servicos').subscribe({
-      next: (data) => {
-        // Filtra e atualiza a variável
-        this.servicos = data.filter(s => s.ativo !== false);
-        this.carregando = false;
-        
-        // FORÇA O ANGULAR A ATUALIZAR A TELA AGORA
-        this.cdr.detectChanges(); 
-      },
-      error: (err) => {
-        console.error('Erro ao buscar serviços', err);
-        this.carregando = false;
-        this.cdr.detectChanges(); // Força atualização mesmo no erro
-      }
-    });
+    private totemService: TotemService // Injeção do serviço
+  ) {
+    const state = history.state;
+    // Recupera se é Preferencial ou Convencional
+    if (state && state.tipoAtendimento) {
+      this.tipoAtendimentoAnterior = state.tipoAtendimento;
+    } else {
+      this.tipoAtendimentoAnterior = 'convencional'; 
+    }
   }
 
-  gerarSenha(servicoId: number) {
-    this.api.post<any>('/fila/solicitar_senha', { servico_id: servicoId }).subscribe({
-      next: (res) => {
-        this.router.navigate(['/totem/senha', res.id, res.numeroDisplay]);
-      },
-      error: () => alert('Erro ao gerar senha.')
-    });
-  }
+  selecionarCategoria(categoriaSelecionada: any) {
+    console.log('Gerando senha para:', categoriaSelecionada.nome);
 
-  voltar() {
-    this.router.navigate(['/totem']);
-  }
+    // 1. Chama o Backend para criar a senha sequencial (P-C001)
+    this.totemService.criarSenha(this.tipoAtendimentoAnterior, categoriaSelecionada.nome)
+      .subscribe({
+        next: (ticket) => {
+          
+          // 2. Navega para a rota configurada (senha/ID/SENHA)
+          this.router.navigate(['/totem/senha', ticket.id, ticket.senha], { 
+            state: { ticket: ticket } 
+          });
 
-  getIcon(nome: string) {
-    const n = (nome || '').toLowerCase();
-    if (n.includes('caminhão')) return this.icons.truck;
-    if (n.includes('rápido')) return this.icons.zap;
-    return this.icons.package;
+        },
+        error: (err) => {
+          console.error(err);
+          // Mensagem amigável caso o backend esteja desligado ou o serviço não exista no banco
+          alert('Erro ao gerar senha. Verifique se o serviço "' + categoriaSelecionada.nome + '" existe no Banco de Dados.');
+        }
+      });
   }
 }

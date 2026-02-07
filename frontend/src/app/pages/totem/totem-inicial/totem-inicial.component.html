@@ -1,9 +1,55 @@
-<div class="inicial-container">
-  <h1>Bem-vindo ao<br>Sistema Fila</h1>
-  <p>Sistema de Gestão de Filas Inteligente</p>
+<div class="totem-container">
+  
+  <header>
+    <div class="brand-area">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
+    </div>
 
-  <button class="btn-primary btn-lg" (click)="navegar()">
-    <lucide-icon [img]="ticketIcon"></lucide-icon>
-    Gerar Senha
-  </button>
+    <div class="lang-switch">
+      <div class="lang-option active">PT</div>
+      <div class="lang-option">EN</div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    
+    <div class="center-wrapper">
+      
+      <div class="heading-group">
+        <h1>Bem-vindo</h1>
+        <p>Selecione uma opção para iniciar o atendimento</p>
+      </div>
+
+      <div class="cards-row">
+        
+        <div class="action-card" (click)="navegarParaCheckin()">
+          <div class="icon-box">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 2V6" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 2V6" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 10H21" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 16L11 18L15 14" stroke="#0099CC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2>Tenho Agendamento</h2>
+          <p>Check-in via QR Code</p>
+          <div class="bar-indicator"></div>
+        </div>
+
+        <div class="action-card" (click)="navegarParaSenha()">
+          <div class="icon-box">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 9V7C2 5.89543 2.89543 5 4 5H20C21.1046 5 22 5.89543 22 7V9C22 10.1046 21.1046 11 20 11H19.5C18.6716 11 18 11.6716 18 12.5C18 13.3284 18.6716 14 19.5 14H20C21.1046 14 22 14.8954 22 16V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V16C2 14.8954 2.89543 14 4 14H4.5C5.32843 14 6 13.3284 6 12.5C6 11.6716 5.32843 11 4.5 11H4C2.89543 11 2 10.1046 2 9Z" stroke="#0099CC" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M9 12.5H15" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 0.1"/>
+            </svg>
+          </div>
+          <h2>Retirar Senha</h2>
+          <p>Chegada sem hora marcada</p>
+          <div class="bar-indicator"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
 </div>

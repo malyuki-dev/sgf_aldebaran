@@ -1,0 +1,52 @@
+<div class="split-layout">
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="logo-box">
+        <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="hero-logo-white">
+      </div>
+      <h1>Recuperar Acesso</h1>
+      <p>Redefina sua senha com segurança.</p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="form-container">
+      
+      <div class="success-view" *ngIf="step === 'SUCCESS'">
+        <div class="icon-circle"><lucide-icon [img]="icons.check" size="60"></lucide-icon></div>
+        <h2>E-mail Enviado!</h2>
+        <p>Verifique sua caixa de entrada em<br><strong>{{ email }}</strong></p>
+        <button class="btn-primary" routerLink="/client/login">Voltar ao Login</button>
+      </div>
+
+      <div *ngIf="step === 'FORM'" class="fade-in">
+        
+        <div class="lang-switch-container">
+          <div class="lang-switch-totem">
+            <button class="active">PT</button>
+            <button>EN</button>
+          </div>
+        </div>
+
+        <a routerLink="/client/login" class="back-link">
+          <lucide-icon [img]="icons.arrow" size="16"></lucide-icon> Voltar
+        </a>
+
+        <div class="header-text">
+          <h2>Esqueci a Senha</h2>
+          <p>Digite seu e-mail para receber o link.</p>
+        </div>
+        <form (submit)="enviar()">
+          <div class="input-group">
+            <label>E-MAIL CADASTRADO</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.mail" size="20"></lucide-icon>
+              <input type="email" [(ngModel)]="email" name="email" placeholder="seu@email.com" required>
+            </div>
+          </div>
+          <button class="btn-primary" [disabled]="carregando">Enviar Link</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>

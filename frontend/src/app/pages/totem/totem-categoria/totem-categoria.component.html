@@ -1,31 +1,126 @@
-<div class="categoria-container">
-  <button class="btn-back" (click)="voltar()">
-    <lucide-icon [img]="icons.back"></lucide-icon> Voltar
-  </button>
+ <div class="totem-container">
 
-  <h2>Selecione a Categoria</h2>
-  <p>Toque na opção de atendimento que você precisa.</p>
+ 
 
-  <div *ngIf="carregando" style="text-align: center; padding: 40px; color: #666;">
-    <p>Carregando serviços...</p>
-  </div>
+  <header>
 
-  <div *ngIf="!carregando && servicos.length === 0" style="text-align: center; padding: 40px; color: #999;">
-    <p>Nenhum serviço disponível.</p>
-    <small>Cadastre novos serviços no painel Admin.</small>
-  </div>
+    <div class="brand-area">
 
-  <div class="grid-servicos" *ngIf="!carregando && servicos.length > 0">
-    @for (servico of servicos; track servico.id) {
-      <div class="card card-servico" (click)="gerarSenha(servico.id)">
-        <div class="icon-box">
-          <lucide-icon [img]="getIcon(servico.nome)" class="servico-icon"></lucide-icon>
-        </div>
-        <div class="info">
-          <h3>{{ servico.nome }}</h3>
-          <span>Clique para gerar &gt;</span>
-        </div>
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
+
+    </div>
+
+    <div class="lang-switch">
+
+      <div class="lang-option active">PT</div>
+
+      <div class="lang-option">EN</div>
+
+    </div>
+
+  </header>
+
+
+  <main class="main-content">
+
+   
+
+    <div class="center-wrapper">
+
+     
+
+      <div class="heading-group">
+
+        <h1>Selecione a Categoria</h1>
+
+        <p>Toque na opção correspondente</p>
+
       </div>
-    }
-  </div>
-</div>
+
+
+      <div class="cards-row">
+
+       
+
+        <div class="category-card"
+
+             *ngFor="let cat of categorias"
+
+             (click)="selecionarCategoria(cat)">
+
+         
+
+          <div class="icon-box">
+
+           
+
+            <svg *ngIf="cat.icone === 'truck'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <rect x="1" y="3" width="15" height="13"></rect>
+
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+
+            </svg>
+
+
+            <svg *ngIf="cat.icone === 'box'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+
+            </svg>
+
+
+            <svg *ngIf="cat.icone === 'zap'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+
+            </svg>
+
+
+          </div>
+
+         
+
+          <h2>{{ cat.nome }}</h2>
+
+          <p>{{ cat.descricao }}</p>
+
+         
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-action">
+
+      <button class="btn-back" routerLink="/totem/tipo-atendimento">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+
+        </svg>
+
+        Voltar
+
+      </button>
+
+    </div>
+
+
+  </main>
+
+</div> 
