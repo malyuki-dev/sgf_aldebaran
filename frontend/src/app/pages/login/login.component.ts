@@ -1,43 +1,61 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Necessário para [(ngModel)]
-import { ApiService } from '../../services/api.service';
-import { LucideAngularModule, Droplets, User, Lock } from 'lucide-angular';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { LucideAngularModule, Mail, Lock, AlertCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  form = { login: '', senha: '' };
-  erro = '';
-  loading = false;
 
-  readonly icons = {
-    droplets: Droplets,
-    user: User,
-    lock: Lock
+  credenciais = {
+    email: '',
+    senha: ''
   };
 
-  constructor(private api: ApiService, private router: Router) {}
+  erroLogin: boolean = false;
+  carregando: boolean = false;
+  
+  readonly icons = {
+    mail: Mail,
+    lock: Lock,
+    alert: AlertCircle
+  };
 
-  handleLogin() {
-    this.loading = true;
-    this.erro = '';
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
-    this.api.post<any>('/usuario/login', this.form).subscribe({
-      next: (res) => {
-        // Salva o token/usuário
-        localStorage.setItem('usuario_sgf', JSON.stringify(res));
-        this.router.navigate(['/admin/dashboard']);
+  fazerLogin() {
+    if (!this.credenciais.email || !this.credenciais.senha) return;
+
+    this.carregando = true;
+    this.erroLogin = false;
+
+    this.authService.login(this.credenciais).subscribe({
+      next: (resposta: any) => {
+        this.carregando = false;
+        localStorage.setItem('token', resposta.token);
+        
+        const tipoUsuario = resposta.usuario?.tipo; 
+        switch (tipoUsuario) {
+          case 'ADMIN': this.router.navigate(['/admin/dashboard']); break;
+          case 'OPERADOR': this.router.navigate(['/operador/painel']); break;
+          case 'CLIENTE': this.router.navigate(['/client/home']); break;
+          default: this.router.navigate(['/client/home']);
+        }
       },
-      error: () => {
-        this.erro = 'Usuário ou senha incorretos.';
-        this.loading = false;
+      error: (erro: any) => {
+        console.error('Erro:', erro);
+        this.carregando = false;
+        this.erroLogin = true;
       }
     });
   }

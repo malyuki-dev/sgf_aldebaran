@@ -1,36 +1,39 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { FilaService } from './fila/fila.service'; // Importe o Service
+// import { FilaService } from './fila/fila.service'; // Comente por enquanto
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // 🔓 CONFIGURAÇÃO BLINDADA DE CORS
+  // 🔓 CONFIGURAÇÃO DE CORS (Essencial para o Frontend conectar)
   app.enableCors({
-    origin: true, 
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
-  // --- SEED AUTOMÁTICO (Popula o banco ao iniciar) ---
+  /* --- BLOCO DE SEED TEMPORARIAMENTE DESATIVADO ---
+  Motivo: Se der erro aqui, o servidor não inicia e o login trava.
+  Vamos testar o Login primeiro!
+  
   try {
     const filaService = app.get(FilaService);
     const servicos = await filaService.listarServicos();
     
     if (servicos.length === 0) {
-      console.log('🌱 Banco vazio detectado. Criando serviços padrão...');
+      console.log('🌱 Criando serviços padrão...');
       await filaService.criarServico('Caminhão', 'C');
       await filaService.criarServico('Retirada Pesada', 'RP');
       await filaService.criarServico('Cliente Rápido', 'CR');
-      console.log('✅ Serviços criados com sucesso!');
-    } else {
-      console.log('✅ Serviços já existem no banco.');
+      console.log('✅ Serviços criados!');
     }
   } catch (error) {
-    console.error('Erro ao rodar seed:', error);
+    console.error('⚠️ Pulei o Seed por erro:', error.message);
   }
-  // ---------------------------------------------------
+  */
 
   await app.listen(3000);
+  console.log('🚀 Backend rodando em http://localhost:3000');
+  console.log('🔓 CORS Habilitado');
 }
 bootstrap();

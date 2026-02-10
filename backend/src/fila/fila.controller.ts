@@ -5,7 +5,7 @@ import { FilaService } from './fila.service';
 export class FilaController {
   constructor(private readonly filaService: FilaService) {}
 
-  // --- NOVO: Endpoint Específico do Totem ---
+  // Totem e Check-in
   @Post('totem/senha')
   solicitarSenhaTotem(@Body() body: { tipo: string; categoria: string }) {
     return this.filaService.solicitarSenhaTotem(body.tipo, body.categoria);
@@ -15,17 +15,17 @@ export class FilaController {
   validarCheckin(@Body() body: { codigo: string }) {
     return this.filaService.validarCheckin(body.codigo);
   }
-  // ------------------------------------------
 
+  // Dashboard
   @Get('dashboard-stats')
   getDashboardStats() { return this.filaService.getDashboardData(); }
 
+  // Agendamento
   @Get('agendamento/horarios')
   getHorarios(@Query('data') data: string) { return this.filaService.horariosDisponiveis(data); }
 
   @Post('agendamento')
   criarAgendamento(@Body() body: any) {
-    body.servico_id = Number(body.servico_id);
     return this.filaService.criarAgendamento(body);
   }
 
@@ -35,6 +35,7 @@ export class FilaController {
   @Get('agendamento/:id')
   buscarAgendamento(@Param('id') id: string) { return this.filaService.buscarAgendamento(+id); }
 
+  // Serviços CRUD
   @Post('servicos')
   criarServico(@Body() body: { nome: string; sigla: string }) { return this.filaService.criarServico(body.nome, body.sigla); }
 
@@ -47,6 +48,7 @@ export class FilaController {
   @Delete('servicos/:id')
   excluirServico(@Param('id') id: string) { return this.filaService.excluirServico(+id); }
 
+  // Operação de Fila
   @Post('solicitar_senha')
   solicitarSenha(@Body() body: { servico_id: number }) { return this.filaService.solicitarSenha(body.servico_id); }
 

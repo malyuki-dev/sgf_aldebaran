@@ -1,51 +1,80 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Client } from './entities/client.entity';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ClientService {
-  constructor(
-    @InjectRepository(Client)
-    private clienteRepo: Repository<Client>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async create(createClienteDto: any) {
-    let whereClause = {};
-    if (createClienteDto.tipo === 'PF') {
-      if (!createClienteDto.cpf) throw new BadRequestException('CPF obrigatório');
-      whereClause = { cpf: createClienteDto.cpf };
+  async create(data: any) {
+    // 1. Validação de CPF/CNPJ (Lógica original mantida)
+    let whereClause: any = {};
+    
+    if (data.tipo === 'PF') {
+      if (!data.cpf) throw new BadRequestException('CPF obrigatório para Pessoa Física');
+      whereClause = { cpf: data.cpf };
     } else {
-      if (!createClienteDto.cnpj) throw new BadRequestException('CNPJ obrigatório');
-      whereClause = { cnpj: createClienteDto.cnpj };
+      if (!data.cnpj) throw new BadRequestException('CNPJ obrigatório para Pessoa Jurídica');
+      whereClause = { cnpj: data.cnpj };
     }
 
-    const existe = await this.clienteRepo.findOne({ where: whereClause, withDeleted: true });
-    if (existe) throw new BadRequestException('Cliente já existe.');
+    // 2. Verifica se já existe (usando Prisma findFirst)
+    const existe = await this.prisma.clientes.findFirst({
+      where: whereClause
+    });
 
-    const novo = this.clienteRepo.create(createClienteDto);
-    return await this.clienteRepo.save(novo);
+    if (existe) throw new BadRequestException('Cliente já existe com este documento.');
+
+    // 3. Cria o cliente
+    return await this.prisma.clientes.create({
+      data: {
+        nome: data.nome,
+        email: data.email,
+        senha: data.senha, // Idealmente criptografar aqui se não vier criptografado
+        tipo: data.tipo,
+        cpf: data.cpf || null,
+        cnpj: data.cnpj || null,
+        telefone: data.telefone || null,
+        // O ID é gerado automaticamente (UUID) pelo banco
+      }
+    });
   }
 
-  // CORREÇÃO: Método simples sem argumentos obrigatórios
+  // Listar todos
   async findAll() {
-    return await this.clienteRepo.find();
+    return await this.prisma.clientes.findMany();
   }
 
+  // Buscar um
   async findOne(id: string) {
-    const cliente = await this.clienteRepo.findOne({ where: { id } });
+    const cliente = await this.prisma.clientes.findUnique({
+      where: { id }
+    });
+    
     if (!cliente) throw new NotFoundException('Cliente não encontrado.');
     return cliente;
   }
 
-  async update(id: string, updateClienteDto: any) {
-    const cliente = await this.findOne(id);
-    this.clienteRepo.merge(cliente, updateClienteDto);
-    return await this.clienteRepo.save(cliente);
+  // Atualizar
+  async update(id: string, data: any) {
+    // Verifica se existe antes de tentar atualizar
+    await this.findOne(id);
+
+    return await this.prisma.clientes.update({
+      where: { id },
+      data: {
+        ...data,
+        // Garante que updated_at seja atualizado (opcional, o banco já faz isso)
+        updatedAt: new Date(), 
+      }
+    });
   }
 
+  // Remover
   async remove(id: string) {
-    const cliente = await this.findOne(id);
-    return await this.clienteRepo.remove(cliente);
+    await this.findOne(id); // Garante que existe
+
+    return await this.prisma.clientes.delete({
+      where: { id }
+    });
   }
 }

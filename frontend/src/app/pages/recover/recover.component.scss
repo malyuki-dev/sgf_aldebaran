@@ -1,28 +1,28 @@
 /* --- Variáveis de Cor --- */
-$gradient-start: #00a0e9; /* Azul Cyan */
-$gradient-end: #008f78;   /* Verde Teal */
+$gradient-start: #00a0e9;
+$gradient-end: #008f78;
 $text-dark: #1a1a1a;
 $text-grey: #888;
 $input-border: #e0e0e0;
 
-.login-page {
+.recover-page {
   display: flex;
   min-height: 100vh;
   width: 100%;
   font-family: 'Roboto', sans-serif;
-  flex-direction: column; /* Mobile: Um embaixo do outro */
+  flex-direction: column;
   background: white;
 
   @media (min-width: 900px) {
-    flex-direction: row; /* Desktop: Lado a lado */
+    flex-direction: row;
   }
 }
 
-/* --- LADO COLORIDO (BRAND) --- */
+/* --- LADO COLORIDO --- */
 .brand-section {
   background: linear-gradient(160deg, $gradient-start 0%, $gradient-end 100%);
   color: white;
-  padding: 60px 20px;
+  padding: 40px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,13 +30,11 @@ $input-border: #e0e0e0;
   position: relative;
   overflow: hidden;
 
-  /* No Desktop, ocupa 45% da tela */
   @media (min-width: 900px) {
-    width: 45%;
+    width: 40%;
     padding: 0;
   }
 
-  /* Efeito de brilho no fundo */
   &::before {
     content: '';
     position: absolute;
@@ -54,135 +52,89 @@ $input-border: #e0e0e0;
     align-items: center;
   }
 
-  /* --- ALTERAÇÃO AQUI (LOGO BRANCO SIMPLES) --- */
+  /* LOGO BRANCO PURO (Fix definitivo) */
   .logo-white {
-    width: 200px;
-    margin-bottom: 30px;
-    
-    /* 1. brightness(0): Deixa tudo PRETO. */
-    /* 2. invert(1): Inverte o PRETO para BRANCO PURO. */
+    width: 180px;
+    margin-bottom: 20px;
     filter: brightness(0) invert(1);
-    
-    /* Se quiser levemente transparente, mantenha opacity. Se quiser sólido, remova. */
     opacity: 1; 
   }
 
   h1 {
     font-size: 2.2rem;
     font-weight: 700;
-    line-height: 1.2;
     margin-bottom: 10px;
     font-style: italic;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
 
   .subtitle {
     font-size: 1.1rem;
     opacity: 0.9;
     font-weight: 300;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
   }
 
-  /* Estatísticas */
   .stats-row {
     display: flex;
     justify-content: center;
-    gap: 25px;
+    gap: 20px;
     margin-top: 20px;
     border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 30px;
+    padding-top: 20px;
     width: 100%;
   }
 
-  .stat-item {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .stat-val {
-    font-size: 1.8rem;
-    font-weight: 700;
-    font-style: italic;
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-    opacity: 0.8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 5px;
-  }
-
-  .divider {
-    width: 1px;
-    background: rgba(255,255,255,0.2);
-    height: 45px;
-  }
+  .stat-item { display: flex; flex-direction: column; }
+  .stat-val { font-size: 1.2rem; font-weight: 700; font-style: italic; }
+  .stat-label { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin-top: 5px; }
+  .divider { width: 1px; background: rgba(255,255,255,0.2); height: 35px; }
 }
 
-/* --- LADO BRANCO (FORM) --- */
+/* --- LADO FORMULÁRIO --- */
 .form-section {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 30px;
+  padding: 40px 20px;
   position: relative;
 }
 
 .form-container {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
 }
 
-/* Toggle PT/EN */
-.lang-toggle {
-  position: absolute;
-  top: 30px;
-  right: 30px;
-  background: #f5f5f5;
-  padding: 4px;
-  border-radius: 20px;
-  display: flex;
+.back-link {
+  display: inline-flex;
+  align-items: center;
   gap: 5px;
+  color: $text-grey;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  transition: color 0.3s;
   
-  span {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #bbb;
-    cursor: pointer;
-    transition: all 0.3s;
-    
-    &.active {
-      background: white;
-      color: $text-dark;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-  }
+  &:hover { color: $gradient-start; }
 }
 
 h2 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 900;
   color: $text-dark;
   font-style: italic;
-  margin-bottom: 5px;
-  letter-spacing: -1px;
+  margin-bottom: 10px;
 }
 
-.filial-text {
+.desc-text {
   color: $text-grey;
   font-size: 1rem;
-  margin-bottom: 35px;
-  
-  strong {
-    color: $gradient-start;
-  }
+  margin-bottom: 30px;
+  line-height: 1.5;
 }
 
-/* Inputs Modernos */
+/* Input Moderno */
 .input-group {
   margin-bottom: 25px;
   
@@ -211,61 +163,24 @@ h2 {
 
     input {
       width: 100%;
-      padding: 16px 16px 16px 50px; /* Espaço pro ícone */
+      padding: 16px 16px 16px 50px;
       border: 1px solid $input-border;
       border-radius: 12px;
       font-size: 1rem;
       color: $text-dark;
-      background: #fdfdfd;
       outline: none;
-      transition: all 0.3s ease;
-      
-      &::placeholder { color: #ccc; }
+      transition: all 0.3s;
       
       &:focus {
         border-color: $gradient-start;
-        background: white;
         box-shadow: 0 4px 15px rgba(0, 160, 233, 0.08);
-        
         ~ .input-icon { color: $gradient-start; }
       }
     }
   }
 }
 
-/* Ações */
-.actions-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  font-size: 0.9rem;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: $text-grey;
-  cursor: pointer;
-  user-select: none;
-  
-  input { 
-    accent-color: $gradient-start; 
-    width: 16px; height: 16px;
-  }
-}
-
-.link-recover {
-  color: $gradient-start;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-  
-  &:hover { text-decoration: underline; }
-}
-
-/* Botão Principal */
+/* Botão Gradiente */
 .btn-gradient {
   width: 100%;
   padding: 16px;
@@ -285,53 +200,68 @@ h2 {
     box-shadow: 0 10px 25px rgba(0, 160, 233, 0.35);
   }
   
-  &:active { transform: translateY(0); }
   &:disabled { opacity: 0.7; cursor: wait; }
 }
 
-/* Mensagem de Erro */
+/* Botão Outline (Voltar) */
+.btn-outline {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid $gradient-start;
+  border-radius: 12px;
+  color: $gradient-start;
+  font-weight: 700;
+  font-style: italic;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.3s;
+
+  &:hover { background: rgba(0, 160, 233, 0.1); }
+}
+
+/* Tela de Sucesso */
+.success-view {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  .icon-circle {
+    width: 100px; height: 100px;
+    background: #e8f5e9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #43a047;
+    margin-bottom: 20px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  h2 { color: #2e7d32; margin-bottom: 15px; }
+  p { color: $text-dark; margin-bottom: 5px; font-size: 1.1rem; }
+  .small-text { font-size: 0.9rem; color: $text-grey; margin-bottom: 0; }
+}
+
 .error-msg {
   color: #d32f2f;
   background: #ffebee;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 0.9rem;
-  text-align: center;
-  font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-}
-
-/* Footer */
-.form-footer {
-  text-align: center;
-  margin-top: 40px;
-  border-top: 1px solid #f0f0f0;
-  padding-top: 20px;
-  
-  p {
-    color: $text-grey;
-    font-size: 0.95rem;
-    margin-bottom: 15px;
-    
-    a {
-      color: $gradient-start;
-      text-decoration: none;
-      font-weight: 700;
-    }
-  }
-
-  .logo-bottom {
-    width: 90px;
-    opacity: 0.5;
-    filter: grayscale(100%);
-  }
+  font-size: 0.9rem;
 }
 
 /* Animações */
+.fade-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 .animate-up {
   animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   opacity: 0;
@@ -341,6 +271,5 @@ h2 {
 .delay-2 { animation-delay: 0.2s; }
 .delay-3 { animation-delay: 0.3s; }
 
-@keyframes slideUp {
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }

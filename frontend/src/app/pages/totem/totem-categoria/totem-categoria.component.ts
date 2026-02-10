@@ -1,8 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-// Importe o serviço do Totem para gerar a senha real
+import { RouterLink } from '@angular/router';
 import { TotemService } from '../../../services/totem.service';
+
+interface Categoria {
+  nome: string;
+  icone: string;
+  descricao: string;
+}
 
 @Component({
   selector: 'app-totem-categoria',
@@ -11,64 +16,34 @@ import { TotemService } from '../../../services/totem.service';
   templateUrl: './totem-categoria.component.html',
   styleUrls: ['./totem-categoria.component.scss']
 })
-export class TotemCategoriaComponent {
+export class TotemCategoriaComponent implements OnInit {
+  
+  categorias: Categoria[] = [];
 
-  tipoAtendimentoAnterior: string = '';
+  constructor(private totemService: TotemService) {}
 
-  // Lista FIXA para garantir que seu design (ícones e descrições) funcione perfeitamente
-  categorias = [
-    { 
-      id: 1, 
-      nome: 'Caminhão', 
-      descricao: 'Carga pesada e grandes volumes', 
-      icone: 'truck' 
-    },
-    { 
-      id: 2, 
-      nome: 'Retirada Pesada', 
-      descricao: 'Garrafões e vasilhames em quantidade', 
-      icone: 'box' 
-    },
-    { 
-      id: 3, 
-      nome: 'Cliente Rápido', 
-      descricao: 'Atendimento expresso e dúvidas rápidas', 
-      icone: 'zap' 
-    }
-  ];
-
-  constructor(
-    private router: Router,
-    private totemService: TotemService // Injeção do serviço
-  ) {
-    const state = history.state;
-    // Recupera se é Preferencial ou Convencional
-    if (state && state.tipoAtendimento) {
-      this.tipoAtendimentoAnterior = state.tipoAtendimento;
-    } else {
-      this.tipoAtendimentoAnterior = 'convencional'; 
-    }
+  ngOnInit(): void {
+    this.categorias = [
+      { 
+        nome: 'Caminhão', 
+        icone: 'truck', 
+        descricao: 'Carga pesada e grandes volumes'
+      },
+      { 
+        nome: 'Retirada Pesada', 
+        icone: 'box', 
+        descricao: 'Garrafões e vasilhames em quantidade' 
+      },
+      { 
+        nome: 'Cliente Rápido', 
+        icone: 'zap', 
+        descricao: 'Atendimento expresso e dúvidas rápidas' 
+      }
+    ];
   }
 
-  selecionarCategoria(categoriaSelecionada: any) {
-    console.log('Gerando senha para:', categoriaSelecionada.nome);
-
-    // 1. Chama o Backend para criar a senha sequencial (P-C001)
-    this.totemService.criarSenha(this.tipoAtendimentoAnterior, categoriaSelecionada.nome)
-      .subscribe({
-        next: (ticket) => {
-          
-          // 2. Navega para a rota configurada (senha/ID/SENHA)
-          this.router.navigate(['/totem/senha', ticket.id, ticket.senha], { 
-            state: { ticket: ticket } 
-          });
-
-        },
-        error: (err) => {
-          console.error(err);
-          // Mensagem amigável caso o backend esteja desligado ou o serviço não exista no banco
-          alert('Erro ao gerar senha. Verifique se o serviço "' + categoriaSelecionada.nome + '" existe no Banco de Dados.');
-        }
-      });
+  selecionarCategoria(cat: Categoria) {
+    // Agora sim chamamos solicitarSenha, pois temos o Tipo + Categoria
+    this.totemService.solicitarSenha(cat.nome);
   }
 }

@@ -1,0 +1,90 @@
+// --- CONFIGURAÇÃO CORRIGIDA ---
+generator client {
+  provider = "prisma-client-js"
+  // A linha 'output' foi removida para usar o padrão
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// -----------------------------
+
+model agendamento {
+  id          Int     @id(map: "PK_a102b15cfec9ce6d8ac6193345f") @default(autoincrement())
+  nomeCliente String  @db.VarChar
+  documento   String? @db.VarChar
+  data        String  @db.VarChar
+  hora        String  @db.VarChar
+  servico_id  Int
+  status      String  @default("PENDENTE") @db.VarChar
+  codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
+  servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
+}
+
+model atendimento {
+  id                Int       @id(map: "PK_ad65f895dac5fe2b905001750c2") @default(autoincrement())
+  guiche            Int
+  inicioAtendimento DateTime  @default(now()) @db.Timestamp(6)
+  fimAtendimento    DateTime? @db.Timestamp(6)
+  notaAvaliacao     Int?
+  senha_id          Int?
+  senha             senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
+}
+
+model cliente {
+  id             Int       @id(map: "PK_18990e8df6cf7fe71b9dc0f5f39") @default(autoincrement())
+  nome           String    @db.VarChar(150)
+  documento      String    @unique(map: "UQ_ff8b9ce3895d7283cb8604d5685") @db.VarChar(18)
+  email          String    @db.VarChar(100)
+  telefone       String?   @db.VarChar(15)
+  dataNascimento DateTime? @db.Date
+  endereco       String?   @db.VarChar(200)
+  ativo          Boolean   @default(true)
+  criadoEm       DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime? @db.Timestamp(6)
+}
+
+model clientes {
+  id        String    @id(map: "PK_d76bf3571d906e4e86470482c08") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome      String    @db.VarChar
+  email     String    @unique(map: "UQ_3cd5652ab34ca1a0a2c7a255313") @db.VarChar
+  senha     String    @db.VarChar
+  telefone  String?   @db.VarChar
+  tipo      String    @default("CLIENT") @db.VarChar
+  cpf       String?   @unique(map: "UQ_fd1214820b9f05720b26a917630") @db.VarChar
+  cnpj      String?   @unique(map: "UQ_bd9bd4df1ccf6f9d83a6f4b26cb") @db.VarChar
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+}
+
+model senha {
+  id            Int           @id(map: "PK_b37a7066eee39372a6563da7e6d") @default(autoincrement())
+  numeroDisplay String        @db.VarChar
+  status        String        @default("AGUARDANDO") @db.VarChar
+  dataCriacao   DateTime      @default(now()) @db.Timestamp(6)
+  servico_id    Int
+  tipo          String?       @db.VarChar
+  atendimento   atendimento[]
+  servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
+}
+
+model servico {
+  id             Int           @id(map: "PK_289d0aa6d49f9d0fd65aefc6677") @default(autoincrement())
+  nome           String        @db.VarChar
+  sigla          String        @db.VarChar
+  prioridadePeso Int           @default(1)
+  ativo          Boolean       @default(true)
+  deletadoEm     DateTime?     @db.Timestamp(6)
+  agendamento    agendamento[]
+  senha          senha[]
+}
+
+model usuario {
+  id    Int    @id(map: "PK_a56c58e5cabaa04fb2c98d2d7e2") @default(autoincrement())
+  login String @unique(map: "UQ_59bc805e13413e4be83be3a7752") @db.VarChar
+  senha String @db.VarChar
+  nome  String @db.VarChar
+}

@@ -1,170 +1,150 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* --- ESTILO DE TELA (Visual do usuário) --- */
 
-// --- ESTILOS DA TELA (MONITOR) ---
-:host {
-  display: block;
-  min-height: 100vh;
+.totem-container {
   width: 100%;
-}
-
-.page-container {
-  min-height: 100vh;
-  width: 100%;
-  background: radial-gradient(circle at 20% 50%, #E0F7FA 0%, #E0F2FE 100%);
-  font-family: 'Inter', sans-serif;
-  position: relative;
-  overflow: hidden;
-}
-
-// Logo flutuante no canto
-.screen-logo {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  img { height: 60px; }
-}
-
-.content-split {
-  display: flex;
   height: 100vh;
+  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); /* Fundo Verde Água */
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 100px; // Espaço entre mensagem e ticket
+  flex-direction: column;
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
 }
 
-// --- LADO ESQUERDO (Mensagem) ---
-.left-message {
+.ticket-card {
+  background: white;
+  width: 380px; /* Largura fixa para parecer um papel */
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  animation: slideInLeft 0.5s ease-out;
-
-  .success-circle {
-    width: 90px; height: 90px;
-    background-color: #10B981; // Verde Check
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: white;
-    margin-bottom: 25px;
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-  }
-
-  h1 {
-    font-size: 56px;
-    font-weight: 800;
-    color: #0F172A;
-    margin: 0 0 10px 0;
-    letter-spacing: -1px;
-  }
-
-  p {
-    font-size: 22px;
-    color: #64748B;
-    margin-bottom: 40px;
-  }
-
-  .tv-box {
-    background-color: #ECFDF5;
-    color: #047857;
-    padding: 15px 30px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 18px;
-  }
 }
 
-// --- LADO DIREITO (O Ticket Visual) ---
-.right-ticket {
-  animation: slideInRight 0.5s ease-out;
+.brand-logo {
+  max-width: 200px; /* IMPORTANTE: Impede o logo de ficar gigante */
+  height: auto;
+  margin-bottom: 20px;
+  display: block;
 }
 
-// --- ESTILO DO PAPEL (Visual e Impressão) ---
-.ticket-paper {
-  background: white;
-  width: 320px; // Largura visual na tela
-  padding: 40px 20px;
-  text-align: center;
-  box-shadow: 0 20px 50px -10px rgba(0,0,0,0.15); // Sombra só na tela
-  position: relative;
-  
-  .print-logo { height: 40px; margin-bottom: 20px; object-fit: contain; }
-
-  .lbl-sua-senha { color: #94A3B8; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-  
-  .senha-value {
-    font-size: 64px; font-weight: 800; color: #000; margin: 0 0 15px 0; line-height: 1; letter-spacing: -2px;
-  }
-
-  .dashed-divider {
-    border-top: 2px dashed #CBD5E1; width: 80%; margin: 20px auto;
-  }
-
-  .ticket-body {
-    .tipo-atendimento { font-size: 24px; color: #1E293B; margin: 0; font-weight: 700; }
-    .lbl-categoria { display: block; font-size: 12px; color: #94A3B8; margin-top: 10px; text-transform: uppercase; }
-    .nome-categoria { font-size: 18px; font-weight: 800; color: #0F172A; margin: 0 0 15px 0; }
-    
-    .time-group {
-      .hora { font-size: 32px; font-weight: 800; color: #334155; line-height: 1; }
-      .data { font-size: 14px; color: #94A3B8; margin-top: 5px; }
-    }
-  }
-
-  .qr-section {
-    margin-top: 25px;
-    .qr-img { width: 100px; height: 100px; mix-blend-mode: multiply; }
-    p { font-size: 9px; font-weight: 800; color: #0F172A; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-  }
-
-  // Efeito "picotado" no final do papel (Só visual)
-  .rip-effect {
-    position: absolute; bottom: -10px; left: 0; width: 100%; height: 10px;
-    background: radial-gradient(circle, transparent, transparent 50%, white 50%, white 100%) -7px -8px / 16px 16px repeat-x;
-    transform: rotate(180deg);
-  }
+.success-msg {
+  color: #00796b;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 15px;
 }
 
-// --- ANIMAÇÕES DE ENTRADA ---
-@keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes slideInRight { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+.senha-big {
+  font-size: 4.5rem; /* Tamanho da fonte da senha */
+  font-weight: 900;
+  color: #000;
+  margin: 10px 0;
+  letter-spacing: -2px;
+  line-height: 1;
+}
 
-// =================================================================
-// CONFIGURAÇÃO DE IMPRESSÃO 
-// =================================================================
+.info-box {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 4px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.info-row strong {
+  color: #000;
+}
+
+.qr-section {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-section p {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.qr-img {
+  width: 120px;
+  height: 120px;
+}
+
+.status-print {
+  margin-top: 20px;
+  color: #004d40;
+  font-weight: bold;
+  animation: piscar 1.5s infinite;
+}
+
+@keyframes piscar {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+
+/* --- MODO DE IMPRESSÃO (O que sai no papel térmico) --- */
 @media print {
-  // 1. Esconde TUDO que não é o ticket
-  .no-print, .screen-logo, .page-container {
-    background: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
+  /* Esconde tudo que não interessa */
+  body * {
+    visibility: hidden;
   }
   
-  .left-message, .screen-logo { display: none !important; }
-
-  // 2. Configura a página para papel térmico (80mm ou 58mm)
-  @page {
-    size: 80mm auto; // Largura 80mm, Altura automática
-    margin: 0; // Sem margens
+  /* Mostra apenas o container do totem e seu conteúdo */
+  .totem-container, .totem-container * {
+    visibility: visible;
   }
 
-  // 3. Posiciona o ticket para ocupar o papel inteiro
-  body, html { width: 100%; height: 100%; background-color: white; }
-
-  .content-split { display: block; height: auto; }
-  .right-ticket { display: block; width: 100%; margin: 0; padding: 0; }
-
-  .ticket-paper {
-    width: 100%; // Ocupa toda a largura do papel
-    max-width: 80mm; // Limita a 80mm
-    box-shadow: none; // Remove sombra
-    border: none;
-    padding: 5mm 2mm; // Margem de segurança
+  .totem-container {
+    background: none; /* Remove o fundo colorido para economizar tinta */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    padding: 0;
     margin: 0;
-    
-    // Ajustes de fonte para economizar tinta/papel se necessário
-    .senha-value { font-size: 52px; } 
-    .rip-effect { display: none; } // Não imprime o efeito visual de rasgo
+    display: block;
+  }
+
+  .ticket-card {
+    box-shadow: none; /* Remove sombra */
+    width: 100%; /* Ocupa largura total do papel (58mm/80mm) */
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+  }
+
+  /* Ajustes para economizar papel */
+  .brand-logo {
+    max-width: 150px; 
+    margin: 0 auto 10px auto;
+  }
+
+  .senha-big {
+    font-size: 3.5rem; /* Um pouco menor para caber no papel estreito */
+  }
+
+  .status-print {
+    display: none; /* Não imprime a mensagem "Imprimindo..." */
   }
 }

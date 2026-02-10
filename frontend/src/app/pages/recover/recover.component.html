@@ -1,0 +1,81 @@
+<div class="recover-page">
+  
+  <div class="brand-section">
+    <div class="brand-content">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo-white animate-up">
+      
+      <h1 class="animate-up delay-1">Recupere seu Acesso</h1>
+      <p class="subtitle animate-up delay-2">Não se preocupe, vamos ajudar você a voltar.</p>
+      
+      <div class="stats-row animate-up delay-3">
+        <div class="stat-item">
+          <span class="stat-val">Seguro</span>
+          <span class="stat-label">Processo</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">Rápido</span>
+          <span class="stat-label">Envio</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">24h</span>
+          <span class="stat-label">Suporte</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-container">
+
+      <div *ngIf="step === 'FORM'" class="fade-in">
+        
+        <a routerLink="/login" class="back-link">
+          <lucide-icon [img]="icons.arrow" size="16"></lucide-icon> Voltar ao Login
+        </a>
+
+        <h2>Esqueceu a senha?</h2>
+        <p class="desc-text">Digite seu e-mail cadastrado e enviaremos um link para você redefinir suas credenciais.</p>
+
+        <form (ngSubmit)="enviar()">
+          
+          <div class="input-group">
+            <label>E-MAIL CADASTRADO</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
+              <input 
+                type="email" 
+                placeholder="seu@email.com" 
+                [(ngModel)]="email" 
+                name="email" 
+                required>
+            </div>
+          </div>
+
+          <div class="error-msg" *ngIf="erro">
+            <lucide-icon [img]="icons.alert" size="16"></lucide-icon> 
+            <span>E-mail não encontrado no sistema.</span>
+          </div>
+
+          <button type="submit" class="btn-gradient" [disabled]="carregando">
+            {{ carregando ? 'Enviando...' : 'Enviar Link de Recuperação' }}
+          </button>
+
+        </form>
+      </div>
+
+      <div *ngIf="step === 'SUCCESS'" class="success-view fade-in">
+        <div class="icon-circle">
+          <lucide-icon [img]="icons.check" size="60"></lucide-icon>
+        </div>
+        <h2>Verifique seu E-mail</h2>
+        <p>Enviamos as instruções de recuperação para <strong>{{ email }}</strong>.</p>
+        <p class="small-text">Não recebeu? Verifique sua caixa de spam.</p>
+        
+        <button class="btn-outline" routerLink="/login">Voltar ao Login</button>
+      </div>
+
+    </div>
+  </div>
+</div>

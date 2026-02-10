@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { TotemService } from '../../../services/totem.service';
 
 @Component({
   selector: 'app-totem-tipo-atendimento',
@@ -11,23 +12,15 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class TotemTipoAtendimentoComponent {
 
-  constructor(private router: Router) {}
+  constructor(private totemService: TotemService) {}
 
+  // CORREÇÃO: Criamos a função específica para o Convencional que o HTML pede
   selecionarConvencional() {
-    console.log('Selecionou: Convencional');
-    
-    // CORREÇÃO: O nome da propriedade agora é 'tipoAtendimento'
-    this.router.navigate(['/totem/categoria'], { 
-      state: { tipoAtendimento: 'convencional' } 
-    });
+    this.totemService.escolherTipo('Convencional');
   }
 
+  // CORREÇÃO: Criamos a função específica para o Preferencial que o HTML pede
   selecionarPreferencial() {
-    console.log('Selecionou: Preferencial');
-    
-    // CORREÇÃO: O nome da propriedade agora é 'tipoAtendimento'
-    this.router.navigate(['/totem/categoria'], { 
-      state: { tipoAtendimento: 'preferencial' } 
-    });
+    this.totemService.escolherTipo('Preferencial');
   }
 }

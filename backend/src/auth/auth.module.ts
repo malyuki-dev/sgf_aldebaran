@@ -1,20 +1,19 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthService } from './auth.service';       // Agora aponta para o nome novo
+import { AuthController } from './auth.controller'; // Agora aponta para o nome novo
+import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
-import { Client } from '../cliente/entities/client.entity'; // Caminho para a entidade
-import { ClientAuthService } from './client-auth.service';
-import { ClientAuthController } from './client-auth.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Client]), // Permite usar o Repositório de Clientes
+    PrismaModule,
     JwtModule.register({
-      secret: 'SEGREDO_SUPER_SECRETO', // Em produção use .env
+      global: true,
+      secret: 'SEGREDO_SUPER_SECRETO', // Em produção use variáveis de ambiente
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [ClientAuthController], // Registra o controlador
-  providers: [ClientAuthService],      // Registra o serviço
-  exports: [ClientAuthService],
+  controllers: [AuthController],
+  providers: [AuthService],
 })
 export class AuthModule {}

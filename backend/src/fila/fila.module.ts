@@ -1,16 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'; 
 import { FilaService } from './fila.service';
 import { FilaController } from './fila.controller';
-// Importa TODAS as entidades, incluindo Agendamento
-import { Servico, Senha, Atendimento, Agendamento } from './entities/fila.entity'; 
+import { PrismaService } from '../prisma/prisma.service'; // Importar Prisma
 
 @Module({
-  imports: [
-    // Registra TODAS as tabelas para que o Service possa injetá-las
-    TypeOrmModule.forFeature([Servico, Senha, Atendimento, Agendamento]) 
-  ],
+  imports: [], // Removemos TypeOrmModule
   controllers: [FilaController],
-  providers: [FilaService],
+  providers: [FilaService, PrismaService], // Injetamos Prisma
 })
 export class FilaModule {}

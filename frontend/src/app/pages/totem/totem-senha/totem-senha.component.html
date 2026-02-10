@@ -1,58 +1,35 @@
-<div class="page-container">
+<div class="totem-container" *ngIf="ticket">
   
-  <div class="screen-logo">
-    <img src="assets/logo-aldebaran.png" alt="Aldebaran">
-  </div>
-
-  <div class="content-split">
+  <div class="ticket-card">
     
-    <div class="left-message no-print">
-      <div class="success-circle">
-        <lucide-icon [img]="icons.check" [size]="50" strokeWidth="4"></lucide-icon>
-      </div>
-      
-      <h1>Tudo pronto!</h1>
-      <p>Retire sua senha impressa ao lado.</p>
+    <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
+    
+    <div class="success-msg">Senha retirada com sucesso!</div>
 
-      <div class="tv-box">
-        Aguarde o chamado na TV
+    <div class="senha-big">{{ ticket.numeroDisplay }}</div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span>Categoria:</span>
+        <strong>{{ ticket.categoria }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Tipo:</span>
+        <strong>{{ ticket.tipo }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Data:</span>
+        <strong>{{ ticket.dataHora | date:'dd/MM HH:mm' }}</strong>
       </div>
     </div>
 
-    <div class="right-ticket">
-      
-      <div class="ticket-paper printable" *ngIf="ticket">
-        
-        <div class="ticket-header">
-          <img src="assets/logo-aldebaran.png" alt="Logo" class="print-logo">
-        </div>
-
-        <div class="lbl-sua-senha">Sua Senha</div>
-        <div class="senha-value">{{ ticket.senha }}</div>
-
-        <div class="dashed-divider"></div>
-
-        <div class="ticket-body">
-          <h2 class="tipo-atendimento">{{ ticket.tipo || 'Convencional' }}</h2>
-          
-          <span class="lbl-categoria">Categoria</span>
-          <h3 class="nome-categoria">{{ ticket.categoria | uppercase }}</h3>
-
-          <div class="time-group">
-            <div class="hora">{{ ticket.dataHora | date:'HH:mm' }}</div>
-            <div class="data">{{ ticket.dataHora | date:'dd/MM/yyyy' }}</div>
-          </div>
-        </div>
-
-        <div class="qr-section">
-          <img [src]="qrCodeUrl" class="qr-img">
-          <p>ESCANEIE PARA ACOMPANHAR A FILA</p>
-        </div>
-
-        <div class="rip-effect"></div>
-
-      </div>
-      </div>
+    <div class="qr-section">
+      <p>Escaneie para acompanhar:</p>
+      <img [src]="qrCodeUrl" class="qr-img" alt="QR Code">
+    </div>
 
   </div>
+
+  <div class="status-print">Imprimindo ticket...</div>
+
 </div>

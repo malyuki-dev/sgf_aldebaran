@@ -1,44 +1,93 @@
-<div class="login-container">
-  <!-- LADO ESQUERDO (BRANDING) -->
-  <div class="login-brand">
-    <div class="content">
-      <div class="logo-box">
-        <lucide-icon [img]="icons.droplets" [size]="64" color="white"></lucide-icon>
+<div class="login-page">
+  
+  <div class="brand-section">
+    <div class="brand-content">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo-white animate-up">
+      
+      <h1 class="animate-up delay-1">Bem-vindo ao<br>Sistema Fila</h1>
+      <p class="subtitle animate-up delay-2">Gestão Inteligente para Água Mineral</p>
+      
+      <div class="stats-row animate-up delay-3">
+        <div class="stat-item">
+          <span class="stat-val">24/7</span>
+          <span class="stat-label">Online</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">3+</span>
+          <span class="stat-label">Filiais</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">100%</span>
+          <span class="stat-label">Digital</span>
+        </div>
       </div>
-      <h1>Aldebaran</h1>
-      <p>Sistema Profissional de Gestão de Filas.</p>
     </div>
   </div>
 
-  <!-- LADO DIREITO (FORMULÁRIO) -->
-  <div class="login-form-wrapper">
-    <div class="form-card">
-      <h2>Login</h2>
-      <p class="subtitle">Acesso restrito aos colaboradores.</p>
+  <div class="form-section">
+    
+    <div class="lang-toggle">
+      <span class="active">PT</span>
+      <span>EN</span>
+    </div>
 
-      <form (ngSubmit)="handleLogin()">
+    <div class="form-container">
+      <h2>Fazer Login</h2>
+      <p class="filial-text">Unidade: <strong>Matriz Centro</strong></p>
+
+      <form (ngSubmit)="fazerLogin()">
+        
         <div class="input-group">
-          <label>Usuário</label>
+          <label>E-MAIL </label>
           <div class="input-wrapper">
-            <lucide-icon [img]="icons.user" class="field-icon"></lucide-icon>
-            <input type="text" name="login" [(ngModel)]="form.login" placeholder="Ex: admin" required>
+            <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
+            <input 
+              type="email" 
+              placeholder="ex: usuario@aldebaran.com" 
+              [(ngModel)]="credenciais.email" 
+              name="email"
+              required>
           </div>
         </div>
 
         <div class="input-group">
-          <label>Senha</label>
+          <label>SENHA DE ACESSO</label>
           <div class="input-wrapper">
-            <lucide-icon [img]="icons.lock" class="field-icon"></lucide-icon>
-            <input type="password" name="senha" [(ngModel)]="form.senha" placeholder="••••••••" required>
+            <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              [(ngModel)]="credenciais.senha" 
+              name="senha"
+              required>
           </div>
         </div>
 
-        <div *ngIf="erro" class="error-msg">{{ erro }}</div>
+        <div class="actions-row">
+          <label class="checkbox-container">
+            <input type="checkbox"> 
+            <span>Lembrar-me</span>
+          </label>
+          <a routerLink="/recover" class="link-recover">Recuperar senha</a>
+        </div>
 
-        <button type="submit" class="btn-primary full-width" [disabled]="loading">
-          {{ loading ? 'Entrando...' : 'Acessar Painel' }}
+        <div class="error-msg" *ngIf="erroLogin">
+          <lucide-icon name="alert-circle" size="16"></lucide-icon>
+          Usuário ou senha incorretos.
+        </div>
+
+        <button type="submit" class="btn-gradient" [disabled]="carregando">
+          {{ carregando ? 'Validando Acesso...' : 'Entrar' }}
         </button>
+
       </form>
+
+      <div class="form-footer">
+        <p>Ainda não possui acesso? <a routerLink="/signup">Criar conta</a></p>
+      </div>
+
     </div>
   </div>
 </div>

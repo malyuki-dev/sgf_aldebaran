@@ -1,0 +1,134 @@
+<div class="signup-page">
+  
+  <div class="brand-section">
+    <div class="brand-content">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo-white animate-up">
+      
+      <h1 class="animate-up delay-1">Crie sua Conta</h1>
+      <p class="subtitle animate-up delay-2">Junte-se a nós para agilizar seu atendimento.</p>
+      
+      <div class="stats-row animate-up delay-3">
+        <div class="stat-item">
+          <span class="stat-val">Rápido</span>
+          <span class="stat-label">Cadastro</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">Seguro</span>
+          <span class="stat-label">Dados</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">Gratuito</span>
+          <span class="stat-label">Acesso</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-container">
+
+      <div *ngIf="step === 'FORM'" class="fade-in">
+        
+        <div class="header-area">
+          <h2>Nova Conta</h2>
+          <p class="filial-text">Preencha seus dados para começar.</p>
+        </div>
+
+        <div class="type-selector">
+          <button 
+            [class.active]="tipo === 'PF'" 
+            (click)="tipo = 'PF'">
+            <lucide-icon [img]="icons.user" size="16"></lucide-icon> Pessoa Física
+          </button>
+          <button 
+            [class.active]="tipo === 'PJ'" 
+            (click)="tipo = 'PJ'">
+            <lucide-icon [img]="icons.building" size="16"></lucide-icon> Pessoa Jurídica
+          </button>
+        </div>
+
+        <form (ngSubmit)="criar()">
+          
+          <div class="input-group">
+            <label>NOME COMPLETO</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.user" size="20" class="input-icon"></lucide-icon>
+              <input type="text" placeholder="Seu nome" [(ngModel)]="dados.nome" name="nome" required>
+            </div>
+          </div>
+
+          <div class="input-group" *ngIf="tipo === 'PF'">
+            <label>CPF</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
+              <input type="text" placeholder="000.000.000-00" [(ngModel)]="dados.cpf" name="cpf">
+            </div>
+          </div>
+
+          <div *ngIf="tipo === 'PJ'">
+            <div class="input-group">
+              <label>RAZÃO SOCIAL</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.building" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="Nome da Empresa" [(ngModel)]="dados.razao" name="razao">
+              </div>
+            </div>
+            <div class="input-group">
+              <label>CNPJ</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="00.000.000/0000-00" [(ngModel)]="dados.cnpj" name="cnpj">
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>E-MAIL</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
+              <input type="email" placeholder="seu@email.com" [(ngModel)]="dados.email" name="email" required>
+            </div>
+          </div>
+
+          <div class="row-inputs">
+            <div class="input-group">
+              <label>SENHA</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+                <input type="password" placeholder="••••••" [(ngModel)]="dados.senha" name="senha" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>CONFIRMAR</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+                <input type="password" placeholder="••••••" [(ngModel)]="dados.confirmarSenha" name="confirmar" required>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-gradient" [disabled]="carregando">
+            {{ carregando ? 'Criando Conta...' : 'Cadastrar' }}
+          </button>
+
+        </form>
+
+        <div class="form-footer">
+          <p>Já tem uma conta? <a routerLink="/login">Fazer Login</a></p>
+        </div>
+      </div>
+
+      <div *ngIf="step === 'SUCCESS'" class="success-view fade-in">
+        <div class="icon-circle">
+          <lucide-icon [img]="icons.check" size="60"></lucide-icon>
+        </div>
+        <h2>Conta Criada!</h2>
+        <p>Seu cadastro foi realizado com sucesso.</p>
+        <button class="btn-gradient" routerLink="/login">Ir para Login</button>
+      </div>
+
+    </div>
+  </div>
+</div>

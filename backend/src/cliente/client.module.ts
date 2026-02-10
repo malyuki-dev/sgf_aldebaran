@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientService } from './client.service';
 import { ClienteController } from './client.controller';
-import { Client } from './entities/client.entity';
+import { PrismaService } from '../prisma/prisma.service'; // Importa o Prisma
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client])],
+  imports: [], // Removemos o TypeOrmModule
   controllers: [ClienteController],
-  providers: [ClientService],
-  exports: [ClientService] // Exporta caso o Agendamento precise usar depois
+  providers: [ClientService, PrismaService], // Injetamos o PrismaService
+  exports: [ClientService]
 })
 export class ClienteModule {}
