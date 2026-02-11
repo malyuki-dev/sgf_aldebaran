@@ -1,0 +1,125 @@
+<div class="schedule-page">
+
+  <header class="top-bar">
+    <div class="left-group">
+      <button class="icon-btn" routerLink="/client/home">
+        <lucide-icon [img]="icons.left" size="24"></lucide-icon>
+      </button>
+      <h1>Agendar</h1>
+    </div>
+
+    <div class="right-actions">
+      <div class="lang-toggle">
+        <span class="active">PT</span>
+        <span>EN</span>
+      </div>
+      <button class="icon-btn">
+        <lucide-icon [img]="icons.bell" size="22"></lucide-icon>
+      </button>
+    </div>
+  </header>
+
+  <main class="form-container animate-up">
+    
+    <div class="input-group">
+      <label>Filial</label>
+      <div class="select-wrapper">
+        <select [(ngModel)]="form.filial">
+          <option *ngFor="let f of filiais" [value]="f">{{ f }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Categoria</label>
+      <div class="select-wrapper">
+        <select [(ngModel)]="form.categoria">
+          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Quantidade</label>
+      <div class="counter-box">
+        <div class="counter-label">
+          <span>Garrafão 20 L</span>
+          <lucide-icon [img]="icons.box" size="20" class="blue-icon"></lucide-icon>
+        </div>
+        
+        <div class="counter-controls">
+          <button (click)="dec()" class="round-btn minus">
+            <lucide-icon [img]="icons.minus" size="18"></lucide-icon>
+          </button>
+          <span class="count-val">{{ form.quantidade }}</span>
+          <button (click)="inc()" class="round-btn plus">
+            <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-section">
+      <div class="cal-header">
+        <h3>Janeiro 2025</h3>
+        <div class="nav-arrows">
+          <lucide-icon [img]="icons.left" size="20"></lucide-icon>
+          <lucide-icon [img]="icons.right" size="20"></lucide-icon>
+        </div>
+      </div>
+
+      <div class="cal-grid">
+        <span class="week-day">D</span><span class="week-day">S</span>
+        <span class="week-day">T</span><span class="week-day">Q</span>
+        <span class="week-day">Q</span><span class="week-day">S</span>
+        <span class="week-day">S</span>
+
+        <button 
+          *ngFor="let dia of diasCalendario" 
+          class="day-btn" 
+          [class.selected]="dia === form.data"
+          [class.empty]="!dia"
+          [disabled]="!dia"
+          (click)="selecionarDia(dia)">
+          {{ dia }}
+        </button>
+      </div>
+
+      <div class="date-feedback" *ngIf="form.data">
+        Data selecionada: {{ form.data }} de Janeiro, 2025
+      </div>
+    </div>
+
+    <div class="time-section">
+      <h3>Horários</h3>
+      <div class="time-grid">
+        <button 
+          *ngFor="let h of horarios" 
+          class="time-btn" 
+          [class.active]="h === form.hora"
+          (click)="selecionarHora(h)">
+          {{ h }}
+        </button>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Observações</label>
+      <textarea 
+        placeholder="Digite se precisar de acessibilidade..." 
+        [(ngModel)]="form.obs" 
+        rows="3"></textarea>
+    </div>
+
+    <div style="height: 100px;"></div>
+
+  </main>
+
+  <footer class="bottom-bar animate-up delay-1">
+    <button class="btn-confirm" (click)="confirmar()">
+      <lucide-icon [img]="icons.check" size="20"></lucide-icon>
+      Confirmar Agendamento
+    </button>
+  </footer>
+
+</div>

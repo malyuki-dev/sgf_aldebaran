@@ -12,7 +12,7 @@ import { TotemLayoutComponent } from './layouts/totem-layout/totem-layout.compon
 
 // Cliente (Área Logada)
 import { ClientHomeComponent } from './pages/client/home/client-home.component';
-import { ClientScheduleComponent } from './pages/client/schedule/client-schedule/client-schedule.component';
+import { AgendamentoComponent } from './pages/client/agendamento/agendamento.component';
 import { ClientAppointmentsComponent } from './pages/client/client-appointments/client-appointments.component';
 // Nota: Removi o Login/Signup antigos da pasta client para não confundir
 
@@ -45,7 +45,7 @@ export const routes: Routes = [
 
   // 3. ÁREA DO CLIENTE (Protegida futuramente)
   { path: 'client/home', component: ClientHomeComponent },
-  { path: 'client/agendar', component: ClientScheduleComponent },
+  { path: 'client/agendar', component: AgendamentoComponent },
   { path: 'client/meus-agendamentos', component: ClientAppointmentsComponent },
 
   // 4. ÁREA DO ADMIN

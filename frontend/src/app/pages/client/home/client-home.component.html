@@ -1,66 +1,91 @@
-<div class="page-container">
+<div class="client-page">
   
-  <app-client-menu *ngIf="menuAberto" (close)="menuAberto = false"></app-client-menu>
+  <header class="top-bar">
+    <button class="icon-btn menu-btn">
+      <lucide-icon [img]="icons.menu" size="24"></lucide-icon>
+    </button>
 
-  <header class="app-header">
-    <div class="header-left">
-      <button class="icon-btn" (click)="menuAberto = true">
-        <lucide-angular [img]="icons.menu" size="24"></lucide-angular>
-      </button>
-      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo">
+    <div class="logo-area">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran">
     </div>
-    <div class="header-right">
-      <div class="lang-pill"><span class="active">PT</span><span>EN</span></div>
-      <button class="icon-btn notification">
-        <lucide-angular [img]="icons.bell" size="24"></lucide-angular><span class="dot"></span>
+
+    <div class="right-actions">
+      <div class="lang-toggle">
+        <span class="active">PT</span>
+        <span>EN</span>
+      </div>
+      <button class="icon-btn">
+        <lucide-icon [img]="icons.bell" size="22"></lucide-icon>
       </button>
     </div>
   </header>
 
-  <main class="main-content">
+  <main class="content-container">
     
-    <div class="welcome-header">
-      <h1>Olá, {{ usuarioNome }} 👋</h1>
-      <p>SEU PRÓXIMO AGENDAMENTO</p>
+    <div class="greeting-section animate-up">
+      <h1>Olá, {{ usuario.nome }} 👋</h1>
+      <p class="section-title">SEU PRÓXIMO AGENDAMENTO</p>
     </div>
 
     <div class="dashboard-grid">
       
-      <div class="card status-card">
-        <span class="badge">STATUS</span>
-        <div class="calendar-icon">
-          <div class="top-bar"><div class="dot"></div><div class="dot"></div></div>
-          <div class="number">17</div>
+      <div class="status-card animate-up delay-1">
+        <span class="badge-status">STATUS</span>
+        
+        <div class="calendar-icon-display">
+          <div class="cal-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="cal-body">{{ hoje | date:'dd' }}</div>
         </div>
+
         <h2>Sem agendamentos</h2>
-        <p class="desc">Você não tem nenhuma senha ativa no momento.</p>
+        <p>Você não tem nenhuma senha ativa no momento. Utilize as ações rápidas abaixo para começar.</p>
+
         <button class="btn-primary" routerLink="/client/agendar">
-          <lucide-angular [img]="icons.plus" size="20"></lucide-angular>
+          <lucide-icon [img]="icons.grid" size="20"></lucide-icon>
           Agendar Horário
         </button>
       </div>
 
-      <div class="actions-section">
+      <div class="quick-actions animate-up delay-2">
         <p class="section-title">AÇÕES RÁPIDAS</p>
-        <div class="actions-list">
+
+        <div class="action-list">
           
-          <div class="card action-item" routerLink="/client/agendar">
-            <div class="icon-circle teal"><lucide-angular [img]="icons.plus" size="22"></lucide-angular></div>
-            <div class="text"><h4>Novo Agendamento</h4><p>Retirar senha ou agendar</p></div>
-            <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
-          </div>
+          <button class="action-item" routerLink="/client/agendar">
+            <div class="icon-circle blue">
+              <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
+            </div>
+            <div class="text-info">
+              <h3>Novo Agendamento</h3>
+              <span>Retirar senha ou agendar</span>
+            </div>
+            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
+          </button>
 
-          <div class="card action-item" routerLink="/client/agendamentos">
-            <div class="icon-circle beige"><lucide-angular [img]="icons.file" size="22"></lucide-angular></div>
-            <div class="text"><h4>Meus Agendamentos</h4><p>Consulte seu histórico</p></div>
-            <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
-          </div>
+          <button class="action-item">
+            <div class="icon-circle orange">
+              <lucide-icon [img]="icons.list" size="24"></lucide-icon>
+            </div>
+            <div class="text-info">
+              <h3>Meus Agendamentos</h3>
+              <span>Consulte seu histórico</span>
+            </div>
+            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
+          </button>
 
-          <div class="card action-item">
-            <div class="icon-circle pink"><lucide-angular [img]="icons.help" size="22"></lucide-angular></div>
-            <div class="text"><h4>Precisa de Ajuda?</h4><p>Fale com o suporte</p></div>
-            <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
-          </div>
+          <button class="action-item">
+            <div class="icon-circle red">
+              <lucide-icon [img]="icons.help" size="24"></lucide-icon>
+            </div>
+            <div class="text-info">
+              <h3>Precisa de Ajuda?</h3>
+              <span>Fale com o suporte</span>
+            </div>
+            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
+          </button>
 
         </div>
       </div>
