@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 // --- COMPONENTES PÚBLICOS (Gerais) ---
 import { LoginComponent } from './pages/login/login.component';
 import { RecoverComponent } from './pages/recover/recover.component';
-import { SignupComponent } from './pages/signup/signup.component'; 
+import { SignupComponent } from './pages/signup/signup.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 // Layouts
@@ -33,14 +33,17 @@ import { TotemCheckinComponent } from './pages/totem/totem-checkin/totem-checkin
 // TV
 import { PainelTvComponent } from './pages/tv/painel-tv.component';
 
+// Operador
+import { EscolhaGuiches } from './pages/operador/escolha-guiches/escolha-guiches';
+
 export const routes: Routes = [
   // 1. Rota Raiz -> Login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   // 2. ROTAS PÚBLICAS (Acesso sem estar logado)
   { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent }, 
-  { path: 'recover', component: RecoverComponent }, 
+  { path: 'signup', component: SignupComponent },
+  { path: 'recover', component: RecoverComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
 
   // 3. ÁREA DO CLIENTE (Protegida futuramente)
@@ -77,4 +80,7 @@ export const routes: Routes = [
 
   // 6. PAINEL TV
   { path: 'painel', component: PainelTvComponent },
+
+  // 7. ÁREA DO OPERADOR
+  { path: 'operador/escolha-guiches', component: EscolhaGuiches },
 ];

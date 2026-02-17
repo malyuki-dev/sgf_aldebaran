@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { UsuarioController } from './usuario.controller';
-import { PrismaService } from '../prisma/prisma.service'; // Importamos o Prisma
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [], // Removemos o TypeOrmModule.forFeature
+  imports: [PrismaModule], // PrismaModule já é global
   controllers: [UsuarioController],
-  providers: [UsuarioService, PrismaService], // Adicionamos o PrismaService aos providers
+  providers: [UsuarioService],
   exports: [UsuarioService],
 })
 export class UsuarioModule {}

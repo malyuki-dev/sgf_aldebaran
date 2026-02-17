@@ -1,20 +1,21 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
 
 @Controller('usuario')
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
-  @Post('setup') // Cria o primeiro admin (se não existir)
-  setup() {
-    return this.usuarioService.criar('admin', '123456', 'Administrador');
-  }
+  // Para criar o primeiro admin, use uma migration Prisma ou um script dedicado
 
   @Post('login')
   login(@Body() body: { login: string; senha: string }) {
     return this.usuarioService.validarLogin(body.login, body.senha);
   }
   
+  // Listar usuários (protegido por JWT) 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() { return this.usuarioService.findAll(); }
 }

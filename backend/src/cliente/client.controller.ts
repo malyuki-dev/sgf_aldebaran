@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ClientService } from './client.service';
-// Pode manter os DTOs se eles existirem, ou usar 'any' temporariamente se der erro
 import { CreateClienteDto } from './dto/create-client.dto'; 
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 

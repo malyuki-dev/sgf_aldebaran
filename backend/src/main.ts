@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-// import { FilaService } from './fila/fila.service'; // Comente por enquanto
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,28 +12,18 @@ async function bootstrap() {
     credentials: true,
   });
 
-  /* --- BLOCO DE SEED TEMPORARIAMENTE DESATIVADO ---
-  Motivo: Se der erro aqui, o servidor não inicia e o login trava.
-  Vamos testar o Login primeiro!
-  
-  try {
-    const filaService = app.get(FilaService);
-    const servicos = await filaService.listarServicos();
-    
-    if (servicos.length === 0) {
-      console.log('🌱 Criando serviços padrão...');
-      await filaService.criarServico('Caminhão', 'C');
-      await filaService.criarServico('Retirada Pesada', 'RP');
-      await filaService.criarServico('Cliente Rápido', 'CR');
-      console.log('✅ Serviços criados!');
-    }
-  } catch (error) {
-    console.error('⚠️ Pulei o Seed por erro:', error.message);
-  }
-  */
+  // ✅ VALIDAÇÃO GLOBAL (Valida DTOs automaticamente)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Remove propriedades não definidas nos DTOs
+      forbidNonWhitelisted: true, // Retorna erro se houver propriedades extras
+      transform: true, // Transforma dados para os tipos dos DTOs
+    }),
+  );
 
   await app.listen(3000);
   console.log('🚀 Backend rodando em http://localhost:3000');
   console.log('🔓 CORS Habilitado');
+  console.log('✅ Validação Global Ativada');
 }
 bootstrap();

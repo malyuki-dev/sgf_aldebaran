@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { ClienteController } from './client.controller';
-import { PrismaService } from '../prisma/prisma.service'; // Importa o Prisma
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [], // Removemos o TypeOrmModule
+  imports: [PrismaModule], // PrismaModule já é global
   controllers: [ClienteController],
-  providers: [ClientService, PrismaService], // Injetamos o PrismaService
+  providers: [ClientService],
   exports: [ClientService]
 })
 export class ClienteModule {}

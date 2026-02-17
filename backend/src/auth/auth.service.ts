@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,13 @@ export class AuthService {
       where: { email: body.email }
     });
 
-    if (!usuario || usuario.senha !== body.senha) {
+    if (!usuario) {
+      throw new UnauthorizedException('E-mail ou senha incorretos.');
+    }
+
+    // Compara a senha fornecida com o hash armazenado
+    const senhaValida = await bcrypt.compare(body.senha, usuario.senha);
+    if (!senhaValida) {
       throw new UnauthorizedException('E-mail ou senha incorretos.');
     }
 
@@ -49,64 +56,70 @@ export class AuthService {
       if (existe.cpf === dados.documento) throw new ConflictException('Este CPF/CNPJ já está cadastrado.');
     }
 
+    // Hash da senha antes de armazenar
+    const senhaHash = await bcrypt.hash(dados.senha, 12);
+
     const novo = await this.prisma.clientes.create({
       data: {
         nome: dados.nome,
         email: dados.email,
         cpf: dados.documento,
-        senha: dados.senha, 
+        senha: senhaHash,
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
       }
     });
 
     return { message: 'Criado com sucesso', id: novo.id };
   }
 
-  // --- RECUPERAR SENHA (COM DEBUG) ---
+  // --- RECUPERAR SENHA ---
   async recover(email: string) {
-    console.log('1. [SERVICE] Buscando usuário no banco:', email);
-
-    const user = await this.prisma.clientes.findUnique({ where: { email } });
+    const user = await this.prisma.clientes.findUnique({ 
+      where: { email },
+      select: { id: true, email: true, nome: true }
+    });
     
     if (!user) {
-      console.error('❌ [SERVICE] E-mail não encontrado no banco!');
-      // O throw abaixo interrompe o código, por isso não aparecia nada antes
       throw new NotFoundException('E-mail não encontrado.');
     }
 
-    console.log('2. [SERVICE] Usuário encontrado. Gerando token...');
-
-    // Gera token fake (ID | SEGREDO)
-    const token = Buffer.from(`${user.id}|SEGREDO_ALDEBARAN`).toString('base64');
+    // Gera JWT com expiração curta para reset (15 min)
+    const token = this.jwtService.sign(
+      { sub: user.id, email: user.email },
+      { expiresIn: '15m' }
+    );
+    
     const link = `http://localhost:4200/reset-password?token=${token}`;
 
-    // --- SIMULAÇÃO DE E-MAIL ---
-    console.log('\n==================================================');
-    console.log('📧 [EMAIL] Para:', email);
-    console.log('🔗 Link:', link);
-    console.log('==================================================\n');
+    // TODO: Implementar envio real de e-mail (usar nodemailer, SendGrid, etc.)
+    console.log(`📧 Reset link para ${email}: ${link}`);
     
-    return { message: 'Link enviado.' };
+    return { message: 'Link de recuperação enviado.' };
   }
 
   // --- REDEFINIR SENHA ---
   async resetPassword(token: string, novaSenha: string) {
     try {
-      const decoded = Buffer.from(token, 'base64').toString('utf-8');
-      const [userId, secret] = decoded.split('|');
+      // Valida e decodifica o token JWT
+      const decoded = this.jwtService.verify(token);
+      const userId = decoded.sub;
 
-      if (secret !== 'SEGREDO_ALDEBARAN') throw new Error('Segredo inválido');
+      // Hash da nova senha
+      const senhaHash = await bcrypt.hash(novaSenha, 12);
 
       await this.prisma.clientes.update({
         where: { id: userId },
-        data: { senha: novaSenha }
+        data: { senha: senhaHash }
       });
 
-      console.log('🔐 [SERVICE] Senha alterada com sucesso!');
       return { message: 'Senha alterada com sucesso!' };
 
     } catch (error) {
-      console.error('❌ [SERVICE] Erro ao redefinir:', error);
-      throw new BadRequestException('Link inválido.');
+      throw new BadRequestException('Link inválido ou expirado.');
     }
   }
 }

@@ -1,14 +1,12 @@
-// --- CONFIGURAÇÃO CORRIGIDA ---
 generator client {
-  provider = "prisma-client-js"
-  // A linha 'output' foi removida para usar o padrão
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+   moduleFormat  = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
-// -----------------------------
 
 model agendamento {
   id          Int     @id(map: "PK_a102b15cfec9ce6d8ac6193345f") @default(autoincrement())
