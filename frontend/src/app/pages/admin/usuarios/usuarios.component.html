@@ -1,0 +1,158 @@
+<div class="crud-page animate-up">
+    <div class="page-header">
+        <div class="titles">
+            <h1>Gestão de Usuários (Colaboradores)</h1>
+            <p>Gerencie quem tem acesso ao sistema Administrativo e Operacional</p>
+        </div>
+
+        <button class="btn-primary" (click)="abrirModalNovo()">
+            <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+            Novo Usuário
+        </button>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-box">
+            <lucide-icon [img]="icons.search" size="20"></lucide-icon>
+            <input type="text" placeholder="Buscar por Nome, E-mail ou Login..." [(ngModel)]="filtro"
+                (keyup.enter)="buscar()">
+        </div>
+        <button class="btn-outline" (click)="buscar()">Filtrar</button>
+    </div>
+
+    <div class="skeleton-loader" *ngIf="loading">
+        <div class="skel-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+
+    <div class="cards-grid" *ngIf="!loading">
+        <ng-container *ngIf="usuarios.length > 0">
+            <div class="data-card" *ngFor="let u of usuarios" [class.inactive-card]="!u.ativo">
+                <div class="card-header">
+                    <div class="avatar-circle" [style.backgroundColor]="getPerfilColor(u.perfil)">
+                        <lucide-icon [img]="icons.shield" size="24" *ngIf="u.perfil === 'ADMIN'"></lucide-icon>
+                        <lucide-icon [img]="icons.users" size="24" *ngIf="u.perfil !== 'ADMIN'"></lucide-icon>
+                    </div>
+                    <div class="info">
+                        <h3>{{ u.nome }}</h3>
+                        <span class="subtitle">{{ u.perfil }}</span>
+                        <span class="status-badge" [class.active]="u.ativo" [class.inactive]="!u.ativo">
+                            {{ u.ativo ? 'Ativo' : 'Inativo' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.mail" size="16"></lucide-icon>
+                        <span><strong>E-mail:</strong> {{ u.email || 'Não informado' }}</span>
+                    </div>
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.userX" size="16"></lucide-icon>
+                        <span><strong>Login:</strong> {{ u.login }}</span>
+                    </div>
+                </div>
+
+                <div class="card-actions config-actions">
+                    <button class="icon-btn" (click)="abrirModalRedefinirSenha(u)" title="Redefinir Senha">
+                        <lucide-icon [img]="icons.refresh" size="18"></lucide-icon>
+                    </button>
+                    <button class="icon-btn edit-btn" (click)="abrirModalEditar(u)" title="Editar">
+                        <lucide-icon [img]="icons.edit2" size="18"></lucide-icon>
+                    </button>
+                    <button class="icon-btn" [ngClass]="u.ativo ? 'delete-btn' : 'success-btn'"
+                        (click)="alternarStatus(u.id, u.ativo)" [title]="u.ativo ? 'Inativar' : 'Reativar'">
+                        <lucide-icon [img]="u.ativo ? icons.trash2 : icons.checkCircle" size="18"></lucide-icon>
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="usuarios.length === 0">
+            <div class="icon-circle empty">
+                <lucide-icon [img]="icons.users" size="40"></lucide-icon>
+            </div>
+            <h3>Nenhum usuário encontrado</h3>
+            <p>Não há registros que correspondam à busca ou o banco está vazio.</p>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro / Edição -->
+    <div class="modal-backdrop fade-in" *ngIf="showModal">
+        <div class="modal-content scale-up">
+            <div class="modal-header">
+                <h2>{{ isEditing ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+                <button class="close-btn" (click)="fecharModal()">
+                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-grid">
+
+                    <div class="input-group full-width">
+                        <label>Nome Completo *</label>
+                        <input type="text" [(ngModel)]="usuarioForm.nome" placeholder="Nome do colaborador">
+                    </div>
+
+                    <div class="input-group">
+                        <label>E-mail</label>
+                        <input type="email" [(ngModel)]="usuarioForm.email" placeholder="email@empresa.com">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Login *</label>
+                        <input type="text" [(ngModel)]="usuarioForm.login" placeholder="Ex: joao.silva">
+                    </div>
+
+                    <div class="input-group" *ngIf="!isEditing">
+                        <label>Senha Provisória *</label>
+                        <input type="password" [(ngModel)]="usuarioForm.senha" placeholder="Mínimo 6 caracteres">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Perfil de Acesso *</label>
+                        <select [(ngModel)]="usuarioForm.perfil">
+                            <option value="OPERADOR">OPERADOR - Acesso apenas ao painel de atendimento</option>
+                            <option value="SUPERVISOR">SUPERVISOR - Acesso ao dashboard e monitoramento</option>
+                            <option value="ADMIN">ADMINISTRADOR - Acesso total ao sistema e cadastros</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
+                <button class="btn-primary" (click)="salvar()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Redefinição de Senha -->
+    <div class="modal-backdrop fade-in" *ngIf="showPasswordResetModal">
+        <div class="modal-content scale-up" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Redefinir Senha</h2>
+                <button class="close-btn" (click)="fecharModal()">
+                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="input-group full-width">
+                        <label>Nova Senha *</label>
+                        <input type="password" [(ngModel)]="novaSenhaForm.senha" placeholder="Mínimo 6 caracteres">
+                        <small class="helper-text">Esta senha substituirá a senha atual do usuário.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
+                <button class="btn-primary" (click)="salvarNovaSenha()">Salvar Nova Senha</button>
+            </div>
+        </div>
+    </div>
+</div>

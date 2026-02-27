@@ -1,0 +1,137 @@
+$primary: #00a0e9;
+$bg-page: #f8fafc;
+$text-dark: #1e293b;
+$text-muted: #64748b;
+$border: #e2e8f0;
+
+.supervisor-page {
+  background-color: $bg-page;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: white; padding: 10px 24px;
+  border-bottom: 1px solid $border;
+  
+  .logo img { height: 40px; }
+
+  .right-actions { display: flex; align-items: center; gap: 20px; }
+  
+  .input-group {
+    display: flex; flex-direction: column;
+    label { font-size: 0.7rem; color: $text-muted; margin-bottom: 2px; }
+    select { padding: 6px 10px; border: 1px solid $border; border-radius: 6px; outline: none; background: #f8fafc;}
+  }
+
+  .lang-toggle {
+    display: flex; background: #f1f5f9; padding: 2px; border-radius: 6px;
+    span { padding: 4px 8px; font-size: 0.75rem; font-weight: bold; color: $text-muted; cursor: pointer; }
+    .active { background: white; color: $primary; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  }
+
+  .header-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 20px; border: none; font-weight: 600; cursor: pointer;
+    position: relative;
+    &.purple { background: #f3e8ff; color: #9333ea; }
+    &.teal { background: #ccfbf1; color: #0f766e; }
+    
+    .badge {
+      position: absolute; top: -5px; right: -5px;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; color: white;
+    }
+    &.purple .badge { background: #9333ea; }
+    &.teal .badge { background: #0f766e; }
+  }
+
+  .user-profile {
+    display: flex; align-items: center; gap: 12px;
+    .text { display: flex; flex-direction: column; text-align: right; }
+    strong { font-size: 0.9rem; color: $text-dark; }
+    span { font-size: 0.75rem; color: $text-muted; }
+    .avatar { width: 36px; height: 36px; background: #0e7490; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  }
+}
+
+/* ALERTA */
+.alert-banner {
+  background: #fff7ed; border-bottom: 1px solid #fed7aa;
+  padding: 10px 24px; display: flex; justify-content: space-between; align-items: center;
+  color: #c2410c; font-size: 0.9rem; font-weight: 500;
+  
+  .alert-content { display: flex; align-items: center; gap: 8px; }
+  .alert-link { display: flex; align-items: center; gap: 4px; color: #c2410c; text-decoration: none; font-weight: 600; }
+}
+
+/* CONTEÚDO PRINCIPAL */
+.dashboard-content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+.section { margin-bottom: 32px; }
+.section-title { font-size: 1.1rem; font-weight: 700; color: $text-dark; margin-bottom: 16px; }
+
+/* GRID DE KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.kpi-card {
+  background: white; border-radius: 12px; padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+
+  .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  
+  .kpi-info { flex: 1; }
+  .kpi-title { font-size: 0.85rem; color: $text-muted; font-weight: 600; display: block; margin-bottom: 4px; }
+  .kpi-value-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .kpi-value { font-size: 1.5rem; font-weight: 800; color: $text-dark; }
+  .kpi-indicator { font-size: 0.75rem; font-weight: 700; }
+  .green { color: #16a34a; } .red { color: #dc2626; } .gray { color: $text-muted; }
+}
+
+/* STATUS DOS GUICHÊS */
+.desk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.desk-card {
+  background: white; border-radius: 12px; padding: 16px;
+  border: 2px solid transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+
+  /* Variações de Status */
+  &.atendendo { border-color: #86efac; .status-badge { background: #22c55e; color: white; } }
+  &.disponivel { border-color: #bae6fd; background: #f0f9ff; .status-badge { background: #3b82f6; color: white; } }
+  &.fechado { background: #f8fafc; opacity: 0.7; .status-badge { background: #cbd5e1; color: $text-dark; } }
+
+  .desk-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .desk-label { font-size: 0.75rem; color: $text-muted; display: block; }
+  .desk-number { font-size: 1.5rem; font-weight: 800; color: $text-dark; }
+  .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+  .desk-body { border-top: 1px solid $border; padding-top: 12px; }
+  .operator { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: $text-muted; margin-bottom: 12px; }
+  
+  .desk-details {
+    display: flex; justify-content: space-between; align-items: flex-end; background: #f1f5f9; padding: 10px; border-radius: 8px;
+    &.center-content { flex-direction: column; align-items: center; justify-content: center; background: transparent; padding: 0; margin-top: 20px;}
+  }
+
+  .detail-label { font-size: 0.7rem; color: $text-muted; display: block; }
+  .ticket-number { font-size: 1.1rem; font-weight: 800; color: $text-dark; }
+  
+  .time-box { display: flex; align-items: center; gap: 4px; background: #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: $text-muted; }
+  .time-box.blue { background: #dbeafe; color: #2563eb; }
+  .waiting-text { margin-top: 10px; font-size: 1.1rem; color: $text-dark; font-weight: 700; }
+}
+
+/* AÇÕES DE GERENCIAMENTO */
+.actions-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.action-card {
+  background: white; border: 1px solid $border; border-radius: 12px; padding: 20px;
+  display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  
+  .action-icon { width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; color: $primary; display: flex; align-items: center; justify-content: center; }
+  span { font-weight: 600; font-size: 0.9rem; color: $text-dark; text-align: left;}
+
+  &:hover { border-color: $primary; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+}

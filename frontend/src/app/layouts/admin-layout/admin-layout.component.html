@@ -2,50 +2,49 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" [class.closed]="!sidebarOpen">
     <div class="logo-area">
-      <span>{{ sidebarOpen ? 'Aldebaran' : 'AL' }}</span>
+      <img *ngIf="sidebarOpen" src="assets/logo-aldebaran.png" alt="Águas Aldebaran" class="logo-img" />
+      <span *ngIf="!sidebarOpen" class="logo-mini">AL</span>
     </div>
 
     <nav class="menu">
-      <a routerLink="/admin/dashboard" routerLinkActive="active" class="menu-item">
-        <lucide-icon [img]="icons.dashboard"></lucide-icon>
-        <span *ngIf="sidebarOpen">Dashboard</span>
-      </a>
-      
-      <!-- Criaremos estas páginas nas próximas etapas -->
-      <a routerLink="/admin/servicos" routerLinkActive="active" class="menu-item">
-        <lucide-icon [img]="icons.settings"></lucide-icon>
-        <span *ngIf="sidebarOpen">Serviços</span>
-      </a>
+      <ng-container *ngFor="let item of menuItems">
+        <a *ngIf="!item.external" [routerLink]="item.path" routerLinkActive="active" class="menu-item">
+          <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+          <span *ngIf="sidebarOpen">{{ item.label }}</span>
+        </a>
 
-      <a routerLink="/totem" class="menu-item" target="_blank">
-        <lucide-icon [img]="icons.monitor"></lucide-icon>
-        <span *ngIf="sidebarOpen">Modo Totem</span>
-      </a>
+        <a *ngIf="item.external" [routerLink]="item.path" class="menu-item totem-link" target="_blank">
+          <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+          <span *ngIf="sidebarOpen">{{ item.label }}</span>
+        </a>
+      </ng-container>
     </nav>
-
-    <div class="sidebar-footer">
-      <button (click)="logout()" class="logout-btn">
-        <lucide-icon [img]="icons.logout"></lucide-icon>
-        <span *ngIf="sidebarOpen">Sair</span>
-      </button>
-    </div>
   </aside>
 
   <!-- CONTEÚDO -->
   <div class="main-content-wrapper" [class.expanded]="!sidebarOpen">
+    <!-- TOP BAR -->
     <header class="top-bar">
-      <button class="toggle-btn" (click)="toggleSidebar()">
-        <lucide-icon [img]="icons.menu"></lucide-icon>
-      </button>
+      <div class="top-bar-left">
+        <button class="toggle-btn" (click)="toggleSidebar()">
+          <lucide-icon [img]="icons['menu']"></lucide-icon>
+        </button>
+      </div>
 
-      <div class="user-info">
-        <div class="text">
-          <div class="name">{{ usuario?.nome || 'Usuário' }}</div>
-          <div class="role">Administrador</div>
+      <div class="top-bar-right">
+        <div class="user-info">
+          <div class="avatar">
+            <lucide-icon [img]="icons['user']"></lucide-icon>
+          </div>
+          <div class="text">
+            <div class="name">{{ usuario?.nome || 'Administrador' }}</div>
+            <div class="role">Admin</div>
+          </div>
         </div>
-        <div class="avatar">
-          <lucide-icon [img]="icons.user"></lucide-icon>
-        </div>
+
+        <button (click)="logout()" class="logout-btn" title="Sair do Sistema">
+          <lucide-icon [img]="icons['logout']"></lucide-icon>
+        </button>
       </div>
     </header>
 

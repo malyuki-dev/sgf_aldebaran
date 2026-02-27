@@ -1,0 +1,154 @@
+<div class="crud-page animate-up">
+    <div class="page-header">
+        <div class="titles">
+            <h1>Gestão de Caminhões</h1>
+            <p>Gerencie a frota de veículos registrados no pátio</p>
+        </div>
+
+        <button class="btn-primary" (click)="abrirModalNovo()">
+            <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+            Novo Caminhão
+        </button>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-box">
+            <lucide-icon [img]="icons.search" size="20"></lucide-icon>
+            <input type="text" placeholder="Buscar por Placa, Modelo ou Transportadora..." [(ngModel)]="filtro"
+                (keyup.enter)="buscar()">
+        </div>
+        <button class="btn-outline" (click)="buscar()">Filtrar</button>
+    </div>
+
+    <div class="skeleton-loader" *ngIf="loading">
+        <div class="skel-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+
+    <!-- Cards Grid View -->
+    <div class="cards-grid" *ngIf="!loading">
+        <ng-container *ngIf="caminhoes.length > 0">
+            <div class="data-card" *ngFor="let c of caminhoes">
+                <div class="status-badge" [class.ativo]="c.status === 'ATIVO'" [class.inativo]="c.status === 'INATIVO'">
+                    {{ c.status === 'ATIVO' ? 'Ativo' : 'Inativo' }}
+                </div>
+
+                <div class="card-header">
+                    <div class="avatar-circle">
+                        <lucide-icon [img]="icons.truck" size="24"></lucide-icon>
+                    </div>
+                    <div class="info">
+                        <h3>{{ c.placa }}</h3>
+                        <span class="subtitle">{{ c.modelo }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.briefcase" size="16"></lucide-icon>
+                        <span><strong>De:</strong> {{ c.transportadora }}</span>
+                    </div>
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.hash" size="16"></lucide-icon>
+                        <span><strong>Capacidade:</strong> {{ c.capacidade }}</span>
+                    </div>
+                    <div class="data-row" *ngIf="c.motorista">
+                        <lucide-icon [img]="icons.user" size="16"></lucide-icon>
+                        <span><strong>Motorista:</strong> {{ c.motorista?.nome | slice:0:15 }}{{
+                            c.motorista?.nome?.length >
+                            15 ? '...' : '' }}</span>
+                    </div>
+                    <div class="data-row disabled-text" *ngIf="!c.motorista">
+                        <lucide-icon [img]="icons.user" size="16"></lucide-icon>
+                        <span><strong>Motorista:</strong> Não vinculado</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="icon-btn edit-btn" (click)="abrirModalEditar(c)" title="Editar">
+                        <lucide-icon [img]="icons.edit2" size="18"></lucide-icon>
+                    </button>
+                    <button class="icon-btn delete-btn" (click)="excluir(c.id)" title="Inativar">
+                        <lucide-icon [img]="icons.trash2" size="18"></lucide-icon>
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="caminhoes.length === 0">
+            <div class="icon-circle empty">
+                <lucide-icon [img]="icons.truck" size="40"></lucide-icon>
+            </div>
+            <h3>Nenhum caminhão encontrado</h3>
+            <p>Não há registros que correspondam à busca ou o banco está vazio.</p>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal-backdrop fade-in" *ngIf="showModal">
+        <div class="modal-content scale-up">
+            <div class="modal-header">
+                <h2>{{ isEditing ? 'Editar Caminhão' : 'Novo Caminhão' }}</h2>
+                <button class="close-btn" (click)="fecharModal()">
+                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-grid">
+
+                    <div class="input-group">
+                        <label>Placa *</label>
+                        <input type="text" [(ngModel)]="caminhaoForm.placa" [disabled]="isEditing"
+                            placeholder="ABC-1234 ou ABC1D23" style="text-transform: uppercase;">
+                        <small *ngIf="isEditing" class="helper-text">A placa não pode ser alterada.</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Modelo *</label>
+                        <input type="text" [(ngModel)]="caminhaoForm.modelo" placeholder="Ex: Scania R450">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Transportadora *</label>
+                        <input type="text" [(ngModel)]="caminhaoForm.transportadora"
+                            placeholder="Nome da empresa ou 'Autônomo'">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Capacidade Carga *</label>
+                        <input type="text" [(ngModel)]="caminhaoForm.capacidade" placeholder="Ex: 30 Toneladas">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select [(ngModel)]="caminhaoForm.status">
+                            <option value="ATIVO">Ativo</option>
+                            <option value="INATIVO">Inativo</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Motorista Designado (Opção Admin)</label>
+                        <select [(ngModel)]="caminhaoForm.motorista_id">
+                            <option [ngValue]="null">--- Selecione (ou Sem Vínculo) ---</option>
+                            <option *ngFor="let m of motoristas" [value]="m.id">{{ m.nome }} ({{ m.cpf }})</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Observações</label>
+                        <textarea [(ngModel)]="caminhaoForm.observacoes" placeholder="Comentários adicionais..."
+                            rows="3"></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
+                <button class="btn-primary" (click)="salvar()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>

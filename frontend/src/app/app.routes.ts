@@ -16,12 +16,13 @@ import { AgendamentoComponent } from './pages/client/agendamento/agendamento.com
 import { ClientAppointmentsComponent } from './pages/client/client-appointments/client-appointments.component';
 // Nota: Removi o Login/Signup antigos da pasta client para não confundir
 
-// Admin
+// Admin e Supervisor
 import { DashboardComponent } from './pages/admin/dashboard/dashboard.component';
 import { ServicosComponent } from './pages/admin/servicos/servicos.component';
 import { AgendamentosComponent } from './pages/admin/agendamentos/agendamentos.component';
 import { AtendimentoComponent } from './pages/admin/atendimento/atendimento.component';
 import { ClientesComponent } from './pages/admin/clientes/clientes.component';
+import { SupervisorDashboardComponent } from './pages/supervisor/dashboard/supervisor-dashboard.component';
 
 // Totem
 import { TotemInicialComponent } from './pages/totem/totem-inicial/totem-inicial.component';
@@ -61,7 +62,21 @@ export const routes: Routes = [
       { path: 'atendimento', component: AtendimentoComponent },
       { path: 'agendamentos', component: AgendamentosComponent },
       { path: 'servicos', component: ServicosComponent },
-      { path: 'clientes', component: ClientesComponent },
+      { path: 'clientes', loadComponent: () => import('./pages/admin/clientes/clientes.component').then(m => m.ClientesComponent) },
+      { path: 'usuarios', loadComponent: () => import('./pages/admin/usuarios/usuarios.component').then(m => m.UsuariosComponent) },
+      { path: 'motoristas', loadComponent: () => import('./pages/admin/motoristas/motoristas.component').then(m => m.MotoristasComponent) },
+      { path: 'caminhoes', loadComponent: () => import('./pages/admin/caminhoes/caminhoes.component').then(m => m.CaminhoesComponent) },
+    ]
+  },
+
+  // 4.5. ÁREA DO SUPERVISOR
+  {
+    path: 'supervisor',
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: SupervisorDashboardComponent },
+      // O Supervisor precisa interagir com a tela administrativa de cadastro de Funcionários (Operador)
+      { path: 'operadores/novo', loadComponent: () => import('./pages/admin/usuarios/usuarios.component').then(m => m.UsuariosComponent) }
     ]
   },
 
@@ -83,4 +98,5 @@ export const routes: Routes = [
 
   // 7. ÁREA DO OPERADOR
   { path: 'operador/escolha-guiches', component: EscolhaGuiches },
+  { path: 'operador/painel', loadComponent: () => import('./pages/operador/painel/painel.component').then(m => m.PainelOperadorComponent) },
 ];

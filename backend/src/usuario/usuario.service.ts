@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
@@ -6,53 +6,137 @@ import * as bcrypt from 'bcrypt';
 export class UsuarioService {
   constructor(private prisma: PrismaService) { }
 
-  // Criar usuário com hash de senha
-  async criar(login: string, senha: string, nome: string) {
+  async criar(dados: any) {
+    const { login, senha, nome, email, perfil } = dados;
+
+    const existe = await this.prisma.usuario.findFirst({
+      where: { OR: [{ login }, { email }] }
+    });
+
+    if (existe) {
+      throw new BadRequestException('Login ou E-mail já estão em uso.');
+    }
+
     const senhaHash = await bcrypt.hash(senha, 12);
+
     return await this.prisma.usuario.create({
       data: {
         login,
         senha: senhaHash,
         nome,
+        email,
+        perfil: perfil || 'OPERADOR',
       },
       select: {
         id: true,
         login: true,
         nome: true,
+        email: true,
+        perfil: true,
+        ativo: true,
+        criadoEm: true
       }
     });
   }
 
-  // Validar Login com comparação de hash
   async validarLogin(login: string, senha: string) {
-    // Busca o usuário pelo login
     const usuario = await this.prisma.usuario.findUnique({
       where: { login },
     });
 
-    // Se não achar usuário
-    if (!usuario) {
+    if (!usuario || !usuario.ativo) {
       throw new UnauthorizedException('Login ou senha inválidos!');
     }
 
-    // Compara a senha fornecida com o hash armazenado
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
       throw new UnauthorizedException('Login ou senha inválidos!');
     }
 
-    // Se deu certo, retorna os dados (sem a senha)
-    return { id: usuario.id, nome: usuario.nome, acesso: true };
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      perfil: usuario.perfil,
+      acesso: true
+    };
   }
 
-  // Listar todos (sem expor senhas)
-  findAll() {
-    return this.prisma.usuario.findMany({
+  async findAll() {
+    return await this.prisma.usuario.findMany({
+      where: { deletadoEm: null }, // Optionally handle soft-deleted
       select: {
         id: true,
-        login: true,
         nome: true,
+        login: true,
+        email: true,
+        perfil: true,
+        ativo: true,
+        criadoEm: true,
+        atualizadoEm: true
+      },
+      orderBy: { id: 'asc' }
+    });
+  }
+
+  async findOne(id: number) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nome: true,
+        login: true,
+        email: true,
+        perfil: true,
+        ativo: true,
+        criadoEm: true,
+        atualizadoEm: true
       }
+    });
+
+    if (!usuario) throw new NotFoundException('Usuário não encontrado');
+    return usuario;
+  }
+
+  async update(id: number, dados: any) {
+    await this.findOne(id); // Check existence
+
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: {
+        nome: dados.nome,
+        email: dados.email,
+        login: dados.login,
+        perfil: dados.perfil,
+        atualizadoEm: new Date()
+      },
+      select: {
+        id: true,
+        nome: true,
+        login: true,
+        email: true,
+        perfil: true,
+        ativo: true,
+      }
+    });
+  }
+
+  async toggleStatus(id: number) {
+    const usuario = await this.findOne(id);
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { ativo: !usuario.ativo, atualizadoEm: new Date() },
+      select: { id: true, ativo: true }
+    });
+  }
+
+  async resetPassword(id: number, novaSenha: string) {
+    await this.findOne(id);
+    const senhaHash = await bcrypt.hash(novaSenha, 12);
+
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { senha: senhaHash, atualizadoEm: new Date() },
+      select: { id: true, nome: true }
     });
   }
 }

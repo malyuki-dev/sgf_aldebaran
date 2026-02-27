@@ -1,91 +1,170 @@
-<div class="page-container">
+<div class="crud-page animate-up">
+  <!-- Header Area -->
   <div class="page-header">
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <div class="icon-box"><lucide-icon [img]="icons.users"></lucide-icon></div>
-      <div>
-        <h1>Gestão de Clientes</h1>
-        <p>Consulte e gerencie a base de clientes.</p>
-      </div>
+    <div class="header-content">
+      <h1>Gestão de Clientes</h1>
+      <p>Cadastre, visualize e gerencie (Cadastro Operacional - US-0002).</p>
     </div>
-    <button class="btn-primary" (click)="novoCliente()">
-      <lucide-icon [img]="icons.plus"></lucide-icon> Novo Cliente
+    <div class="header-actions">
+      <button class="btn-primary" (click)="abrirModalNovo()">
+        <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+        <span>Novo Cliente</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Area -->
+  <div class="filters-card">
+    <div class="search-box">
+      <lucide-icon [img]="icons.search" size="20"></lucide-icon>
+      <input type="text" placeholder="Buscar por nome, documento ou email..." [(ngModel)]="filtro"
+        (keyup.enter)="carregarClientes()">
+    </div>
+    <div class="filter-actions">
+      <div class="select-wrapper">
+        <lucide-icon [img]="icons.filter" size="18" class="select-icon"></lucide-icon>
+        <select [(ngModel)]="filtroStatus" (change)="carregarClientes()">
+          <option value="TODOS">Todos os Status</option>
+          <option value="ATIVOS">Ativos</option>
+          <option value="INATIVOS">Inativos</option>
+        </select>
+      </div>
+      <button class="btn-outline" (click)="carregarClientes()">Buscar</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Carregando clientes...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state animate-up" *ngIf="!loading && clientes.length === 0">
+    <div class="icon-circle">
+      <lucide-icon [img]="icons.users" size="32"></lucide-icon>
+    </div>
+    <h3>Nenhum cliente encontrado</h3>
+    <p>Ajuste os filtros ou crie um novo cadastro.</p>
+    <button class="btn-primary" (click)="abrirModalNovo()">
+      <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+      Novo Cliente
     </button>
   </div>
 
-  <div class="card filters-card">
-    <div class="filters-row">
-      
-      <div class="input-group flex-2">
-        <label>Nome / Razão Social</label>
-        <div class="input-wrapper">
-          <lucide-icon [img]="icons.search" class="icon-small"></lucide-icon>
-          <input [(ngModel)]="filtros.nome" (keyup.enter)="buscar()" placeholder="Buscar por nome...">
+  <!-- Data Grid (Cards) -->
+  <div class="cards-grid" *ngIf="!loading && clientes.length > 0">
+    <div class="data-card" *ngFor="let c of clientes" [class.inactive-card]="!isAtivo(c)">
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="avatar-circle"
+          [style.backgroundColor]="c.tipo === 'PJ' ? 'rgba(79, 70, 229, 0.1)' : 'rgba(16, 185, 129, 0.1)'">
+          <lucide-icon [img]="icons.building" size="24" color="#4f46e5" *ngIf="c.tipo === 'PJ'"></lucide-icon>
+          <lucide-icon [img]="icons.user" size="24" color="#10b981" *ngIf="c.tipo !== 'PJ'"></lucide-icon>
+        </div>
+        <div class="info">
+          <h3>{{ c.nome }}</h3>
+          <span class="subtitle">{{ c.tipo === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física' }}</span>
+          <span class="status-badge" [class.active]="isAtivo(c)" [class.inactive]="!isAtivo(c)">
+            {{ isAtivo(c) ? 'Ativo' : 'Inativo' }}
+          </span>
         </div>
       </div>
-      
-      <div class="input-group flex-1">
-        <label>CPF/CNPJ</label>
-        <input [(ngModel)]="filtros.documento" (keyup.enter)="buscar()" placeholder="Apenas números">
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Documento</span>
+          <span class="value">{{ getDocument(c) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">E-mail</span>
+          <span class="value">{{ c.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Telefone</span>
+          <span class="value">{{ c.telefone || 'Não informado' }}</span>
+        </div>
       </div>
 
-      <div class="input-group flex-1">
-        <label>Status</label>
-        <select [(ngModel)]="filtros.status" (change)="buscar()">
-          <option value="todos">Todos</option>
-          <option value="ativo">Ativo</option>
-          <option value="inativo">Inativo</option>
-        </select>
-      </div>
-
-      <div class="actions-group">
-        <button class="btn-filter" (click)="buscar()">
-          <lucide-icon [img]="icons.filter" size="16"></lucide-icon> Filtrar
+      <!-- Card Footer (Actions) -->
+      <div class="card-footer">
+        <button class="action-btn edit" title="Editar Informações" (click)="abrirModalEditar(c)">
+          <lucide-icon [img]="icons.edit" size="18"></lucide-icon>
         </button>
-        <button class="btn-clear" (click)="limparFiltros()" title="Limpar filtros">
-          <lucide-icon [img]="icons.x" size="16"></lucide-icon>
+        <div class="divider"></div>
+        <button class="action-btn danger" [title]="isAtivo(c) ? 'Inativar Cliente' : 'Reativar Cliente'"
+          (click)="alternarStatus(c.id)">
+          <lucide-icon [img]="isAtivo(c) ? icons.x : icons.check" size="18"></lucide-icon>
         </button>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="card list-card">
-    <table *ngIf="!loading">
-      <thead>
-        <tr>
-          <th>NOME</th>
-          <th>DOCUMENTO</th>
-          <th>E-MAIL</th>
-          <th>TELEFONE</th>
-          <th class="text-center">STATUS</th>
-          <th class="text-right">AÇÕES</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let c of clientes">
-          <td class="fw-bold">{{ c.nome }}</td>
-          <td>{{ c.documento }}</td>
-          <td>{{ c.email }}</td>
-          <td>{{ c.telefone || '-' }}</td>
-          <td class="text-center">
-            <span class="badge" [class.inactive]="!c.ativo">
-              {{ c.ativo ? 'ATIVO' : 'INATIVO' }}
-            </span>
-          </td>
-          <td class="text-right">
-            <button class="btn-icon" (click)="editar(c)" title="Editar">
-              <lucide-icon [img]="icons.edit" size="16"></lucide-icon>
-            </button>
-            <button class="btn-icon delete" (click)="excluir(c.id)" title="Excluir">
-              <lucide-icon [img]="icons.trash" size="16"></lucide-icon>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="clientes.length === 0">
-          <td colspan="6" class="empty-msg">Nenhum registro encontrado.</td>
-        </tr>
-      </tbody>
-    </table>
-    
-    <div *ngIf="loading" class="loading-state">Carregando dados...</div>
+<!-- Modal Create/Edit -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+  <div class="modal-content animate-up" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditing ? 'Editar Cliente' : 'Novo Cliente (Operacional)' }}</h2>
+      <button class="close-btn" (click)="fecharModal()">
+        <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert-info" *ngIf="!isEditing">
+        <lucide-icon [img]="icons.alertCircle" size="20"></lucide-icon>
+        <span><b>Dica:</b> Se não fornecer uma senha, o cliente receberá a senha padrão:
+          <code>Aldebaran@123</code>.</span>
+      </div>
+
+      <!-- Tipo Form Segment -->
+      <div class="form-group type-segment" *ngIf="!isEditing">
+        <label>Tipo de Cliente</label>
+        <div class="segmented-control">
+          <button [class.active]="clienteForm.tipo === 'PF'" (click)="clienteForm.tipo = 'PF'">Pessoa Física</button>
+          <button [class.active]="clienteForm.tipo === 'PJ'" (click)="clienteForm.tipo = 'PJ'">Pessoa Jurídica</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label>Nome / Razão Social <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="clienteForm.nome" placeholder="Nome Completo ou Empresa">
+        </div>
+        <div class="form-group flex-1">
+          <label>E-mail <span class="required">*</span></label>
+          <input type="email" [(ngModel)]="clienteForm.email" placeholder="email@exemplo.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" *ngIf="clienteForm.tipo === 'PF'">
+          <label>CPF <span class="required" *ngIf="!isEditing">*</span></label>
+          <input type="text" [(ngModel)]="clienteForm.cpf" placeholder="000.000.000-00" [disabled]="isEditing">
+        </div>
+        <div class="form-group" *ngIf="clienteForm.tipo === 'PJ'">
+          <label>CNPJ <span class="required" *ngIf="!isEditing">*</span></label>
+          <input type="text" [(ngModel)]="clienteForm.cnpj" placeholder="00.000.000/0000-00" [disabled]="isEditing">
+        </div>
+
+        <div class="form-group">
+          <label>Telefone / Celular</label>
+          <input type="text" [(ngModel)]="clienteForm.telefone" placeholder="(00) 00000-0000">
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!isEditing">
+        <label>Senha Inicial (Opcional)</label>
+        <input type="password" [(ngModel)]="clienteForm.senha" placeholder="Deixe em branco para usar a padrão">
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-primary" (click)="salvar()">{{ isEditing ? 'Salvar Alterações' : 'Criar Cliente' }}</button>
+    </div>
   </div>
 </div>

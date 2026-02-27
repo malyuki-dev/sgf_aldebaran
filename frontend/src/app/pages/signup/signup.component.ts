@@ -12,10 +12,10 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
-export class SignupComponent { 
-  
+export class SignupComponent {
+
   step: 'FORM' | 'SUCCESS' = 'FORM';
-  tipo: 'PF' | 'PJ' = 'PF'; 
+  tipo: 'PF' | 'PJ' = 'PF';
   carregando: boolean = false;
 
   readonly icons = {
@@ -41,7 +41,7 @@ export class SignupComponent {
     private authService: AuthService,
     private router: Router,
     private cd: ChangeDetectorRef // <--- 2. Injete o detector aqui
-  ) {}
+  ) { }
 
   criar() {
     if (this.dados.senha !== this.dados.confirmarSenha) {
@@ -56,30 +56,31 @@ export class SignupComponent {
       email: this.dados.email,
       senha: this.dados.senha,
       tipo: this.tipo,
-      documento: this.tipo === 'PF' ? this.dados.cpf : this.dados.cnpj,
-      razaoSocial: this.tipo === 'PJ' ? this.dados.razao : null
+      cpf: this.tipo === 'PF' ? this.dados.cpf : null,
+      cnpj: this.tipo === 'PJ' ? this.dados.cnpj : null
+      // Removed razaoSocial and fixed documento logic because backend uses explicitly 'cpf' and 'cnpj' based on tipo.
     };
 
     this.authService.signup(payload).subscribe({
       next: (res) => {
         console.log('Sucesso:', res);
-        
+
         // Atualiza as variáveis
         this.carregando = false;
         this.step = 'SUCCESS';
-        
+
         // <--- 3. O PULO DO GATO: Força o Angular a atualizar a tela AGORA
-        this.cd.detectChanges(); 
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error('Erro:', err);
         this.carregando = false;
-        
+
         const mensagem = err.error?.message || 'Erro ao criar conta.';
         alert(mensagem);
-        
+
         // Força atualização também no erro, para destravar o botão
-        this.cd.detectChanges(); 
+        this.cd.detectChanges();
       }
     });
   }

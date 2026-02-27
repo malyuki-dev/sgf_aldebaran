@@ -21,7 +21,7 @@ export class LoginComponent {
 
   erroLogin: boolean = false;
   carregando: boolean = false;
-  
+
   readonly icons = {
     mail: Mail,
     lock: Lock,
@@ -32,7 +32,7 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router,
     private cd: ChangeDetectorRef // <--- 2. Injete o detector aqui
-  ) {}
+  ) { }
 
   fazerLogin() {
     if (!this.credenciais.email || !this.credenciais.senha) {
@@ -47,31 +47,40 @@ export class LoginComponent {
       next: (resposta: any) => {
         // Sucesso: Salva o token e redireciona
         localStorage.setItem('token', resposta.token);
-        
+
         // Se tiver o nome do usuário, pode salvar também
         if (resposta.usuario) {
           localStorage.setItem('usuario_nome', resposta.usuario.nome);
         }
 
-        // Redirecionamento rápido
-        const tipoUsuario = resposta.usuario?.tipo; 
+        // Redirecionamento rápido por papéis (RBAC)
+        const tipoUsuario = resposta.usuario?.tipo;
         switch (tipoUsuario) {
-          case 'ADMIN': this.router.navigate(['/admin/dashboard']); break;
-          case 'OPERADOR': this.router.navigate(['/operador/painel']); break;
-          // Agora redirecionamos para a tela nova que criamos!
-          case 'CLIENTE': this.router.navigate(['/client/home']); break; 
-          default: this.router.navigate(['/client/home']);
+          case 'ADMIN':
+            this.router.navigate(['/admin/dashboard']);
+            break;
+          case 'SUPERVISOR':
+            this.router.navigate(['/supervisor/dashboard']);
+            break;
+          case 'OPERADOR':
+            this.router.navigate(['/operador/painel']);
+            break;
+          case 'CLIENTE':
+            this.router.navigate(['/client/home']);
+            break;
+          default:
+            this.router.navigate(['/client/home']);
         }
-        
+
         this.carregando = false;
         this.cd.detectChanges();
       },
       error: (erro: any) => {
         // --- AQUI ESTÁ A CORREÇÃO DE VELOCIDADE ---
-        
+
         this.carregando = false; // 1. Destrava o botão imediatamente
         this.erroLogin = true;   // 2. Ativa a mensagem vermelha na tela
-        
+
         // 3. Mostra o Prompt que você pediu se for erro de senha (401)
         if (erro.status === 401) {
           alert('Senha incorreta! Verifique suas credenciais.');
@@ -80,7 +89,7 @@ export class LoginComponent {
         }
 
         // 4. Força o Angular a atualizar a tela AGORA (sem delay)
-        this.cd.detectChanges(); 
+        this.cd.detectChanges();
       }
     });
   }

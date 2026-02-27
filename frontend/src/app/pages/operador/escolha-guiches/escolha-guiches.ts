@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-escolha-guiches',
   standalone: true,
@@ -51,10 +51,13 @@ export class EscolhaGuiches {
     { numero: '06', ocupado: false },
   ];
 
+  constructor(private router: Router) { }
+
   selecionar(guiche: any) {
     if (!guiche.ocupado) {
       console.log('Guichê selecionado:', guiche.numero);
-      // Aqui iria a lógica de navegação ou API
+      localStorage.setItem('guicheAtual', guiche.numero);
+      this.router.navigate(['/operador/painel']);
     }
   }
 

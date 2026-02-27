@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 export class AuthService {
 
   // Ajuste a porta se o seu backend não for 3000
-  private apiUrl = 'http://localhost:3000/auth'; 
+  private apiUrl = 'http://localhost:3000/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -17,16 +17,16 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, credenciais);
   }
 
-  // 2. CADASTRO (Novo)
+  // 2. CADASTRO (Novo) - Apontando para Clientes
   signup(dados: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, dados);
+    return this.http.post(`http://localhost:3000/clientes/autocadastro`, dados);
   }
 
   // 3. RECUPERAR SENHA (Novo)
   recover(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/recover`, { email });
   }
-  
+
   // 4. REDEFINIR SENHA (Novo)
   resetPassword(token: string, novaSenha: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, novaSenha });

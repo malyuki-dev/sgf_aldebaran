@@ -1,6 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+// Font imports removed due to build failures with angular-css-inline-fonts-plugin.
+// Global typography handles this.
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 :host {
   display: block;
@@ -9,8 +12,8 @@
 }
 
 // Cores do Projeto
-$bg-gradient-start: #F8FAFC; 
-$bg-gradient-end: #E0F2FE;   
+$bg-gradient-start: #F8FAFC;
+$bg-gradient-end: #E0F2FE;
 $text-dark: #1E293B;
 $text-gray: #64748B;
 $card-white: #FFFFFF;
@@ -35,17 +38,20 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px; 
+  padding: 20px 30px;
   width: 100%;
   flex-shrink: 0;
 
   .brand-area {
     .brand-logo {
-      height: 50px; 
+      height: 50px;
       width: auto;
       object-fit: contain;
       display: block;
-      @media (min-width: 768px) { height: 70px; }
+
+      @media (min-width: 768px) {
+        height: 70px;
+      }
     }
   }
 
@@ -88,7 +94,7 @@ header {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  padding-top: 5vh; 
+  padding-top: 5vh;
   padding-bottom: 40px;
 }
 
@@ -122,7 +128,7 @@ header {
 /* --- CARDS --- */
 .cards-row {
   display: flex;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   gap: 30px;
   justify-content: center;
   width: 100%;
@@ -131,7 +137,7 @@ header {
 }
 
 .action-card {
-  flex: 1 1 280px; 
+  flex: 1 1 280px;
   max-width: 380px;
   min-height: 320px;
   background: $card-white;
@@ -152,7 +158,11 @@ header {
     @media (hover: hover) {
       transform: translateY(-10px);
       box-shadow: 0 35px 60px -10px rgba(2, 132, 199, 0.25);
-      .bar-indicator { width: 80px; opacity: 1; }
+
+      .bar-indicator {
+        width: 80px;
+        opacity: 1;
+      }
     }
   }
 
@@ -179,15 +189,18 @@ header {
     align-items: center;
     justify-content: center;
     margin-bottom: 25px;
-    
+
     // Regra para o SVG do card convencional
-    svg { width: 60%; height: 60%; }
+    svg {
+      width: 60%;
+      height: 60%;
+    }
 
     // NOVA REGRA: Para a sua imagem PNG
     .icon-img {
-        width: 70%; // Um pouco maior que o SVG para preencher bem
-        height: 70%;
-        object-fit: contain; // Garante que a imagem não distorça
+      width: 70%; // Um pouco maior que o SVG para preencher bem
+      height: 70%;
+      object-fit: contain; // Garante que a imagem não distorça
     }
   }
 
@@ -204,8 +217,10 @@ header {
     line-height: 1.5;
     margin: 0 0 25px 0;
     max-width: 85%;
-    
-    &.desc-long { font-size: 14px; }
+
+    &.desc-long {
+      font-size: 14px;
+    }
   }
 
   .bar-indicator {
@@ -220,7 +235,7 @@ header {
 /* --- BOTÃO VOLTAR --- */
 .footer-action {
   margin-top: 50px;
-  
+
   .btn-back {
     background: transparent;
     border: none;
@@ -234,7 +249,12 @@ header {
     padding: 10px 20px;
     transition: color 0.2s;
 
-    &:hover { color: $text-dark; }
-    &:hover svg { transform: translateX(-4px); }
+    &:hover {
+      color: $text-dark;
+    }
+
+    &:hover svg {
+      transform: translateX(-4px);
+    }
   }
 }

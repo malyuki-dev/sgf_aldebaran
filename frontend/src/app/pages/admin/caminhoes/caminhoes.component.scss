@@ -1,0 +1,60 @@
+// Styling relies mostly on shared properties from motoristas
+@use '../motoristas/motoristas.component.scss';
+
+.status-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    &.ativo {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    &.inativo {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+}
+
+.disabled-text {
+
+    span,
+    strong {
+        color: #94a3b8 !important;
+    }
+}
+
+// Ensure select boxes in modal span correctly
+.form-grid {
+
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #1e293b;
+        background: #fff;
+        transition: 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+}

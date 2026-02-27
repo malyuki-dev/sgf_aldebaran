@@ -1,9 +1,9 @@
-import { 
-  Injectable, 
-  UnauthorizedException, 
-  ConflictException, 
-  NotFoundException, 
-  BadRequestException 
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  BadRequestException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -14,30 +14,53 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   // --- LOGIN ---
   async login(body: any) {
-    const usuario = await this.prisma.clientes.findUnique({
+    // 1. Tenta achar na tabela de Usuários (Staff Operacional/Admin)
+    // O usuário pode tentar fazer login usando o email ou o username (login)
+    const staff = await this.prisma.usuario.findFirst({
+      where: {
+        OR: [
+          { email: body.email },
+          { login: body.email }
+        ],
+        ativo: true,
+        deletadoEm: null
+      }
+    });
+
+    if (staff) {
+      const senhaValida = await bcrypt.compare(body.senha, staff.senha);
+      if (!senhaValida) throw new UnauthorizedException('Credenciais incorretas.');
+
+      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil };
+      return {
+        token: this.jwtService.sign(payload),
+        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil }
+      };
+    }
+
+    // 2. Tenta achar na tabela de Clientes (Público) se não achou no Staff
+    const cliente = await this.prisma.clientes.findUnique({
       where: { email: body.email }
     });
 
-    if (!usuario) {
-      throw new UnauthorizedException('E-mail ou senha incorretos.');
+    if (cliente) {
+      if (cliente.deletedAt) throw new UnauthorizedException('Conta inativada.');
+
+      const senhaValida = await bcrypt.compare(body.senha, cliente.senha);
+      if (!senhaValida) throw new UnauthorizedException('Credenciais incorretas.');
+
+      const payload = { sub: cliente.id, email: cliente.email, tipo: 'CLIENTE' };
+      return {
+        token: this.jwtService.sign(payload),
+        usuario: { nome: cliente.nome, email: cliente.email, tipo: 'CLIENTE' }
+      };
     }
 
-    // Compara a senha fornecida com o hash armazenado
-    const senhaValida = await bcrypt.compare(body.senha, usuario.senha);
-    if (!senhaValida) {
-      throw new UnauthorizedException('E-mail ou senha incorretos.');
-    }
-
-    const payload = { sub: usuario.id, email: usuario.email, tipo: 'CLIENTE' };
-    
-    return {
-      token: this.jwtService.sign(payload),
-      usuario: { nome: usuario.nome, email: usuario.email, tipo: 'CLIENTE' }
-    };
+    throw new UnauthorizedException('Credenciais incorretas.');
   }
 
   // --- CADASTRO ---
@@ -46,7 +69,7 @@ export class AuthService {
       where: {
         OR: [
           { email: dados.email },
-          { cpf: dados.documento } 
+          { cpf: dados.documento }
         ]
       }
     });
@@ -78,11 +101,11 @@ export class AuthService {
 
   // --- RECUPERAR SENHA ---
   async recover(email: string) {
-    const user = await this.prisma.clientes.findUnique({ 
+    const user = await this.prisma.clientes.findUnique({
       where: { email },
       select: { id: true, email: true, nome: true }
     });
-    
+
     if (!user) {
       throw new NotFoundException('E-mail não encontrado.');
     }
@@ -92,12 +115,12 @@ export class AuthService {
       { sub: user.id, email: user.email },
       { expiresIn: '15m' }
     );
-    
+
     const link = `http://localhost:4200/reset-password?token=${token}`;
 
     // TODO: Implementar envio real de e-mail (usar nodemailer, SendGrid, etc.)
     console.log(`📧 Reset link para ${email}: ${link}`);
-    
+
     return { message: 'Link de recuperação enviado.' };
   }
 

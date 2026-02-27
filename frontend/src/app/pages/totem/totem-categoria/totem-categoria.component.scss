@@ -1,7 +1,10 @@
- @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+// Font imports removed due to build failures with angular-css-inline-fonts-plugin.
+// Global typography handles this.
 
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 
 :host {
@@ -19,7 +22,7 @@
 
 $bg-gradient-start: #F8FAFC;
 
-$bg-gradient-end: #E0F2FE;  
+$bg-gradient-end: #E0F2FE;
 
 $text-dark: #1E293B;
 
@@ -80,7 +83,9 @@ header {
 
     display: block;
 
-    @media (min-width: 768px) { height: 70px; }
+    @media (min-width: 768px) {
+      height: 70px;
+    }
 
   }
 
@@ -119,7 +124,10 @@ header {
       white-space: nowrap;
 
 
-      @media (min-width: 768px) { padding: 10px 24px; font-size: 15px; }
+      @media (min-width: 768px) {
+        padding: 10px 24px;
+        font-size: 15px;
+      }
 
 
       &.active {
@@ -250,7 +258,7 @@ header {
 
   padding: 40px 30px;
 
- 
+
 
   display: flex;
 
@@ -357,7 +365,7 @@ header {
 
   margin-top: 80px; // Bastante espaço do conteúdo
 
- 
+
 
   .btn-back {
 
@@ -384,10 +392,14 @@ header {
     transition: color 0.2s;
 
 
-    &:hover { color: $text-dark; }
+    &:hover {
+      color: $text-dark;
+    }
 
-    &:hover svg { transform: translateX(-4px); }
+    &:hover svg {
+      transform: translateX(-4px);
+    }
 
   }
 
-} 
+}

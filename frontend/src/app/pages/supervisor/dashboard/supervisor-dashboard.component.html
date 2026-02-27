@@ -1,0 +1,131 @@
+<div class="supervisor-page">
+
+  <header class="top-bar">
+    <div class="logo">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran">
+    </div>
+
+    <div class="right-actions">
+      <div class="input-group">
+        <label>Filial</label>
+        <select><option>Matriz Centro</option></select>
+      </div>
+
+      <div class="lang-toggle">
+        <span class="active">PT</span>
+        <span>EN</span>
+      </div>
+
+      <button class="header-btn purple">
+        <lucide-icon [img]="icons.history" size="18"></lucide-icon>
+        Atendimentos
+        <span class="badge">5</span>
+      </button>
+
+      <button class="header-btn teal">
+        <lucide-icon [img]="icons.calendar" size="18"></lucide-icon>
+        Agendamentos
+        <span class="badge">5</span>
+      </button>
+
+      <div class="user-profile">
+        <div class="text">
+          <strong>Roberta Alves</strong>
+          <span>Supervisor</span>
+        </div>
+        <div class="avatar">
+          <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="alert-banner">
+    <div class="alert-content">
+      <lucide-icon [img]="icons.alert" size="20"></lucide-icon>
+      <span>Alertas: Alta demanda detectada na categoria Retirada Pesada</span>
+    </div>
+    <a href="#" class="alert-link">
+      Ver Relatórios <lucide-icon [img]="icons.right" size="16"></lucide-icon>
+    </a>
+  </div>
+
+  <main class="dashboard-content">
+    
+    <section class="section">
+      <h2 class="section-title">Visão Geral</h2>
+      <div class="kpi-grid">
+        <div class="kpi-card" *ngFor="let kpi of visaoGeral">
+          <div class="icon-box" [style.backgroundColor]="kpi.bgIcon" [style.color]="kpi.colorIcon">
+            <lucide-icon [img]="kpi.icon" size="24"></lucide-icon>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-title">{{ kpi.titulo }}</span>
+            <div class="kpi-value-row">
+              <strong class="kpi-value">{{ kpi.valor }}</strong>
+              <span class="kpi-indicator" [ngClass]="kpi.corInfo">{{ kpi.info }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Status dos Guichês</h2>
+      <div class="desk-grid">
+        
+        <div class="desk-card" *ngFor="let guiche of guiches" [ngClass]="guiche.status.toLowerCase()">
+          
+          <div class="desk-header">
+            <div class="desk-title">
+              <span class="desk-label">Guichê</span>
+              <strong class="desk-number">{{ guiche.numero }}</strong>
+            </div>
+            <span class="status-badge">{{ guiche.status === 'DISPONIVEL' ? 'Disponível' : guiche.status === 'ATENDENDO' ? 'Atendendo' : 'Fechado' }}</span>
+          </div>
+
+          <div class="desk-body" *ngIf="guiche.status !== 'FECHADO'">
+            <div class="operator">
+              <lucide-icon [img]="icons.user" size="14"></lucide-icon>
+              {{ guiche.operador }}
+            </div>
+            
+            <div class="desk-details" *ngIf="guiche.status === 'ATENDENDO'">
+              <div class="detail-col">
+                <span class="detail-label">Atendendo</span>
+                <strong class="ticket-number">{{ guiche.ticket }}</strong>
+              </div>
+              <div class="time-box">
+                <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+                {{ guiche.tempo }}
+              </div>
+            </div>
+
+            <div class="desk-details center-content" *ngIf="guiche.status === 'DISPONIVEL'">
+               <div class="time-box blue">
+                <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+                {{ guiche.tempo }}
+              </div>
+              <h3 class="waiting-text">Aguardando Chamar</h3>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Ações de Gerenciamento</h2>
+      <div class="actions-grid">
+        <button class="action-card" *ngFor="let acao of acoes">
+          <div class="action-icon">
+            <lucide-icon [img]="acao.icon" size="24"></lucide-icon>
+          </div>
+          <span>{{ acao.nome }}</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>

@@ -1,21 +1,50 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Patch, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-
-@Controller('usuario')
+@Controller('usuarios')
 export class UsuarioController {
-  constructor(private readonly usuarioService: UsuarioService) {}
-
-  // Para criar o primeiro admin, use uma migration Prisma ou um script dedicado
+  constructor(private readonly usuarioService: UsuarioService) { }
 
   @Post('login')
   login(@Body() body: { login: string; senha: string }) {
     return this.usuarioService.validarLogin(body.login, body.senha);
   }
-  
-  // Listar usuários (protegido por JWT) 
+
+  // Endpoints protegidos por JWT
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  criarUsuario(@Body() body: any) {
+    return this.usuarioService.criar(body);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() { return this.usuarioService.findAll(); }
+  findAll() {
+    return this.usuarioService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    return this.usuarioService.update(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.toggleStatus(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/senha')
+  resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: { senha: string }) {
+    return this.usuarioService.resetPassword(id, body.senha);
+  }
 }

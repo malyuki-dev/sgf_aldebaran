@@ -1,0 +1,128 @@
+<div class="crud-page animate-up">
+    <div class="page-header">
+        <div class="titles">
+            <h1>Gestão de Motoristas</h1>
+            <p>Gerencie o cadastro mestre de caminhoneiros e motoristas</p>
+        </div>
+
+        <button class="btn-primary" (click)="abrirModalNovo()">
+            <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+            Novo Caminhoneiro
+        </button>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-box">
+            <lucide-icon [img]="icons.search" size="20"></lucide-icon>
+            <input type="text" placeholder="Buscar por Nome, CPF ou Transportadora..." [(ngModel)]="filtro"
+                (keyup.enter)="buscar()">
+        </div>
+        <button class="btn-outline" (click)="buscar()">Filtrar</button>
+    </div>
+
+    <div class="skeleton-loader" *ngIf="loading">
+        <div class="skel-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+
+    <div class="cards-grid" *ngIf="!loading">
+        <ng-container *ngIf="motoristas.length > 0">
+            <div class="data-card" *ngFor="let m of motoristas">
+                <div class="card-header">
+                    <div class="avatar-circle">
+                        <lucide-icon [img]="icons.users" size="24"></lucide-icon>
+                    </div>
+                    <div class="info">
+                        <h3>{{ m.nome }}</h3>
+                        <span class="subtitle">{{ m.transportadora || 'Autônomo' }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.hash" size="16"></lucide-icon>
+                        <span><strong>CPF:</strong> {{ m.cpf }}</span>
+                    </div>
+                    <div class="data-row">
+                        <lucide-icon [img]="icons.briefcase" size="16"></lucide-icon>
+                        <span><strong>CNH:</strong> {{ m.cnh }}</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="icon-btn edit-btn" (click)="abrirModalEditar(m)" title="Editar">
+                        <lucide-icon [img]="icons.edit2" size="18"></lucide-icon>
+                    </button>
+                    <button class="icon-btn delete-btn" (click)="excluir(m.id)" title="Inativar">
+                        <lucide-icon [img]="icons.trash2" size="18"></lucide-icon>
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="motoristas.length === 0">
+            <div class="icon-circle empty">
+                <lucide-icon [img]="icons.users" size="40"></lucide-icon>
+            </div>
+            <h3>Nenhum motorista encontrado</h3>
+            <p>Não há registros que correspondam à busca ou o banco está vazio.</p>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal-backdrop fade-in" *ngIf="showModal">
+        <div class="modal-content scale-up">
+            <div class="modal-header">
+                <h2>{{ isEditing ? 'Editar Motorista' : 'Novo Caminhoneiro' }}</h2>
+                <button class="close-btn" (click)="fecharModal()">
+                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-grid">
+
+                    <div class="input-group full-width">
+                        <label>Nome Completo *</label>
+                        <input type="text" [(ngModel)]="motoristaForm.nome" placeholder="Digite o nome completo">
+                    </div>
+
+                    <div class="input-group">
+                        <label>CPF *</label>
+                        <input type="text" [(ngModel)]="motoristaForm.cpf" [disabled]="isEditing"
+                            placeholder="000.000.000-00">
+                        <small *ngIf="isEditing" class="helper-text">O CPF não pode ser alterado após o
+                            cadastro.</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label>CNH *</label>
+                        <input type="text" [(ngModel)]="motoristaForm.cnh" placeholder="Número da carteira">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Telefone</label>
+                        <input type="text" [(ngModel)]="motoristaForm.telefone" placeholder="(99) 99999-9999">
+                    </div>
+
+                    <div class="input-group">
+                        <label>E-mail</label>
+                        <input type="email" [(ngModel)]="motoristaForm.email" placeholder="contato@email.com">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Transportadora (Opcional)</label>
+                        <input type="text" [(ngModel)]="motoristaForm.transportadora"
+                            placeholder="Nome da transportadora ou Autônomo">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
+                <button class="btn-primary" (click)="salvar()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>

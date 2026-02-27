@@ -1,0 +1,51 @@
+// Uses global styles defined for the admin panel (.crud-page, .cards-grid, etc.)
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 15px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 5px;
+
+    &.active {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    &.inactive {
+        background: #ffebee;
+        color: #c62828;
+    }
+}
+
+.inactive-card {
+    opacity: 0.7;
+    filter: grayscale(0.5);
+    background-color: #f9f9f9;
+}
+
+.config-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.success-btn {
+    color: #2e7d32;
+    background: #e8f5e9;
+
+    &:hover {
+        background: #c8e6c9;
+    }
+}

@@ -1,0 +1,1855 @@
+--- CONTENT OF Documento de Requisitos - Projeto Fila Água Mineral.docx ---
+📋 EPIC 1- CADASTROS
+EPIC 1 - CADASTROS E IDENTIDADE
+Este módulo é a espinha dorsal do sistema. Seu objetivo é garantir que todas as entidades envolvidas na operação (Quem compra, Quem transporta e O que transporta) estejam devidamente registradas, validadas e disponíveis para os processos de fila e agendamento.
+O foco aqui é a Integridade dos Dados e a Segurança, garantindo que apenas pessoas e veículos autorizados acessem o pátio.
+User Stories:
+US-0001 -  Autocadastro do Cliente (PF/PJ)
+US-0002 -  Cadastro Operacional de Clientes
+US-0003 -  Cadastro de Motoristas (Caminhoneiros)
+US-0004 -  Cadastro de Caminhões
+US-0001
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0001 -  Autocadastro do Cliente (PF/PJ)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+04/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Cliente, QUERO me cadastrar pelo Web App, PARA agendar atendimentos e acompanhar minha posição na fila.
+2. Contexto
+O módulo AutoCadastro de Clientes será responsável por armazenar, consultar e manter as informações de clientes do sistema. Ele deve prover segurança, integridade dos dados, fácil navegação e permitir que o Cliente por meio de uma interface do web app consiga cadastrar suas informações no sistema.
+3. Fluxo do Usuário
+O usuário acessa o menu de login clicando no botão Crie sua Conta em Ainda Não é Cliente?
+Abre uma tela de Criação de Conta.
+Nessa tela de Criação de Conta o usuário faz o preenchimento das informações e realiza o clique em Criar Conta
+Após isso, exibe uma mensagem de cadastro realizado com sucesso, levando a tela de login novamente, em que poderá informar os dados de acesso criados, como email e senha para entrar no menu de clientes.
+4. Tela de Visão Geral do Supervisor Ações de Gerenciamento(Botão de Cadastrar Cliente)
+4.1 Botão Registrar na Tela de Login → Tela de Criação de Conta
+4.2  Tela de Criação de Conta 
+Tipo de Cadastro
+Preenchimento dos dados de cadastro
+Botão de Criar Conta
+5. Formulário de Cadastro/Edição
+5.1 Campos PF (Pessoa Física)
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+150
+Tipo
+Botão Segment.
+Sim
+Pessoa Física ou Jurídica
+2
+CPF
+Texto
+Sim
+Formato válido; único
+14
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone / Celular
+Texto
+Sim
+Máscara: (99) 99999-9999(Fixo) ou 9999-9999(Celular)
+8/9
+Senha
+Password
+Sim
+ Mínimo 8 Caracteres
+—
+Confirmar Senha
+Password
+Sim
+Igual à senha
+—
+5.2 Campos PJ (Pessoa Jurídica)
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Razão Social
+Texto
+Sim
+Mín. 3 caracteres
+150
+Tipo
+Botão Segment.
+Sim
+Pessoa Física ou Jurídica
+2
+CNPJ
+Texto
+Sim
+Formato válido; único
+18
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone / Celular
+Texto
+Sim
+Máscara: (99) 99999-9999(Fixo) ou 9999-9999(Celular)
+8/9
+Senha
+Password
+Sim
+ Mínimo 8 Caracteres
+—
+Confirmar Senha
+Password
+Sim
+Igual à senha
+—
+5.3 Comportamento
+O formulário muda dinamicamente conforme PF/PJ.
+CPF/CNPJ não pode ser editado depois, somente por administrador.
+Sistema deve exibir mensagens claras dos campos.
+Após cadastrar, o cliente já pode logar imediatamente.
+Email/SMS de verificação é opcional e configurável.
+6. Critérios de Aceitação
+Sistema deve permitir autocadastro tanto de PF quanto PJ.
+CPF/CNPJ deve ser único e validado antes do envio.
+Campos obrigatórios devem ser validados.
+Erros devem ser exibidos claramente.
+Senha deve seguir requisitos mínimos.
+Após o cadastro, o cliente vê mensagem de conta criada e dá opção de retornar à página de login ou logado automaticamente (configurável).
+Dados devem ser salvos corretamente e relacionados ao cliente.
+Sistema deve impedir CPFs/CNPJs inválidos ou emails mal formatados.
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: Não pode existir mais de um cliente com o mesmo CPF/CNPJ.
+RN02 – Tipo de Pessoa: A seleção PF/PJ define campos e regras de validação.
+RN03 – Identificador Fixo: CPF/CNPJ não pode ser alterado pelo cliente.
+RN04 – Campos Obrigatórios: Nome/Razão Social, Tipo, CPF/CNPJ, E-mail , telefone e senha são obrigatórios.
+RN05 – Senha: Deve seguir padrão mínimo de segurança.
+RN06 – Auditoria: Criação de conta deve registrar data, hora e IP.
+RN07 – Status Inicial: Cliente inicia como “Ativo”.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem deve carregar em até 3 segundos com até 10 mil registros.
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 — Documento inválido: Exibe mensagem e bloqueia envio.
+FA02 — Email já cadastrado: Solicita recuperação de senha.
+FA03 — CPF/CNPJ duplicado: Informa o usuário.
+FA04 — Falha no servidor: Mensagem "Tente novamente mais tarde".
+10. Protótipo da Interface (High-Fidelity)
+10.1 Tela de Login Com Botão Registrar (High-Fidelity)
+10.2 Formulário de Cadastro  Pessoa Física (High-Fidelity)
+10.3 Formulário de Cadastro Pessoa Jurídica (High-Fidelity)
+10.4  Tela de Boas Vindas Após ao Cadastro
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /clientes/check – Busca o Cliente se já existe
+POST /clientes – Cadastrar novo cliente.
+POST /auth/login – Login Automático  Após Cadastro(Opcional)
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0002
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0002 -  Cadastro Operacional de Clientes
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+06/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Operador, Supervisor ou Administrador, QUERO cadastrar clientes diretamente no sistema durante o atendimento PARA agilizar a entrada de novos clientes na fila sem burocracia excessiva e evitar paradas na operação.
+2. Contexto
+O módulo de Cadastro Operacional visa resolver a situação onde um cliente chega para atendimento presencial e não possui cadastro prévio. Diferente do autocadastro, este fluxo foca na velocidade e na interação assistida, permitindo que o funcionário insira os dados essenciais durante o atendimento após a emissão de senha e o aguardo na fila.
+3. Fluxo do Usuário(Administrador)
+O usuário(Operador, Supervisor, Administrador) acessa o sistema e realiza login com credenciais válidas.
+Acessa o Console do Operador, Dashboard do Supervisor ou Gerenciamento de Usuários do Administrador
+Clica no Botão Cadastrar Cliente(Operador, Supervisor) ou em Novo Cliente na Aba Clientes
+Abrindo uma janela modal de cadastro em que pode segmentar o tipo do cliente e preencher os dados necessários durante o atendimento
+Possuindo Opção de Salvar/Cancelar nos casos do Usuário(Operador/Supervisor) ou Criar/Cancelar, atualizar e/ou deletar para o Usuário(Administrador)
+4. Tela / Interface — Cadastro Operacional
+4.1 Modal de Cadastro Operacional:
+Campos rápidos:
+Tipo: PF / PJ (botão segmentado)
+Nome / Razão Social
+CPF ou CNPJ
+Telefone
+Observações
+Botões: Salvar / Cancelar
+4.2 Disponível em:
+Console do Operador
+Dashboard do Supervisor(Ações de Gerenciamento)
+Gerenciamento de Usuários(Administrativo Aba Clientes)
+4.2 Ações
+Novo Cliente / Cadastrar Cliente
+Salvar/Cancelar
+Editar
+Excluir (com confirmação prévia)
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Tipo
+Botão Segment.
+Sim
+Individual/ Empresa
+2
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+E-mail
+Texto
+Sim
+Formato válido
+320
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+5.2 Campos e Validações PJ (Pessoa Jurídica) -  Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Tipo
+Botão Segment.
+Sim
+Individual/ Empresa
+2
+Nome da Empresa
+Texto
+Sim
+Mín. 3 caracteres
+200
+Nome Completo - Responsável
+Texto
+Não
+Mín 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+E-mail
+Texto
+Sim
+Formato válido
+320
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+5.3 Campos e Validações PF/PJ - Administrador
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome/Razão Social
+Texto
+Sim
+Mín. 3 caracteres
+200
+Tipo
+Botão de Segmentação
+Sim
+PF/ PJ
+2
+CPF/CNPJ
+Texto
+Sim
+Formato válido; único
+14/18
+Telefone/Celular
+Texto
+Sim
+Máscara: (99) 99999-9999
+8/9
+E-mail
+Texto
+Sim
+Formato válido
+320
+Endereço
+Texto
+Não
+Endereço Válido
+150
+5.4 Comportamento
+Mensagens de erro claras e próximas aos campos.
+Mensagem de sucesso após salvar.
+Botões: Criar / Cancelar.
+6. Critérios de Aceitação
+O sistema deve permitir cadastrar clientes com todos os campos obrigatórios preenchidos.
+Deve impedir o cadastro de CPF/CNPJ duplicado.
+A exclusão deve exigir confirmação.
+Mensagens de erro e sucesso devem ser claras e objetivas.
+Dados devem ser carregados corretamente no modo edição.
+Após salvar, retornar à listagem atualizada.
+O sistema não deve aceitar formatos inválidos de CPF/CNPJ, telefone ou  e-mail.
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: Não pode existir mais de um cliente com o mesmo CPF/CNPJ.
+RN02 – Validação de Documentos: O sistema deve validar documentos conforme padrões nacionais.
+RN03 – Campos Obrigatórios: Nome/Razão Social,Tipo, CPF/CNPJ, E-mail e Telefone são obrigatórios.
+RN04 – Exclusão Lógica: Exclusão deve apagar o cliente do banco de dados, salvo instrução diferente.
+RN05 – Auditoria: Toda alteração deve registrar data, hora e usuário responsável.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – CPF E CNPJ Duplicados: Mostrar mensagem "Cliente já registrado" e bloquear cadastro.
+FA02 – Erro no servidor: Exibir mensagem genérica e instruir usuário a tentar novamente.
+FA03 – Campos inválidos: Impedir envio e destacar campos com erros.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Console do Operador e Dashboard do Supervisor Ações de Gerenciamento (High-Fidelity)
+10.2 Formulário de Cadastro  Pessoa Física Operador/Supervisor (High-Fidelity)
+10.3 Formulário de Cadastro  Pessoa Jurídica Operador/Supervisor (High-Fidelity)
+10.4 Tela de Clientes Gerenciamento de Usuários Admin (High-Fidelity)
+10.5 Formulário de Cadastro/Edição de Cliente Admin (High-Fidelity)
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /clientes/check?cpf=xxx&cnpj=xxx – Verificar se Existe
+POST /clientes/operacional – Cadastrar novo cliente.
+PUT /clientes/{id} – Atualiza cliente.
+PATCH /clientes/{id}/status
+DELETE /clientes/{id} – Exclusão lógica.
+GET /clientes/{id}– Consulta detalhes completos.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0003
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0003 -  Cadastro de Motoristas (Caminhoneiros)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+06/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Administrador, QUERO cadastrar, editar, consultar e gerenciar motoristas/caminhoneiros,PARA garantir a integridade dos dados mestre e permitir o vínculo Motorista ↔ Caminhão em outros módulos do sistema.
+2. Contexto
+O módulo de Cadastro de Motoristas (Caminhoneiros) concentra-se no registro oficial e completo dos motoristas que atuam na operação. Diferente do autocadastro, esse fluxo não é executado pelo próprio motorista: ele ocorre de forma assistida e é responsabilidade exclusiva do Administrador, garantindo que os dados mestre — como CPF, CNH e categoria — sejam validados corretamente e mantenha integridade no sistema. Operadores e Supervisores não realizam o cadastro de motoristas; eles apenas consultam suas informações quando necessário, por exemplo, ao atender um caminhoneiro que já possui registro. Durante o atendimento presencial, caso o operador receba um motorista não cadastrado, ele registra apenas o caminhão e informações operacionais básicas para não travar o fluxo da fila, e posteriormente o Administrador regularizar o cadastro completo do motorista. Assim, esse módulo assegura padronização, confiabilidade e rastreabilidade dos dados de motoristas, mantendo a base alinhada às exigências de operação e segurança.
+3. Fluxo do Usuário(Administrador)
+O Administrador realiza login.
+Acesse o menu: Gestão de Usuários → Motoristas.
+O sistema mostra a Listagem de Motoristas.
+O Usuário pode:
+Visualizar os cards dos motoristas com dados resumidos.
+Clicar em "Novo Caminhoneiro" para adicionar um registro.
+Clicar no ícone Editar (Lápis Azul) para alterar dados.
+Clicar no ícone Excluir (Lixeira Vermelha) para inativar um motorista.
+Ao salvar, o sistema valida a unicidade do CPF e CNH.
+O sistema retorna feedback de sucesso e atualiza a lista.
+4. Tela de Listagem de Motoristas
+4.1 Modal de Cadastro Operacional:
+Filtros:
+Busca Global: Campo de texto para pesquisar por Nome, CPF ou Transportadora.
+Ações: Botão "Novo Caminhoneiro" (Canto superior direito).
+4.2 Cards:
+A visualização é feita em Cards (Grade), contendo:
+Ícone: Avatar/Usuário (Verde/Teal).
+Cabeçalho: Nome Completo (Negrito) e Transportadora (Subtítulo).
+Corpo do Card:
+CPF: Formatado (XXX.XXX.XXX-XX).
+CNH: Número da carteira.
+Telefone: Com máscara.
+E-mail: Endereço de contato.
+  Ações do Card:
+Botão Circular Azul (Editar).
+Botão Circular Vermelho (Excluir).
+ 
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+CNH
+Texto
+Sim
+Somente números; Único
+20
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+Transportadora
+Texto
+Não
+Texto livre ou busca*
+100
+*Nota: O campo Transportadora é informativo para agrupar motoristas.
+5.2 Comportamento
+Máscaras: Os campos CPF e Telefone devem aplicar formatação automática enquanto o usuário digita.
+Bloqueios: No modo de edição, o CPF deve permanecer bloqueado para alteração (RN03).
+Botões:
+"Cancelar" (Texto simples).
+"Criar" / "Salvar"(Botão).
+6. Critérios de Aceitação
+O sistema deve impedir o cadastro de dois motoristas com o mesmo CPF.
+O sistema deve impedir o cadastro de dois motoristas com a mesma CNH.
+O cadastro deve ser realizado através de um Modal (Pop-up) sem recarregar a página.
+A exclusão deve ser lógica (Soft Delete), mantendo o histórico de quem conduziu os caminhões no passado.
+Apenas usuários com perfil Admin podem visualizar o botão "Novo Caminhoneiro".
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: CPF e CNH são chaves únicas no sistema
+RN02 – Campos Obrigatórios: Não é permitido salvar sem Nome, CPF e CNH.
+RN03 – Imutabilidade de Chave:  O CPF não pode ser editado após a criação do registro para garantir a integridade do histórico.
+RN04 – Exclusão Lógica: Ao excluir um motorista, ele torna-se "Inativo" e não aparece mais nas opções de vínculo, mas seus registros históricos permanecem.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – CPF E CNPJ Duplicados: Mostrar mensagem "Cliente já registrado" e bloquear cadastro.
+FA02 – Erro no servidor: Exibir mensagem genérica e instruir usuário a tentar novamente.
+FA03 – Campos inválidos: Impedir envio e destacar campos com erros.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Listagem:
+10.2 Tela de Cadastro de Caminhoneiros:
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /motoristas – Lista motoristas (suporta filtros ?q=nome ou ?cpf=123)
+GET /motoristas/check – Validação de existência (?cpf=xxx&cnh=xxx).
+POST /motoristas – Criação de novo registro.
+PUT /motoristas/{id}–  Atualização de dados cadastrais.
+DELETE /motoristas/{id} – Inativação do registro.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0004
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0004 -  Cadastro de Caminhões
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+06/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO  Operador/Supervisor/Administrador, QUERO cadastrar e manter as informações de caminhões utilizados pelos clientes,PARA garantir a identificação correta no atendimento, nos agendamentos e no fluxo da fila.
+2. Contexto
+O cadastro de caminhões atende a dois cenários distintos dentro do sistema. Durante a operação diária, Operadores e Supervisores precisam registrar rapidamente o caminhão no momento do atendimento, garantindo fluidez na fila e evitando atrasos no processo. Nesse contexto, o foco é a agilidade, permitindo o cadastro apenas com dados essenciais do veículo, sem exigir a definição imediata de um motorista cadastrado.
+Em paralelo, o Administrador é responsável pela governança dos dados e pela manutenção da base oficial de caminhões. Nesse fluxo administrativo, é possível revisar informações, complementar dados e realizar o vínculo formal entre Caminhão e Motorista previamente cadastrado, garantindo integridade, rastreabilidade e consistência das informações utilizadas pelos demais módulos do sistema.
+Essa separação de responsabilidades assegura eficiência operacional sem comprometer a qualidade dos dados mestre.
+3. Fluxo do Usuário
+3.1 Fluxo Operacional (Operador / Supervisor)
+O usuário acessa o sistema e realiza login.
+No Console do Operador ou no Dashboard do Supervisor Clica em Cadastrar Caminhão.
+O sistema abre um modal de cadastro rápido.
+O usuário preenche os dados obrigatórios.
+Confirma o cadastro.
+O sistema valida os dados e salva o caminhão.
+O caminhão passa a estar disponível para uso na fila e atendimentos.
+3.2 Fluxo  Administrativo (Administrador)
+O Admin acessa o sistema com credenciais válidas.
+No menu principal, acessa Gestão de Usuários → Caminhões.
+O sistema exibe a listagem completa de caminhões.
+O Admin pode:
+Criar novo caminhão
+Editar caminhões existentes
+Vincular ou desvincular motorista
+Alterar status (Ativo/Inativo)
+Visualizar detalhes e histórico
+Ao salvar alterações, o sistema registra auditoria.
+A listagem é atualizada com os novos dados.
+4. Tela de Listagem de Caminhões
+4.1 Filtros
+Placa (texto)
+Modelo (texto)
+Transportadora (texto)
+Status (Ativo / Inativo / Todos)
+Ações: Buscar / Limpar
+4.2 Cards:
+Colunas / Informações exibidas:
+Placa
+Modelo
+Transportadora
+Capacidade
+Motorista Designado (somente Admin)
+Status
+Ações (Editar / Visualizar / Inativar)
+ 
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Placa
+Texto
+Sim
+Formato válido; único
+8
+Modelo
+Texto
+Sim
+Mín. 3 caracteres
+100
+Transportadora
+Texto
+Sim
+Mín. 2 caracteres
+100
+Capacidade
+Texto
+Sim
+Numérico
+20
+Motorista Designado
+Dropdown
+Não
+Apenas motoristas ativos
+—
+Observações
+Texto
+Não
+Texto livre
+300
+Status
+Dropdown
+Sim
+Ativo/ Não Ativo
+—
+Observações Importantes:
+O campo Motorista Designado aparece apenas para o Administrador.
+Operador e Supervisor não visualizam nem alteram esse campo.
+5.2 Comportamento
+Placa não pode ser alterada após o cadastro.
+Mensagens de erro devem ser claras e exibidas próximas ao campo.
+Ao salvar, o sistema exibe mensagem de sucesso.
+Botões disponíveis: Salvar / Cancelar.
+No modal operacional, o fechamento não deve apagar dados já salvos.
+6. Critérios de Aceitação
+Operador e Supervisor conseguem cadastrar caminhões rapidamente via modal.
+O sistema impede o cadastro de placas duplicadas.
+O Admin consegue associar e remover o vínculo Motorista ↔ Caminhão.
+Caminhões inativos não podem ser utilizados na fila.
+As alterações refletem imediatamente nos módulos de Fila e Atendimento.
+Todas as ações são auditadas.
+7. Regras de Negócio
+RN01 — Placa Única: Não pode existir mais de um caminhão com a mesma placa.
+RN02 — Cadastro Operacional Simplificado: Operador e Supervisor não vinculam motoristas.
+RN03 — Vínculo Controlado:  Apenas Admin pode associar Motorista ↔ Caminhão.
+RN04 — Status Ativo:  Apenas caminhões ativos podem entrar na fila.
+RN05 — Exclusão Lógica: Caminhões não são removidos do banco; apenas inativados.
+RN06 — Auditoria Obrigatória: Toda alteração deve ser registrada.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 — Placa já cadastrada: Sistema informa e sugere selecionar caminhão existente.
+FA02 — Motorista inexistente: Operador registra informação em Observações.
+FA03 — Erro de salvamento: Sistema mantém dados preenchidos e exibe erros.
+FA04 — Tentativa de vínculo por perfil não autorizado: Bloquear ação e informar permissão.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Listagem de Caminhões(Admin):
+10.2 Tela Modal de Cadastro Administrativo:
+10.3 Tela Modal de Cadastro Operacional
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /caminhoes/check?placa=XXX – Verificar placa existente
+POST /caminhoes/operacional – Cadastro operacional
+POST /caminhoes – Cadastro administrativo
+PUT /caminhoes/{id}  –  Atualizar dados
+PATCH /caminhoes/{id}/motorista  –Vincular motorista.
+DELETE /caminhoes/{id}  –Exclusão lógica
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+🗓️ EPIC 2 - GESTÃO DE AGENDAMENTOS
+EPIC 2 - GESTÃO DE AGENDAMENTOS
+Este módulo permite que o cliente reserve seu atendimento antecipadamente (Web App) e garante que a operação receba esse cliente com prioridade no momento da chegada (Check-in).
+User Stories:
+US-0005 — Realizar Agendamento (Cliente)
+US-0006 — Gestão de “Meus Agendamentos” (Cliente)
+US-0007 — Notificações de Agendamento (Sistema -> Cliente)
+US-0008 — Agenda Diária da Operação (Operador/Supervisor)
+US-0009 — Check-in e Acompanhamento de Senha
+US-0010 — Tratamento de Não Comparecimento e Histórico
+US-0011 — Gestão de Conta e Preferências
+US-0005
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0005 -  Realizar Agendamento (Cliente)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Cliente Autenticado, QUERO realizar o agendamento para a coleta de garrafões, PARA garantir a retirada do meu produto na quantidade desejada, em uma data e horário definidos previamente, evitando filas desnecessárias.
+2. Contexto
+Este módulo é o ponto de entrada da demanda programada. Diferente da fila presencial (que opera por ordem de chegada), o agendamento foca na Reserva de Capacidade. O sistema deve guiar o usuário em um fluxo lógico e linear: iniciar pela Home, definir "Onde" (Filial) e "O Quê" (Categoria), para então apresentar "Quando" (Datas e Horários) é possível realizar o serviço.
+3. Fluxo do Usuário
+O Usuário(Cliente) realiza login e abre o menu do cliente no web app.
+Acesso e Início (Múltiplos Caminhos):
+Via Menu: O usuário abre o Menu Sanduíche (Mobile) ou usa a Sidebar (Desktop) e clica em "Agendar".
+Via Home (Atalho): Na tela inicial, o usuário clica no botão de destaque "Agendar Horário" (se não houver agendamentos) ou no botão circular "(+) Novo Agendamento".
+O sistema carrega a tela de agendamento.
+Definição de Escopo (Filtros):
+O usuário seleciona a Filial(Unidade) desejada.
+O usuário seleciona a Categoria de Atendimento.
+(O sistema carrega a agenda baseada nessas escolhas).
+Seleção de Data:
+O usuário seleciona um dia no Calendário.
+Seleção de Horário:
+O sistema exibe a grade de horários (Slots).
+O usuário clica em um horário disponível (Verde/Branco).
+O usuário insere observações (opcional) e clica em "Confirmar Agendamento".
+O sistema processa a reserva e exibe o Modal de Sucesso.
+4. Tela de Agendamento(Interface Principal)
+4.1 Cabeçalho de Filtros(Topo da Página):
+Selecione a Filial: Dropdown obrigatório.
+Categoria de Atendimento: Dropdown obrigatório
+4.2 Área de Seleção(Meio da Página):
+Calendário: Visualização mensal. Dias sem vagas ou feriados devem aparecer desabilitados visualmente.
+Horários Disponíveis: Grade de botões com intervalos de 30 minutos (08:00, 08:30...).
+Estado Livre: Clicável, borda padrão.
+Estado Ocupado: Fundo Cinza, Não Clicável(ToolTip(Horário Não Disponível)
+Estado Selecionado: Botão com Cor Primária do Sistema Marcado.
+4.3 Rodapé (Footer):
+Campo de Texto "Observações (opcional)".
+Botão Full-width "Confirmar Agendamento".
+ 
+5. Formulário de Dados
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Filial
+Dropdown
+Sim
+Deve carregar lista de unidades ativas.
+—
+Categoria
+Dropdown
+Sim
+Deve ser compatível com a filial.
+—
+Data
+Data
+Sim
+Apenas datas futuras ou dia atual (com antecedência)
+—
+Horário
+Seleção
+Sim
+Slot deve estar livre na capacidade da filial.
+—
+Observações
+Texto
+Não
+Texto livre sem caracteres especiais de risco
+250
+5.2 Comportamento
+Máscaras: Os campos CPF e Telefone devem aplicar formatação automática enquanto o usuário digita.
+Bloqueios: No modo de edição, o CPF deve permanecer bloqueado para alteração (RN03).
+Botões:
+"Cancelar" (Texto simples).
+"Criar" / "Salvar"(Botão).
+6. Critérios de Aceitação
+Hierarquia de Campos: O calendário só deve ser habilitado/atualizado após a seleção da Filial.
+Fácil Navegação: O usuário deve conseguir iniciar o agendamento tanto pelo Menu Lateral quanto pelos botões de ação da Home.
+Preenchimento Automático: O sistema não deve solicitar dados cadastrais (Nome/Tipo de Cliente), utilizando o perfil logado.
+Bloqueio de Capacidade: O sistema deve impedir agendamento se a capacidade global da filial estiver esgotada para o horário.
+Consistência de Tempo: Serviços longos devem bloquear múltiplos slots consecutivos visualmente.
+Confirmação: Ao finalizar, deve exibir modal de sucesso com resumo dos dados.
+7. Regras de Negócio
+RN01 – Capacidade Global: A verificação de disponibilidade deve considerar a Capacidade Total da Filial (número de guichês/docas), e não capacidade por categoria específica.
+RN02 – Consumo de Blocos de Tempo (Slots Dinâmicos): Embora a grade visual seja fixa em 30 min, a ocupação no banco de dados respeita a duração do serviço.
+RN03 – Antecedência Mínima: Para agendamentos no "Dia Atual" deve-se respeitar uma antecedência mínima de 2 horas (parametrizável) em relação à hora atual do servidor.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – Concorrência (Vaga Roubada): Se o Usuário A e B selecionarem a última vaga das 10:00 ao mesmo tempo, o primeiro a clicar em "Confirmar" leva. O segundo recebe mensagem: "Desculpe, este horário acabou de ser preenchido. Por favor, escolha outro." e a grade é atualizada.
+FA02 – Sem Disponibilidade: Se o dia selecionado não tiver nenhum horário livre, exibir alerta visual: "Agenda lotada para esta data/categoria."
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Menus Sanduíche de Navegação(Mobile):
+10.2 Telas de Início com botões CTA para Agendamento(Situação Sem Agendamentos Prévios)
+10.3 Telas de Início com botões CTA para Agendamento(Situação com Agendamento prévios) - Mobile/Desktop
+10.4 Telas de Agendamento(Mobile e Desktop)
+10.4  Modal de Sucesso Agendamento(Mobile/Desktop)
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /agendamentos/disponibilidade – Consultar Disponibilidade
+POST /agendamentos– Criar Agendamento
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação de conflito de horário no Backend.
+US-0006
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0006 -  Gestão do ‘Meus Agendamentos’ (Cliente)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+02/01/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Cliente Autenticado, QUERO acessar um painel centralizado com meus agendamentos ativos e passados, PARA consultar datas, visualizar o status da minha solicitação e realizar alterações (reagendar ou cancelar) com autonomia, sem necessidade de contato telefônico.
+2. Contexto
+Este módulo atua como a Central de Gestão do Ciclo de Vida dos atendimentos do usuário. Ele consolida as interações do cliente em uma visão unificada, permitindo a Gestão Ativa dos compromissos futuros (modificação e cancelamento) e a Auditoria Pessoal dos atendimentos passados (histórico imutável), garantindo autonomia e reduzindo a carga operacional do suporte.
+3. Fluxo do Usuário
+O usuário acessa o Web App (Mobile ou Desktop):
+Após Logar, acessa Via Menu Global (Navegação Padrão):
+Mobile: O usuário abre o Menu Sanduíche e toca em "Meus Agendamentos".
+Desktop: O usuário clica no item "Meus Agendamentos" na barra lateral esquerda.
+Via Atalho na Home (Acesso Rápido):
+Na tela inicial, dentro do card "Ações Rápidas", o usuário clica no botão "Ver Histórico" (ícone de arquivo).
+O sistema carrega os dados e apresenta a tela com a aba "Próximos" selecionada por padrão.
+O sistema exibe uma lista de cards com os agendamentos futuros.
+O usuário pode realizar as ações:
+Visualizar detalhes rápidos no card (Data, Hora, Local, Status).
+Clicar em "Reagendar" para iniciar o fluxo de troca de data.
+Clicar em "Cancelar" para desistir do atendimento.
+Alternar a aba para "Histórico" para ver atendimentos passados.
+Ao clicar em "Cancelar", o sistema solicita confirmação.
+Ao confirmar, o card é movido para o histórico com status "Cancelado".
+4. Tela de Listagem de Agendamentos 
+4.1 Filtros e Navegação:
+Abas Superiores (Segmented Control):
+Próximos: Exibe agendamentos com data futura ou status pendente.
+Histórico: Exibe agendamentos passados, concluídos ou cancelados.
+Ícone de Notificação: Atalho para alertas no canto superior direito.
+4.2 Lista de Cards (Conteúdo): Cada item da lista é apresentado como um Card contendo:
+A visualização é feita em Cards (Grade), contendo:
+Data Badge: Destaque visual quadrado com Dia e Mês (ex: 15 Dez) à esquerda.
+Informações Principais:
+Título: Categoria do serviço (ex: "Retirada Pesada", "Caminhão").
+Local: Nome da filial (ex: "Matriz - Centro").
+Horário: Ícone de relógio seguido do intervalo (ex: "10:00 - 11:00").
+Status Badge: Indicador colorido no topo direito:
+Verde: Confirmado / Concluído.
+Laranja: Pendente.
+Vermelho: Cancelado.
+Cinza: Expirado (Não compareceu)
+4.3 Ações (Apenas na aba "Próximos"):
+Botão Reagendar: Estilo Sólido (Gradiente Azul/Verde). Ação primária.
+Botão Cancelar: Estilo Outline (Borda cinza). Ação secundária.
+ 
+5.  Regras de Comportamento e Validação
+5.1 Campos e Validações Visual:
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Abas
+Seleção Única
+Sim
+Alterna entre visualização de agendamentos Próximos e Histórico.
+—
+Card
+Container
+Sim
+Deve adaptar-se responsivamente à largura da tela.
+—
+Botões
+Texto
+Sim
+Só aparecem se a data do agendamento for futura.
+—
+5.2 Comportamento:
+Ordenação "Próximos": Ascendente (Data mais próxima no topo).
+Ordenação "Histórico": Descendente (Evento mais recente no topo).
+Modal de Confirmação: Ao clicar em "Cancelar", exibir: "Tem certeza que deseja cancelar este agendamento? Essa ação não pode ser desfeita."
+Feedback Visual: Agendamentos cancelados devem aparecer imediatamente na aba "Histórico" com badge vermelho.
+6. Critérios de Aceitação
+O sistema deve carregar a lista de agendamentos filtrada pelo ID do usuário logado.
+A aba "Próximos" deve exibir os botões "Reagendar" e "Cancelar" conforme o layout.
+A aba "Histórico" não deve exibir botões de ação, servindo apenas para leitura.
+O status "Confirmado" deve ser verde, "Pendente" laranja e "Cancelado" vermelho.
+A ação de reagendar deve redirecionar para o fluxo de escolha de nova data (US-005).
+7. Regras de Negócio
+RN01 – Bloqueio de Cancelamento Tardio: O botão "Cancelar" deve ficar desabilitado se faltar menos de 30 minutos para o horário agendado.
+RN02 – Imutabilidade de Histórico:Agendamentos passados não podem ser alterados ou excluídos pelo usuário.
+RN03 – Reagendamento Atômico:  A ação de "Reagendar" consiste tecnicamente em: Reservar Novo Horário + Cancelar Anterior.
+RN04 – Vínculo com Check-in: Se o usuário já realizou Check-in no totem, o agendamento não pode mais ser cancelado via App.
+RN05 – Mapeamento de Status no Histórico: A aba "Histórico" deve diferenciar claramente o motivo da finalização:
+Concluído (Verde): Atendimento realizado.
+Cancelado (Vermelho): O usuário cancelou ativamente.
+Expirado (Cinza Escuro): O usuário não compareceu (No-Show) e o sistema invalidou o voucher.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – Lista Vazia: Se não houver agendamentos, exibir ilustração amigável com a mensagem "Você ainda não possui agendamentos" e um botão "Novo Agendamento".
+FA02 – Erro de Conexão: Ao tentar cancelar sem internet, exibir "Verifique sua conexão e tente novamente".
+FA03 – Cancelamento Bloqueado: Se o usuário tentar cancelar dentro da janela de bloqueio (RN01), exibir toast: "Cancelamentos só são permitidos com 30min de antecedência".
+FA04 – Fluxo de Reagendamento (Reuso): Ao clicar em "Reagendar", o sistema deve redirecionar o usuário para a tela de Agendamento (US-0005) carregando previamente os dados do serviço e local original.
+Comportamento: O usuário deve ser levado diretamente para a etapa de Seleção de Data e Hora, pulando as etapas iniciais de seleção de serviço.
+Título: A tela de destino deve alterar seu título para "Alterar Data do Agendamento".
+Confirmação: Ao final, o botão de ação deve ser "Confirmar Reagendamento" em vez de "Agendar".
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Menu Sanduíche Meus Agendamentos:
+10.2 Telas com Botões Ação Rápidas Meus Agendamentos(Mobile/Desktop):
+10.3 Tela “Meus Agendamentos” Próximos(Mobile e Desktop):
+10.4 Tela “Meus Agendamentos” Histórico (Mobile e Desktop):
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /agendamentos?meus=true&status=active– Retorna dados para aba "Próximos".
+GET /agendamentos?meus=true&status=history– Retorna dados para aba "Histórico".
+PATCH /agendamentos/{id}/cancelar –  Executa o cancelamento lógico.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0007
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0007 -  Notificações de Agendamento (Sistema -> Cliente)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Cliente Autenticado, QUERO visualizar uma lista centralizada de alertas e mensagens enviadas pelo sistema dentro da própria aplicação (Web App), PARA acompanhar confirmações, lembretes e chamadas da fila em tempo real sem precisar sair da tela ou verificar e-mails externos.
+2. Contexto
+Este módulo atua como a Caixa de Entrada de Mensagens do Sistema. Diferente dos canais externos (SMS/WhatsApp) que servem para alertas urgentes, esta interface serve para consulta ativa e histórico. Ela fornece feedback visual imediato (através de Badges/Contadores) garantindo que o usuário saiba que houve uma mudança de status no seu atendimento (ex: "Sua vez se aproxima") assim que olhar para a tela.
+3. Fluxo do Sistema
+Alerta Visual: O usuário navega pelo sistema e nota um Badge Vermelho (contador) sobre o ícone de sino (Mobile) ou no menu lateral (Desktop).
+Acesso à Central:
+No Mobile: O usuário toca no ícone de sino e uma janela modal se abre sobre a tela atual
+No Desktop: O usuário clica na aba "Notificações" do menu lateral e é levado à página dedicada.
+Leitura e Identificação: O usuário visualiza a lista ordenada cronologicamente. Itens não lidos possuem destaque visual (ponto azul ou fundo colorido).
+Ação de Limpeza: O usuário clica na ação "Marcar todas como lidas" para remover os destaques e zerar o contador de notificações pendentes.
+4. Tela / Interface – Notificações Cliente
+4.1 Componentes de Navegação:
+Mobile (Header): Ícone de Sino localizado no canto superior direito. Deve exibir um Badge circular vermelho com o número de notificações não lidas. Se o contador for zero, o badge fica oculto.
+Desktop (Sidebar): Item de menu "Notificações". O Badge vermelho com o contador posiciona-se à direita do texto do menu.
+4.2 Visualização Mobile (Modal/Overlay)
+Estilo: Janela modal flutuante (não recarrega a página de fundo).
+Lista de Cards:
+Timestamp: Horário (ex: "10:23") destacado em cor laranja/vermelha acima do texto.
+Indicador Não Lido: Ponto azul (•) alinhado à direita do card.
+Rodapé: Link de texto centralizado "Marcar todas como lidas".
+4.2 Configurações de Canais de Notificação
+A tela apresenta cartões de configuração para ativação ou desativação dos canais de envio disponíveis:
+Ativar Alertas WhatsApp
+Ativar Alertas SMS
+Ativar Bots Telegram (Opcional)
+Ativar Alertas E-mail
+4.3 Visualização Desktop (Dashboard)
+Estilo: Página dedicada com largura total.
+Cabeçalho: Título "Suas Notificações" e botão "Marcar todas como lidas" (estilo pill button azul claro) à direita.
+Agrupamento: As notificações são separadas por cabeçalhos de data (ex: "HOJE", "ONTEM").
+Card Não Lido: Possui fundo azul muito claro, texto em negrito e um ponto azul na extremidade direita.
+Card Lido: Fundo branco, texto normal, sem indicadores visuais de destaque.
+5. Dados da Interface (Visualização)
+Como esta User Story se refere à visualização e não ao cadastro de dados, listamos abaixo os campos apresentados nos Cards de Notificação.
+5.1 Campos do Card de Notificação
+Campo
+Tipo
+Origem
+Descrição Visual
+Ícone de Status
+Imagem/Vetor
+Sistema
+Opcional. Indica categoria (Info, Alerta, Sucesso).
+Título/Mensagem
+Texto
+Sistema
+Texto curto da notificação (Ex: "Sua vez se aproxima!"). Negrito se não lida.
+Horário (Timestamp)
+Data/Hora
+Sistema
+Exibe hora relativa (ex: "Há 5 min") ou absoluta (ex: "10:23"). Cor de destaque.
+Indicador de Leitura
+Booleano
+Sistema
+Ponto Azul (•) se lida = false. Invisível se lida = true.
+Grupo de Data
+Texto
+Calculado
+Habilitado/desabilitado
+5.2 Comportamento de Ações
+Clique no Card: Marca a notificação específica como lida (remove o ponto azul) e, se houver link, redireciona o usuário.
+Clique em "Marcar todas como lidas": Dispara ação em lote para alterar o status de todas as notificações pendentes para lida = true.
+6. Critérios de Aceitação
+Badge de Notificação: O ícone do sino (Mobile) ou menu lateral (Desktop) deve exibir um badge vermelho com o número exato de notificações não lidas.
+Destaque Visual: As notificações não lidas devem ter diferenciação clara (fundo azul claro ou ponto indicador) das lidas.
+Agrupamento (Desktop): Na visualização desktop, as notificações devem ser separadas visualmente por data ("HOJE", "ONTEM").
+Limpeza em Lote: O botão "Marcar todas como lidas" deve zerar o contador do badge e remover os destaques de "não lido" instantaneamente sem recarregar a página.
+Estado Vazio: Se não houver notificações, exibir uma mensagem amigável "Você não tem novas notificações" com uma ilustração neutra.
+7. Regras de Negócio
+RN01 – Sincronização Multicanal: O status de leitura deve ser sincronizado entre dispositivos. Se o usuário ler no celular, deve aparecer como lida no desktop imediatamente..
+RN02 – Ordenação Cronológica: A lista deve sempre apresentar as mensagens mais recentes no topo.
+RN03 – Persistência Limitada:  O histórico exibe notificações dos últimos 30 dias. Itens mais antigos são arquivados ou removidos da visualização do cliente.
+RN04 – Real-Time: A chegada de uma nova notificação deve atualizar a interface (Badge e Lista) em tempo real (Push/WebSocket), sem necessidade de refresh manual.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho:  O envio e o processamento das notificações devem ocorrer em até 5 segundos após o evento disparador (confirmação, chamada, cancelamento ou conclusão do atendimento).
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão. Apenas usuários com perfil Administrador podem configurar canais, templates e regras de notificação. Dados sensíveis (telefone, e-mail) devem ser protegidos.
+RNF03 – Usabilidade: A interface de configuração de notificações deve ser intuitiva, com uso de toggles, textos explicativos e feedback visual claro sobre canais ativos/inativos.
+RNF04 – Disponibilidade: O sistema de notificações deve possuir disponibilidade mínima de 99%, com tolerância a falhas temporárias de serviços externos (SMS, WhatsApp, e-mail).
+RNF05 – Acessibilidade: Elementos da interface devem seguir boas práticas de acessibilidade, incluindo contraste adequado, textos descritivos e navegação via teclado.
+9. Fluxos Alternativos e Exceções
+FA01 – Falha na Conexão: Se o WebSocket cair, o sistema deve tentar reconectar silenciosamente e, se falhar, exibir um aviso discreto "Tentando reconectar..." ou permitir atualização manual.
+FA02 – Lista Vazia: Ao acessar a central sem histórico, exibir ilustração de "Tudo limpo por aqui" para evitar a sensação de erro de carregamento.
+FA03 – Erro ao Marcar como Lida: Se a ação de "Marcar todas como lidas" falhar na API, manter o estado visual de "não lido" e exibir um toast de erro: "Não foi possível atualizar o status".
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Notificações Mobile/Desktop
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /notificacoes – Retorna a lista de notificações do usuário logado (paginada).
+PATCH /notificacoes/ler-todas–  Atualiza o status de todas as notificações pendentes para "lida".
+PATCH /notificacoes/{id}/ler – Marca uma notificação específica como lida. 
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+WebSocket: Evento notification.new para atualização em tempo real (atualiza o badge sem recarregar).
+US-0008
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0008 - Agenda Diária da Operação (Operador/ Supervisor)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Operador/Supervisor, QUERO visualizar a lista completa de agendamentos do dia, filtrando por status e horários, PARA ter previsão da demanda operacional e identificar rapidamente clientes pendentes, confirmados ou ausentes.
+2. Contexto
+Esta funcionalidade é o Painel de Chegadas da unidade. O sistema consolida os dados cadastrados pelo cliente no Web App (Nome, Documento, Contato) junto com a reserva de horário. O objetivo desta tela é fornecer consciência situacional. Ela serve como ponto de partida, para operador marcar não comparecimento(cliente fez check- in) porém não apareceu na hora da chamada no painel, cabendo ao supervisor fazer o resgate com regras definidas em outras história de usuário.
+3. Fluxo do Usuário
+O Administrador realiza login.
+Acesse o menu: Gestão de Usuários → Motoristas.
+O sistema mostra a Listagem de Motoristas.
+O Usuário pode:
+Visualizar os cards dos motoristas com dados resumidos.
+Clicar em "Novo Caminhoneiro" para adicionar um registro.
+Clicar no ícone Editar (Lápis Azul) para alterar dados.
+Clicar no ícone Excluir (Lixeira Vermelha) para inativar um motorista.
+Ao salvar, o sistema valida a unicidade do CPF e CNH.
+O sistema retorna feedback de sucesso e atualiza a lista.
+4. Tela de Listagem de Motoristas
+4.1 Modal de Cadastro Operacional:
+Filtros:
+Busca Global: Campo de texto para pesquisar por Nome, CPF ou Transportadora.
+Ações: Botão "Novo Caminhoneiro" (Canto superior direito).
+4.2 Cards:
+A visualização é feita em Cards (Grade), contendo:
+Ícone: Avatar/Usuário (Verde/Teal).
+Cabeçalho: Nome Completo (Negrito) e Transportadora (Subtítulo).
+Corpo do Card:
+CPF: Formatado (XXX.XXX.XXX-XX).
+CNH: Número da carteira.
+Telefone: Com máscara.
+E-mail: Endereço de contato.
+  Ações do Card:
+Botão Circular Azul (Editar).
+Botão Circular Vermelho (Excluir).
+ 
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+CNH
+Texto
+Sim
+Somente números; Único
+20
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+Transportadora
+Texto
+Não
+Texto livre ou busca*
+100
+*Nota: O campo Transportadora é informativo para agrupar motoristas.
+5.2 Comportamento
+Máscaras: Os campos CPF e Telefone devem aplicar formatação automática enquanto o usuário digita.
+Bloqueios: No modo de edição, o CPF deve permanecer bloqueado para alteração (RN03).
+Botões:
+"Cancelar" (Texto simples).
+"Criar" / "Salvar"(Botão).
+6. Critérios de Aceitação
+O sistema deve impedir o cadastro de dois motoristas com o mesmo CPF.
+O sistema deve impedir o cadastro de dois motoristas com a mesma CNH.
+O cadastro deve ser realizado através de um Modal (Pop-up) sem recarregar a página.
+A exclusão deve ser lógica (Soft Delete), mantendo o histórico de quem conduziu os caminhões no passado.
+Apenas usuários com perfil Admin podem visualizar o botão "Novo Caminhoneiro".
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: CPF e CNH são chaves únicas no sistema
+RN02 – Campos Obrigatórios: Não é permitido salvar sem Nome, CPF e CNH.
+RN03 – Imutabilidade de Chave:  O CPF não pode ser editado após a criação do registro para garantir a integridade do histórico.
+RN04 – Exclusão Lógica: Ao excluir um motorista, ele torna-se "Inativo" e não aparece mais nas opções de vínculo, mas seus registros históricos permanecem.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – CPF E CNPJ Duplicados: Mostrar mensagem "Cliente já registrado" e bloquear cadastro.
+FA02 – Erro no servidor: Exibir mensagem genérica e instruir usuário a tentar novamente.
+FA03 – Campos inválidos: Impedir envio e destacar campos com erros.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Listagem:
+10.2 Tela de Cadastro de Caminhoneiros:
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /motoristas – Lista motoristas (suporta filtros ?q=nome ou ?cpf=123)
+GET /motoristas/check – Validação de existência (?cpf=xxx&cnh=xxx).
+POST /motoristas – Criação de novo registro.
+PUT /motoristas/{id}–  Atualização de dados cadastrais.
+DELETE /motoristas/{id} – Inativação do registro.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0009
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0009 - Check-in e Acompanhamento de Senha
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Cliente presente na unidade, QUERO acessar rapidamente meu Voucher Digital para validar minha chegada no Totem e, imediatamente após, visualizar minha posição na fila em tempo real no aplicativo, PARA que eu saiba o momento exato de me dirigir à doca sem depender apenas de avisos sonoros ou telas distantes.
+2. Contexto
+Esta história cobre a "Chegada”. Ela consolida a interação entre o meio digital (App) e o físico (Totem). O fluxo inicia-se com a apresentação do Voucher (o "ingresso") na Home e transforma-se na interface de Monitoramento de Fila assim que o sistema valida a presença do cliente na entrada. Este módulo é crítico para reduzir a ansiedade da espera, garantindo que o cliente tenha a informação da sua vez na palma da mão.
+3. Fluxo do Usuário
+Acesso ao Voucher:
+Ao chegar na portaria, o usuário abre o Web App.
+Na tela inicial (Home), ele clica no botão de destaque "Abrir Voucher / Check-in".
+O sistema exibe o Modal com o QR Code.
+Validação Física (Ação Externa)
+O usuário aproxima a tela do celular com o QR Code no leitor do Totem Físico.
+O Totem processa a leitura e confirma o check-in.
+Transição Automática:
+O Web App detecta a confirmação do check-in (via WebSocket).
+O sistema fecha o modal do Voucher e redireciona automaticamente para a tela de Monitoramento de Fila.
+Acompanhamento:
+O usuário visualiza sua Senha (ex: RP-A045) e sua Posição (ex: 3ª).
+Conforme a fila anda, a barra de progresso avança, até chegar a vez dele.
+4.  Tela / Interface
+4.1 Modal de Voucher/Ingresso
+Acesso: Botão na Home.
+Visual: QR Code centralizado, Código de Backup (ex: #RP-9025-XQ) e dados do agendamento.
+4.2 4.2 Tela de Acompanhamento
+Esta tela substitui a Home enquanto o cliente aguarda.
+Senha em Destaque: Código da senha (ex: RP-A045) em fonte gigante sobre fundo da cor primária.
+Indicadores de Espera:
+Badge de Status: "Aguardando" (Amarelo) ou "Chamado" (Verde).
+Posição: Número ordinal (ex: "3ª").
+Tempo Estimado: Ex: "~12 min".
+Barra de Progresso: Indicador visual que preenche conforme a vez se aproxima.
+Rodapé: Alerta "Fique atento aos monitores de TV".
+ 
+5. Formulário de Cadastro/Edição
+Campo
+Tipo
+Obrigatório
+Origem
+Descrição
+Senha Atual
+Texto
+Sim
+Mín. 3 caracteres
+Código gerado (ex: RP-A045).
+Status
+Enum
+Sim
+Formato válido; único
+Aguardando / Chamado / Cancelado.
+Posição
+Inteiro
+Sim
+Somente números; Único
+Posição relativa na fila (decrementa em tempo real).
+Barra de Progresso
+%
+Sim
+Formato válido
+Visualização do tempo decorrido vs. total.
+6. Critérios de Aceitação
+O botão "Abrir Voucher" deve estar disponível na Home no dia do agendamento.
+ O App deve transicionar automaticamente da tela de Voucher para a tela de Senha assim que o Totem confirmar a leitura (sem refresh manual).
+A posição na fila (ex: 3ª) deve ser atualizada em tempo real sempre que a fila andar..
+A senha exibida no App deve ser idêntica à senha impressa/exibida no Totem.
+7. Regras de Negócio
+RN01 – Sincronia Real-Time: A atualização de status (Voucher -> Fila) deve ocorrer via WebSocket para garantir instantaneidade
+RN02 – Bloqueio de Sessão: Enquanto o status for "Aguardando", o App deve priorizar a tela de Acompanhamento, dificultando a navegação para outras áreas para evitar distrações.
+RN03 – Validade do Voucher: O QR Code só deve ser aceito pelo Totem dentro da janela de tolerância (ex: 30 min antes até 15 min depois do horário).
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – Falha no Leitor: Se o QR Code não ler, o cliente digita o código alfanumérico (ex: #RP-9025) no teclado do Totem.
+FA02 – Check-in Antecipado/Atrasado: Se fora do horário, o Totem bloqueia e o App exibe alerta: "Check-in não permitido neste horário".
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela do Voucher(Mobile/Desktop)
+10.2 Tela de Acompanhamento de Senha(Mobile/Desktop)
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /agendamentos/voucher – Gera o QR Code.
+GET /fila/status – Retorna senha e posição.
+11.2 WebSocket (Eventos Real-Time) Utilizados para atualização automática da interface.
+Canal: user:{id_usuario}
+Evento: checkin.confirmed
+Gatilho: Disparado quando o Totem valida o QR Code.
+Ação no App: Fecha o Voucher e abre a tela de Acompanhamento.
+Evento: queue.updated
+Gatilho: Disparado quando a fila anda.
+Payload: { "posicao": 2, "tempo_estimado": 8, "status": "aguardando" }
+Ação no App: Atualiza o número da posição e a barra de progresso.
+11.3 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0010
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0010 -  Tratamento de Não Comparecimento e Histórico
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Administrador, QUERO cadastrar, editar, consultar e gerenciar motoristas/caminhoneiros,PARA garantir a integridade dos dados mestre e permitir o vínculo Motorista ↔ Caminhão em outros módulos do sistema.
+2. Contexto
+O módulo de Cadastro de Motoristas (Caminhoneiros) concentra-se no registro oficial e completo dos motoristas que atuam na operação. Diferente do autocadastro, esse fluxo não é executado pelo próprio motorista: ele ocorre de forma assistida e é responsabilidade exclusiva do Administrador, garantindo que os dados mestre — como CPF, CNH e categoria — sejam validados corretamente e mantenha integridade no sistema. Operadores e Supervisores não realizam o cadastro de motoristas; eles apenas consultam suas informações quando necessário, por exemplo, ao atender um caminhoneiro que já possui registro. Durante o atendimento presencial, caso o operador receba um motorista não cadastrado, ele registra apenas o caminhão e informações operacionais básicas para não travar o fluxo da fila, e posteriormente o Administrador regularizar o cadastro completo do motorista. Assim, esse módulo assegura padronização, confiabilidade e rastreabilidade dos dados de motoristas, mantendo a base alinhada às exigências de operação e segurança.
+3. Fluxo do Usuário(Administrador)
+O Administrador realiza login.
+Acesse o menu: Gestão de Usuários → Motoristas.
+O sistema mostra a Listagem de Motoristas.
+O Usuário pode:
+Visualizar os cards dos motoristas com dados resumidos.
+Clicar em "Novo Caminhoneiro" para adicionar um registro.
+Clicar no ícone Editar (Lápis Azul) para alterar dados.
+Clicar no ícone Excluir (Lixeira Vermelha) para inativar um motorista.
+Ao salvar, o sistema valida a unicidade do CPF e CNH.
+O sistema retorna feedback de sucesso e atualiza a lista.
+4. Tela de Listagem de Motoristas
+4.1 Modal de Cadastro Operacional:
+Filtros:
+Busca Global: Campo de texto para pesquisar por Nome, CPF ou Transportadora.
+Ações: Botão "Novo Caminhoneiro" (Canto superior direito).
+4.2 Cards:
+A visualização é feita em Cards (Grade), contendo:
+Ícone: Avatar/Usuário (Verde/Teal).
+Cabeçalho: Nome Completo (Negrito) e Transportadora (Subtítulo).
+Corpo do Card:
+CPF: Formatado (XXX.XXX.XXX-XX).
+CNH: Número da carteira.
+Telefone: Com máscara.
+E-mail: Endereço de contato.
+  Ações do Card:
+Botão Circular Azul (Editar).
+Botão Circular Vermelho (Excluir).
+ 
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+CNH
+Texto
+Sim
+Somente números; Único
+20
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+Transportadora
+Texto
+Não
+Texto livre ou busca*
+100
+*Nota: O campo Transportadora é informativo para agrupar motoristas.
+5.2 Comportamento
+Máscaras: Os campos CPF e Telefone devem aplicar formatação automática enquanto o usuário digita.
+Bloqueios: No modo de edição, o CPF deve permanecer bloqueado para alteração (RN03).
+Botões:
+"Cancelar" (Texto simples).
+"Criar" / "Salvar"(Botão).
+6. Critérios de Aceitação
+O sistema deve impedir o cadastro de dois motoristas com o mesmo CPF.
+O sistema deve impedir o cadastro de dois motoristas com a mesma CNH.
+O cadastro deve ser realizado através de um Modal (Pop-up) sem recarregar a página.
+A exclusão deve ser lógica (Soft Delete), mantendo o histórico de quem conduziu os caminhões no passado.
+Apenas usuários com perfil Admin podem visualizar o botão "Novo Caminhoneiro".
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: CPF e CNH são chaves únicas no sistema
+RN02 – Campos Obrigatórios: Não é permitido salvar sem Nome, CPF e CNH.
+RN03 – Imutabilidade de Chave:  O CPF não pode ser editado após a criação do registro para garantir a integridade do histórico.
+RN04 – Exclusão Lógica: Ao excluir um motorista, ele torna-se "Inativo" e não aparece mais nas opções de vínculo, mas seus registros históricos permanecem.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – CPF E CNPJ Duplicados: Mostrar mensagem "Cliente já registrado" e bloquear cadastro.
+FA02 – Erro no servidor: Exibir mensagem genérica e instruir usuário a tentar novamente.
+FA03 – Campos inválidos: Impedir envio e destacar campos com erros.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Listagem:
+10.2 Tela de Cadastro de Caminhoneiros:
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /motoristas – Lista motoristas (suporta filtros ?q=nome ou ?cpf=123)
+GET /motoristas/check – Validação de existência (?cpf=xxx&cnh=xxx).
+POST /motoristas – Criação de novo registro.
+PUT /motoristas/{id}–  Atualização de dados cadastrais.
+DELETE /motoristas/{id} – Inativação do registro.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+US-0011
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0011 -  Gestão de Conta e Preferências
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Administrador, QUERO cadastrar, editar, consultar e gerenciar motoristas/caminhoneiros,PARA garantir a integridade dos dados mestre e permitir o vínculo Motorista ↔ Caminhão em outros módulos do sistema.
+2. Contexto
+O módulo de Cadastro de Motoristas (Caminhoneiros) concentra-se no registro oficial e completo dos motoristas que atuam na operação. Diferente do autocadastro, esse fluxo não é executado pelo próprio motorista: ele ocorre de forma assistida e é responsabilidade exclusiva do Administrador, garantindo que os dados mestre — como CPF, CNH e categoria — sejam validados corretamente e mantenha integridade no sistema. Operadores e Supervisores não realizam o cadastro de motoristas; eles apenas consultam suas informações quando necessário, por exemplo, ao atender um caminhoneiro que já possui registro. Durante o atendimento presencial, caso o operador receba um motorista não cadastrado, ele registra apenas o caminhão e informações operacionais básicas para não travar o fluxo da fila, e posteriormente o Administrador regularizar o cadastro completo do motorista. Assim, esse módulo assegura padronização, confiabilidade e rastreabilidade dos dados de motoristas, mantendo a base alinhada às exigências de operação e segurança.
+3. Fluxo do Usuário(Administrador)
+O Administrador realiza login.
+Acesse o menu: Gestão de Usuários → Motoristas.
+O sistema mostra a Listagem de Motoristas.
+O Usuário pode:
+Visualizar os cards dos motoristas com dados resumidos.
+Clicar em "Novo Caminhoneiro" para adicionar um registro.
+Clicar no ícone Editar (Lápis Azul) para alterar dados.
+Clicar no ícone Excluir (Lixeira Vermelha) para inativar um motorista.
+Ao salvar, o sistema valida a unicidade do CPF e CNH.
+O sistema retorna feedback de sucesso e atualiza a lista.
+4. Tela de Listagem de Motoristas
+4.1 Modal de Cadastro Operacional:
+Filtros:
+Busca Global: Campo de texto para pesquisar por Nome, CPF ou Transportadora.
+Ações: Botão "Novo Caminhoneiro" (Canto superior direito).
+4.2 Cards:
+A visualização é feita em Cards (Grade), contendo:
+Ícone: Avatar/Usuário (Verde/Teal).
+Cabeçalho: Nome Completo (Negrito) e Transportadora (Subtítulo).
+Corpo do Card:
+CPF: Formatado (XXX.XXX.XXX-XX).
+CNH: Número da carteira.
+Telefone: Com máscara.
+E-mail: Endereço de contato.
+  Ações do Card:
+Botão Circular Azul (Editar).
+Botão Circular Vermelho (Excluir).
+ 
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Máx
+Nome Completo
+Texto
+Sim
+Mín. 3 caracteres
+200
+CPF
+Texto
+Sim
+Formato válido; único
+14
+CNH
+Texto
+Sim
+Somente números; Único
+20
+E-mail
+Texto
+Sim
+Formato válido
+100
+Telefone
+Texto
+Não
+Máscara: (99) 99999-9999
+15
+Transportadora
+Texto
+Não
+Texto livre ou busca*
+100
+*Nota: O campo Transportadora é informativo para agrupar motoristas.
+5.2 Comportamento
+Máscaras: Os campos CPF e Telefone devem aplicar formatação automática enquanto o usuário digita.
+Bloqueios: No modo de edição, o CPF deve permanecer bloqueado para alteração (RN03).
+Botões:
+"Cancelar" (Texto simples).
+"Criar" / "Salvar"(Botão).
+6. Critérios de Aceitação
+O sistema deve impedir o cadastro de dois motoristas com o mesmo CPF.
+O sistema deve impedir o cadastro de dois motoristas com a mesma CNH.
+O cadastro deve ser realizado através de um Modal (Pop-up) sem recarregar a página.
+A exclusão deve ser lógica (Soft Delete), mantendo o histórico de quem conduziu os caminhões no passado.
+Apenas usuários com perfil Admin podem visualizar o botão "Novo Caminhoneiro".
+7. Regras de Negócio
+RN01 – CPF/CNPJ único: CPF e CNH são chaves únicas no sistema
+RN02 – Campos Obrigatórios: Não é permitido salvar sem Nome, CPF e CNH.
+RN03 – Imutabilidade de Chave:  O CPF não pode ser editado após a criação do registro para garantir a integridade do histórico.
+RN04 – Exclusão Lógica: Ao excluir um motorista, ele torna-se "Inativo" e não aparece mais nas opções de vínculo, mas seus registros históricos permanecem.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho: A listagem dos perfis cadastrados deve carregar em até 3 segundos
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão e autenticação adequada.
+RNF03 – Usabilidade: Interface deve seguir padrões responsivos e layout consistente.
+RNF04 – Disponibilidade: Sistema disponível 99% do tempo.
+RNF05 – Acessibilidade: Elementos devem seguir boas práticas (descrições, contraste e navegação por teclado).
+9. Fluxos Alternativos e Exceções
+FA01 – CPF E CNPJ Duplicados: Mostrar mensagem "Cliente já registrado" e bloquear cadastro.
+FA02 – Erro no servidor: Exibir mensagem genérica e instruir usuário a tentar novamente.
+FA03 – Campos inválidos: Impedir envio e destacar campos com erros.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Tela de Listagem:
+10.2 Tela de Cadastro de Caminhoneiros:
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /motoristas – Lista motoristas (suporta filtros ?q=nome ou ?cpf=123)
+GET /motoristas/check – Validação de existência (?cpf=xxx&cnh=xxx).
+POST /motoristas – Criação de novo registro.
+PUT /motoristas/{id}–  Atualização de dados cadastrais.
+DELETE /motoristas/{id} – Inativação do registro.
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+🖥️ EPIC 3 — TOTEM DE AUTOATENDIMENTO
+EPIC 3 - TOTEM DE AUTOATENDIMENTO
+Este módulo representa o ponto de contato físico do cliente ao chegar na unidade. Ele deve ser simples, rápido e robusto, servindo tanto para quem agendou (Check-in rápido) quanto para quem chegou sem hora marcada.
+User Stories:
+US-0012 — Realizar Check-in Híbrido (QR/Código)
+US-0013 — Emissão de Senha Regular (Sem Agendamento)
+US-0014 — Impressão de Comprovante Físico
+US-0015 —  Operação em Modo Contingência(Em caso de Perda de Conexão)
+📺 EPIC 4 — SINALIZAÇÃO DIGITAL (TV / PAINÉIS)
+EPIC 4 — SINALIZAÇÃO DIGITAL (TV / PAINÉIS)
+Este módulo é a principal fonte de informação para os clientes que aguardam no pátio ou na recepção. O foco é a visibilidade, clareza e feedback auditivo, garantindo que o fluxo não pare porque alguém "não viu" ser chamado.
+User Stories:
+US-0016 — Visualização de Últimas Chamadas (Painel Principal)
+US-0017 — Histórico de Chamadas Recentes
+US-0018 — Alerta Sonoro de Chamada (Vocalização/Alerta Sonoro)
+👷 EPIC 5 — Operação (Atendimento)
+EPIC 5 — OPERAÇÃO (ATENDIMENTO)
+Este módulo é a interface de trabalho diário dos atendentes nos guichês. O foco aqui é agilidade e simplicidade: o operador não pode perder tempo navegando em menus complexos. Ele precisa de comandos rápidos ("um clique") para chamar, atender e liberar senhas, garantindo que o motor de filas (que definimos nos bastidores) flua sem gargalos.
+User Stories:
+US-0019 — Chamar Próxima Senha (Botão de Ação)
+US-0020 — Rechamada de Senha (Recall)
+US-0021 — Iniciar e Finalizar Atendimento
+US-0022 — Registro de Não Comparecimento (No-Show)
+US-0023 — Classificação do Atendimento (Tabulação)
+US-0024 — Visualização de Status do Guichê
+US-0025 — Validação e Registro de Pagamento
+📹 EPIC 6 — Supervisão E Monitoramento
+EPIC 6 — SUPERVISÃO e MONITORAMENTO
+Este módulo atua como o controle da unidade. Enquanto o Operador foca em atender um cliente por vez, o Supervisor precisa visualizar o todo (tamanho das filas, tempo de espera, ociosidade da equipe) para tomar decisões rápidas. O objetivo aqui é fornecer dados em tempo real e ferramentas de intervenção para evitar que a operação colapse em horários de pico.
+User Stories:
+US-0026 — Dashboard de Operação em Tempo Real
+US-0027 — Gestão de Guichês Ativos 
+US-0028 — Intervenção Manual na Fila 
+US-0029— Monitoramento de Tamanho da Fila e Alertas (Sinais Visuais)
+US-0030 — Revisão de Casos de "Não Comparecimento" (Resgate)
+US-0031 — Monitoramento de Status dos Agentes(Garantindo Produtividade)
+US-0032 — Relatórios de Performance Histórica (BI)
+🏙️ EPIC 7 — ADMINISTRAÇÃO E SEGURANÇA
+ EPIC 7 — ADMINISTRAÇÃO E SEGURANÇA
+Este módulo concentra as configurações estratégicas e estruturais do sistema. Seu objetivo é garantir a Governança, Padronização e Segurança da operação. É aqui que o Administrador define "quem pode fazer o quê" (Permissões), "como a loja funciona" (Horários e Serviços) e realiza auditorias para garantir que o sistema não esteja sendo usado indevidamente.
+User Stories:
+US-0033 — Gestão de Usuários e Colaboradores
+US-0034 — Controle de Perfis de Acesso (RBAC)
+US-0035 — Configuração de Serviços e Prioridades
+US-0036 — Parametrização Global da Unidade
+US-0037 — Gestão de Dispositivos (Totens e TVs)
+US-0038 — Logs de Auditoria e Rastreabilidade
+⚙️ EPIC 8 — CONFIGURAÇÃO E CONTROLE DE FILAS
+EPIC 8 — CONFIGURAÇÃO E CONTROLE DE FILAS
+Este módulo é responsável pela parametrização lógica do atendimento. Ele permite dissociar a regra de negócio do código-fonte, dando liberdade para o gestor ajustar o comportamento da fila (Pesos, Roteamento, Nomenclatura) de forma fácil pela interface. É aqui que se define a forma e a eficiência da distribuição de senhas.
+User Stories:
+US-0039 — Configuração de Pesos e Prioridades
+US-0040— Definição de Prefixos e Máscaras de Senha
+US-0041— Configuração de Tempos Limite
+US-0042— Regras de Reset e Ciclo Diário
+🔔 EPIC 9 — Notificações
+EPIC 9 — NOTIFICAÇÕES & MENSAGERIA
+Este módulo é responsável pela comunicação ativa do sistema. Seu objetivo é reduzir a ansiedade do cliente (que pode esperar sentado ou tomando café) e aumentar a velocidade de reação da supervisão. Ele utiliza canais externos (WhatsApp, SMS, Push, E-mail) para manter todos informados sobre o progresso da fila e eventos críticos.
+User Stories:
+US-0043 — Notificação de Proximidade (Sua vez está chegando)
+US-0044 — Confirmação de Check-in e Senha Digital
+US-0045 — Alertas de Crise Operacional (SLA Estourado)
+US-0046 — Pesquisa de Satisfação (NPS) Pós-Atendimento
+US-0047— Lembretes de Agendamento
+US-0048— Painel de Configuração de Notificações (Admin)
+US-0048
+Documento de Requisitos
+Projeto:
+<Sistema de Fila de Água Mineral Aldebaran>
+User Story:
+US-0048 - Painel de Configuração de Notificações (Admin)
+Histórico de Revisões
+Data
+Versão
+Descrição
+Autor(es)
+14/12/2025
+1.0
+Criação do Documento
+<Jean Felipe Duarte Tenório, Matheus Santos Lira,Emily Vitória De Jesus Rocha,Sophia Sacramento Dos Santos,Guilherme Estevam Lopes
+>
+05/12/2025
+1.1
+Revisão do Documento
+<nome do autor>
+1. História do Usuário
+Eu, COMO Administrador do Sistema, QUERO ativar ou desativar canais de comunicação (WhatsApp, SMS, E-mail) e definir quais eventos geram alertas, PARA gerenciar os custos de envio e controlar a régua de comunicação com o cliente de forma centralizada.
+2. Contexto
+O módulo de Notificações de Agendamento tem como objetivo informar o cliente, de forma automática, sobre os principais eventos do seu agendamento no sistema de gestão de filas da Água Mineral Aldebaran. As notificações são enviadas em momentos-chave, como confirmação do agendamento, lembretes antes do horário previsto e aviso de chamada para atendimento.
+Esse módulo atua de forma integrada ao fluxo de agendamento e à fila operacional, ajudando a reduzir atrasos e não comparecimentos. Os avisos podem ser enviados por SMS, WhatsApp ou e-mail, conforme configuração do sistema e dados disponíveis no cadastro, contribuindo para maior previsibilidade do atendimento e melhor organização do fluxo operacional.
+3. Fluxo do Sistema
+O sistema monitora continuamente os eventos do ciclo de vida dos agendamentos.
+Ao ocorrer um evento relevante (criação, confirmação, proximidade do horário ou chamada para atendimento), o sistema identifica automaticamente os agendamentos elegíveis para a notificação.
+3.1. O sistema valida:
+Status atual do agendamento.
+Janela de horário associada.
+Canal de notificação disponível no cadastro do cliente (SMS, WhatsApp ou e-mail).
+Regras de disparo configuradas (tempo de antecedência, tolerância, limites de envio).
+3.2. O sistema então:
+Gera a mensagem a partir de um template configurável.
+Registra o disparo da notificação com data, hora e tipo.
+Envia a notificação ao cliente pelo canal definido.
+3.3. Após o envio:
+O sistema atualiza o histórico de notificações do agendamento.
+Em caso de falha no envio, registra o erro e permite nova tentativa conforme política definida.
+Quando aplicável, o sistema ajusta o status do agendamento (ex: confirmado após notificação de confirmação).
+4. Tela / Interface – Gestão de Notificações
+4.1 Acesso à Tela:
+A tela de Configurações de Notificações é acessível exclusivamente por usuários com meio do menu:
+Configurações do Sistema → Notificações
+4.2 Configurações de Canais de Notificação
+A tela apresenta cartões de configuração para ativação ou desativação dos canais de envio disponíveis:
+Ativar Alertas WhatsApp
+Ativar Alertas SMS
+Ativar Bots Telegram (Opcional)
+Ativar Alertas E-mail
+Cada canal possui:
+Descrição resumida de sua finalidade.
+Chave de ativação/desativação (toggle).
+Estado visual claro (ativo/inativo).
+As alterações de status dos canais afetam imediatamente o disparo de notificações automáticas, respeitando as regras e eventos configurados no sistema.
+4.3 Modelos de Mensagem (Eventos)
+A seção Modelos de Mensagem permite ao Administrador definir quais eventos do sistema irão gerar notificações ao cliente. Cada modelo é apresentado como um item com chave de ativação independente.
+Eventos disponíveis:
+Notificar ao Chamar Senha: Cliente recebe uma notificação quando sua senha é chamada para atendimento.
+Notificar ao Completar: Cliente recebe confirmação após a finalização do atendimento.
+Notificar ao Cancelar Senha: Cliente recebe notificação quando sua senha é cancelada.
+Cada evento pode ser ativado ou desativado individualmente, permitindo controle fino sobre a comunicação com o cliente.
+4.4 Ações da Tela
+Salvar Alterações: Botão localizado no rodapé da tela, responsável por persistir todas as configurações realizadas.
+Ao salvar:
+O sistema valida as configurações selecionadas.
+As regras passam a valer imediatamente para novos eventos.
+As alterações ficam registradas para fins de rastreabilidade administrativa.
+5. Formulário de Cadastro/Edição
+5.1 Campos e Validações PF (Pessoa Física) - Operador/Supervisor
+Campo
+Tipo
+Obrigatório
+Validação
+Ativar Alertas WhatsApp
+Toggle
+Não
+Habilitado/desabilitado
+Ativar Alertas SMS
+Toggle
+Não
+Habilitado/desabilitado
+Ativar Alertas Telegram
+Toggle
+Não
+Habilitado/desabilitado
+Ativar Alertas E-mail
+Toggle
+Não
+Habilitado/desabilitado
+Notificar ao Chamar Senha
+Toggle
+Não
+Habilitado/desabilitado
+Notificar ao Completar Atendimento
+Toggle
+Não
+Habilitado/desabilitado
+Notificar ao Cancelar Senha
+Toggle
+Não
+Habilitado/desabilitado
+*Nota: As configurações possuem efeito global, aplicando-se a todos os agendamentos realizados após a gravação das alterações.
+5.2 Comportamento
+As alterações devem ser aplicadas somente após o clique “Salvar Alterações”
+O sistema deve impedir salvamento sem ao menos um canal de notificação ativo, quando houver eventos habilitados.
+As configurações não afetam notificações já enviadas anteriormente.
+A interface utiliza toggles visuais, com feedback imediato de estado (ativo/inativo).
+Botões disponíveis:
+"Cancelar": descarta alterações não salvas. 
+"Salvar Alterações”.
+6. Critérios de Aceitação
+O sistema deve permitir apenas usuários com perfil Administrador acessarem a tela de configurações de notificações.
+O sistema deve enviar notificações apenas para eventos habilitados.
+O sistema deve respeitar os canais ativos, não enviando mensagens por canais desativados.
+As configurações salvas devem ser aplicadas automaticamente a novos agendamentos.
+O sistema deve registrar as alterações de configuração para fins de auditoria.
+Em caso de falha no envio, o sistema não deve bloquear o fluxo do atendimento.
+O cliente não deve receber notificações duplicadas para o mesmo evento.
+7. Regras de Negócio
+RN01 – Perfil de Acesso: Somente usuários com perfil Administrador podem alterar configurações de notificações.
+RN02 – Dependência Canal x Evento: Não é permitido ativar eventos de notificação sem ao menos um canal ativo.
+RN03 – Escopo das Configurações: As configurações de notificação são globais e não podem ser personalizadas por usuário ou por agendamento individual.
+RN04 – Registro de Alterações: Toda modificação nas configurações de notificação deve ser registrada com data, hora e usuário responsável.
+RN05 – Resiliência do Sistema: Falhas no envio de notificações não podem interromper o fluxo de agendamento ou atendimento.
+8. Requisitos Não Funcionais
+RNF01 – Desempenho:  O envio e o processamento das notificações devem ocorrer em até 5 segundos após o evento disparador (confirmação, chamada, cancelamento ou conclusão do atendimento).
+RNF02 – Segurança: O módulo deve respeitar níveis de permissão. Apenas usuários com perfil Administrador podem configurar canais, templates e regras de notificação. Dados sensíveis (telefone, e-mail) devem ser protegidos.
+RNF03 – Usabilidade: A interface de configuração de notificações deve ser intuitiva, com uso de toggles, textos explicativos e feedback visual claro sobre canais ativos/inativos.
+RNF04 – Disponibilidade: O sistema de notificações deve possuir disponibilidade mínima de 99%, com tolerância a falhas temporárias de serviços externos (SMS, WhatsApp, e-mail).
+RNF05 – Acessibilidade: Elementos da interface devem seguir boas práticas de acessibilidade, incluindo contraste adequado, textos descritivos e navegação via teclado.
+9. Fluxos Alternativos e Exceções
+FA01 – Canal de Notificação Indisponível: Caso um canal ativo (ex.: WhatsApp) esteja indisponível, o sistema deve registrar o erro em log e tentar o envio pelos canais alternativos habilitados (ex.: SMS ou e-mail).
+FA02 – Cliente sem Dados de Contato: Se o cliente não possuir telefone ou e-mail cadastrado, a notificação não é enviada e o sistema apenas registra o evento no histórico do atendimento.
+FA03 – Erro no Serviço de Mensageria: Em caso de falha no serviço externo (API), o sistema deve exibir mensagem genérica ao administrador e permitir nova tentativa automática ou manual.
+10.  Protótipo da Interface (High-Fidelity)
+10.1 Configurações do Sistema → Notificações
+11. Integrações / API (Exemplo)
+11.1 Endpoints
+GET /notificacoes/config – Retorna as configurações atuais de canais e modelos de mensagens.
+PUT /notificacoes/config – Atualiza configurações de canais (WhatsApp, SMS, E-mail, Telegram) e eventos notificados.
+POST /notificacoes/enviar – Dispara uma notificação manual ou automática vinculada a um agendamento ou senha. 
+GET /notificacoes/logs – Retorna histórico de notificações enviadas, com status (enviado, falha, pendente).
+11.2 Formatos
+Requisições e respostas em JSON.
+Validação server-side replicando regras do front-end.
+
+--- CONTENT OF MODELO_PROJETO_BRISA Controle filas agua mineral aldebaran(1).docx ---
+PROPOSTA DE PROJETOS DE IMERSÃO
+PARCEIRO DO PROGRAMA DE RESIDÊNCIA EM TIC: < 05.977.510/0001-37>>
+NOME DO PROJETO :: Controle de filas água mineral Aldebaran
+EMPRESA PROPONENTE DO PROJETO: Águas Aldebarn
+CONTATO NA EMPRESA:E-MAIL 
+DESCRIÇÃO DO PROJETO PROPOSTO
+Este projeto visa substituir o controle manual por senha no ponto de carregamento da Água Mineral Aldebaran por um sistema digital de gestão de fila e chamada. O objetivo é reduzir tempo de espera de caminhões e clientes, eliminar filas físicas, acelerar o fluxo de pagamento e retirada, e melhorar a experiência operacional com painéis visuais e notificações. O sistema incluirá geração de senhas digitais, painel de chamada (“chama quem é da vez”), filas separadas por tipo (caminhão, cliente pessoa física, cliente pessoa jurídica), e relatórios operacionais para otimização contínua.
+OBJETIVOS PRINCIPAIS
+Reduzir tempo de espera e filas físicas no ponto de carregamento.
+Automatizar a chamada dos próximos atendimentos com tela de chamada e áudio opcional.
+Registrar e monitorar entrada, atendimento e tempo médio por atendimento.
+Fornecer dados operacionais para tomada de decisão (horários de pico, desempenho por caixa/baia).
+Melhorar a satisfação de motoristas e clientes pelo controle transparente da fila.
+REQUISITOS FUNCIONAIS
+Gestão de Filas e Senhas
+Geração de senhas digitais numeradas por categoria (ex.: Caminhão, Cliente Rápido, Retirada Pesada).
+Emissão de senha via totens touchscreen, aplicativo web móvel ou atendimento interno.
+Prioridades configuráveis (ex.: cargas urgentes, clientes recorrentes).
+Tela de Chamada e Sinalização
+Painel central (TV/monitor) que exibe o número da vez, categoria, e baia/caixa destino.
+Som de chamada opcional e mensagem de orientação.
+Painéis secundários para áreas de espera e para guichês/baías.
+Interface de Atendimento
+Console web para operadores: chamar próximo, reinserir senha, transferir para outra baia, finalizar atendimento.
+Registro automático de horários: entrada na fila, início e fim do atendimento.
+Cadastros e Perfis
+Cadastro de clientes (pessoa física e jurídica) com histórico de atendimentos.
+Cadastro de motoristas e caminhões (placa, tipo de carga).
+Perfis de usuários do sistema: operador, supervisor, administrador.
+Integração com Pagamento
+Interface para confirmar pagamento (manual ou integração futura com terminal/ERP).
+Geração de comprovante digital vinculando senha e pagamento.
+Relatórios e Dashboards
+Relatórios de tempo médio de espera, tempo de atendimento, fluxo por hora/dia.
+Dashboard em tempo real para supervisores com filas ativas e indicadores de desempenho.
+Notificações
+Opção de notificação via SMS/WhatsApp/email para clientes cadastrados quando for a vez.
+Alertas para supervisores em caso de filas acima de limiar configurável.
+REQUISITOS NÃO-FUNCIONAIS
+Usabilidade
+Interface intuitiva e multilíngue (PT-BR padrão), acessível em totens e navegadores móveis.
+Fluxos claros para emissão e chamada de senhas.
+Disponibilidade e Desempenho
+Disponibilidade alvo de 99% para operação durante horário comercial.
+Ações principais (chamar próximo, atualizar painel) com resposta inferior a 2 segundos.
+Escalabilidade
+Arquitetura que permita suportar expansão para múltiplas unidades/filiais sem reengenharia.
+Segurança
+Autenticação por perfis com controle de permissões.
+Criptografia dos dados sensíveis em trânsito e em repouso.
+Logs de auditoria para todas as operações.
+Manutenibilidade
+Código modular e documentado; painel de administração para ajustes de fluxo e templates de mensagens.
+CRITÉRIOS DE ACEITAÇÃO
+Operacionalidade
+Sistema instalado e configurado na unidade piloto, com totens, painel de chamada e consoles de operador em operação contínua por 7 dias sem falhas críticas.
+Desempenho
+Tempo de resposta para ações críticas < 2 segundos.
+Redução mensurável do tempo médio de espera em pelo menos 40% na primeira fase (comparado ao controle por senha manual).
+Funcionalidade
+Emissão digital de senhas, console de operação, painel de chamada e geração de relatórios funcionais em produção.
+Usabilidade
+Treinamento realizado com operadores; avaliações de usabilidade com nota média ≥ 4/5 entre usuários-chave.
+PROPOSTA DE IMPLEMENTAÇÃO (ALTA NÍVEL)
+Fase 1 — Levantamento e prototipagem (2 semanas)
+Mapeamento do fluxo atual, contagem de atendimentos, definição de categorias de fila e telas.
+Protótipo de telas (totem, painel e console de operador).
+Fase 2 — Desenvolvimento mínimo viável (MVP) (6–8 semanas)
+Backend para filas, cadastro e relatórios.
+Frontend: console de operador, totens web e painel de chamada.
+Integração básica para impressão/comprovante e logs.
+Fase 3 — Piloto e ajustes (2–3 semanas)
+Instalação na unidade piloto, treinamento de equipe, coleta de métricas e ajuste de regras de fila.
+Fase 4 — Entrega e transferência (1 semana)
+Documentação, treinamento final e validação pelos critérios de aceitação.
+RISCOS PRINCIPAIS E MITIGAÇÕES
+Risco: Resistência operacional à mudança.Mitigação: Capacitação em múltiplos turnos, processo de rollout gradual, suporte in loco nos primeiros dias.
+Risco: Instabilidade de rede que afete painéis.Mitigação: Modo offline limitado (cache de senhas) e reconciliação automática ao restabelecer conexão.
+Risco: Erros na integração com pagamentos futuros.Mitigação: Projeto modular com APIs bem definidas e testes em sandbox.
+INDICADORES DE SUCESSO
+Redução do tempo médio de espera em fila (meta inicial: ≥ 40%).
+Tempo médio de atendimento por baia estabilizado abaixo de meta definida pela operação.
+Adoção: ≥ 90% dos atendimentos usando senhas digitais após 30 dias do piloto.
+Satisfação dos usuários (motoristas/operadores) com nota média ≥ 4/5.
+RECURSOS NECESSÁRIOS (SUMÁRIO)
+Hardware: 1 totens touchscreen (ou tablets industriais) + 1 monitor/TV para painel de chamada por unidade + roteador/backup de energia.
+Software: Aplicação web responsiva (backend + frontend), banco de dados, painel administrativo, serviço de notificações (SMS/WhatsApp opcional).
+Treinamento e suporte pelo menos 2 semanas pós-implantação.
+RECOMENDAÇÕES FINAIS
+Priorizar lançamento do MVP focado em geração de senhas, console de operador e painel de chamada para validar ganhos rápidos.
+Planejar integração futura com sistemas de pagamento e ERP da Aldebaran.
+Realizar a instalação piloto em horário de maior fluxo para coletar dados reais e ajustar regras de prioridade.
+

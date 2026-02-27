@@ -4,6 +4,8 @@ import { UsuarioModule } from './usuario/usuario.module';
 import { ClienteModule } from './cliente/client.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module'; // <--- Importe o Módulo
+import { MotoristaModule } from './motorista/motorista.module';
+import { CaminhaoModule } from './caminhao/caminhao.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { PrismaModule } from './prisma/prisma.module'; // <--- Importe o Módulo
     FilaModule,
     UsuarioModule,
     ClienteModule,
+    MotoristaModule,
+    CaminhaoModule,
   ],
   controllers: [],
   providers: [], // <--- Remova o PrismaService daqui
