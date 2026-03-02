@@ -1,0 +1,47 @@
+<div class="page-container animate-up">
+    <div class="content-card">
+        <div class="header-section">
+            <div class="title-group">
+                <lucide-icon [img]="icons.user" size="24" class="title-icon"></lucide-icon>
+                <div>
+                    <h1>Meu Perfil</h1>
+                    <p>Gerencie suas informações pessoais e credenciais de acesso.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="avatar-section">
+                <div class="avatar-circle">
+                    <span>{{ usuario.nome.substring(0, 2).toUpperCase() }}</span>
+                </div>
+                <div class="role-badge">
+                    <lucide-icon [img]="icons.shield" size="14"></lucide-icon>
+                    {{ usuario.perfil }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" [(ngModel)]="usuario.nome" placeholder="Seu nome" />
+                </div>
+
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <input type="email" [(ngModel)]="usuario.email" placeholder="Seu e-mail" />
+                </div>
+
+                <div class="input-group">
+                    <label>Nova Senha</label>
+                    <input type="password" placeholder="Deixe em branco para não alterar" />
+                </div>
+
+                <button class="btn-primary mt-4" (click)="salvarPerfil()">
+                    <lucide-icon [img]="icons.save" size="18"></lucide-icon>
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

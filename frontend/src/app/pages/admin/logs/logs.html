@@ -1,0 +1,63 @@
+<div class="page-container">
+
+    <div class="header-section">
+        <div class="title-group">
+            <lucide-icon [img]="icons.fileText" size="24" class="title-icon"></lucide-icon>
+            <div>
+                <h1>Logs e Auditoria</h1>
+                <p>Acompanhe o histórico de ações e acessos ao sistema.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card">
+
+        <div class="filters-section">
+            <div class="search-wrap">
+                <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+                <input type="text" [(ngModel)]="searchQuery" (input)="filtrar()"
+                    placeholder="Buscar logs (ação, descrição...)">
+            </div>
+
+            <button class="btn-export" (click)="exportData()">
+                <lucide-icon [img]="icons.download" size="18"></lucide-icon>
+                Exportar CSV
+            </button>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>DATA / HORA</th>
+                        <th>USUÁRIO (ID)</th>
+                        <th>AÇÃO</th>
+                        <th>DESCRIÇÃO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of filteredLogs">
+                        <td>{{ log.criadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                        <td>
+                            <span class="user-badge" *ngIf="log.usuario_id">#{{ log.usuario_id }}</span>
+                            <span class="system-badge" *ngIf="!log.usuario_id">Sistema</span>
+                        </td>
+                        <td class="action-cell">
+                            <span class="action-badge">{{ log.acao }}</span>
+                        </td>
+                        <td class="description-cell">{{ log.descricao }}</td>
+                    </tr>
+
+                    <tr *ngIf="filteredLogs.length === 0 && !loading">
+                        <td colspan="4" class="empty-row text-center">Nenhum registro de log encontrado.</td>
+                    </tr>
+                    <tr *ngIf="loading">
+                        <td colspan="4" class="loading-state text-center">Carregando logs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

@@ -1,29 +1,40 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
-import { LucideAngularModule, Users, Clock, TrendingUp, Calendar, CheckCircle } from 'lucide-angular';
+import { LucideAngularModule, Building2, Monitor, UserCheck, Clock } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  senhaAtual: string = '---';
-  stats = { fila: 0, tempo: 0, atendidos: 0 };
-  dadosFluxo: any[] = [];
-  dataHoje = new Date();
+  stats = {
+    filiais: 0,
+    guiches: 0,
+    atendimentos: 0,
+    esperaMedio: 0
+  };
+
+  atividadesRecentes: any[] = [];
+  loading = true;
+
   private intervalId: any;
 
-  readonly icons = { users: Users, clock: Clock, trending: TrendingUp, calendar: Calendar, check: CheckCircle };
+  readonly icons = {
+    building: Building2,
+    monitor: Monitor,
+    userCheck: UserCheck,
+    clock: Clock
+  };
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) { }
 
   ngOnInit() {
     this.fetchData();
-    this.intervalId = setInterval(() => this.fetchData(), 5000);
+    this.intervalId = setInterval(() => this.fetchData(), 15000);
   }
 
   ngOnDestroy() {
@@ -31,15 +42,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   fetchData() {
-    // 1. Busca Senha Atual
-    this.api.get<any[]>('/fila/painel').subscribe(res => {
-      if (res.length > 0) this.senhaAtual = res[0].numeroDisplay;
-    });
-
-    // 2. Busca Estatísticas (Backend)
-    this.api.get<any>('/fila/dashboard-stats').subscribe(res => {
-      this.stats = { fila: res.fila, tempo: res.tempo, atendidos: res.atendidos };
-      this.dadosFluxo = res.graficoFluxo;
+    this.api.get<any>('/dashboard/metrics').subscribe({
+      next: (res) => {
+        this.stats = {
+          filiais: res.cards.filiaisAtivas,
+          guiches: res.cards.guichesAtivos,
+          atendimentos: res.cards.atendimentosHoje,
+          esperaMedio: res.cards.tempoMedioEspera
+        };
+        this.atividadesRecentes = res.atividadeRecente;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("Erro ao buscar métricas:", err);
+        this.loading = false;
+      }
     });
   }
 }

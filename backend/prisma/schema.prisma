@@ -123,3 +123,30 @@ model usuario {
   atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
   deletadoEm   DateTime? @db.Timestamp(6)
 }
+
+model configuracao {
+  id           Int       @id @default(autoincrement())
+  chave        String    @unique @db.VarChar(50) // e.g., 'TOLERANCIA_NOSHOW', 'LIMITE_SENHAS', 'TEMPO_MEDIO'
+  valor        String    @db.VarChar(200)
+  descricao    String?   @db.VarChar(200)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+}
+
+model log_auditoria {
+  id           Int       @id @default(autoincrement())
+  acao         String    @db.VarChar(100)
+  descricao    String    @db.VarChar(500)
+  usuario_id   Int?
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+}
+
+model filial {
+  id           Int       @id @default(autoincrement())
+  nome         String    @db.VarChar(150)
+  cnpj         String?   @unique @db.VarChar(20)
+  endereco     String?   @db.VarChar(200)
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+}

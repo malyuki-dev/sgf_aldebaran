@@ -59,13 +59,23 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
+      { path: 'meu-perfil', loadComponent: () => import('./pages/admin/meu-perfil/meu-perfil').then(m => m.MeuPerfil) },
       { path: 'atendimento', component: AtendimentoComponent },
       { path: 'agendamentos', component: AgendamentosComponent },
       { path: 'servicos', component: ServicosComponent },
-      { path: 'clientes', loadComponent: () => import('./pages/admin/clientes/clientes.component').then(m => m.ClientesComponent) },
-      { path: 'usuarios', loadComponent: () => import('./pages/admin/usuarios/usuarios.component').then(m => m.UsuariosComponent) },
-      { path: 'motoristas', loadComponent: () => import('./pages/admin/motoristas/motoristas.component').then(m => m.MotoristasComponent) },
-      { path: 'caminhoes', loadComponent: () => import('./pages/admin/caminhoes/caminhoes.component').then(m => m.CaminhoesComponent) },
+      {
+        path: 'cadastros',
+        loadComponent: () => import('./pages/admin/cadastros-gerais/cadastros-gerais').then(m => m.CadastrosGerais),
+        children: [
+          { path: '', redirectTo: 'usuarios', pathMatch: 'full' },
+          { path: 'usuarios', loadComponent: () => import('./pages/admin/usuarios/usuarios.component').then(m => m.UsuariosComponent) },
+          { path: 'clientes', loadComponent: () => import('./pages/admin/clientes/clientes.component').then(m => m.ClientesComponent) },
+          { path: 'motoristas', loadComponent: () => import('./pages/admin/motoristas/motoristas.component').then(m => m.MotoristasComponent) },
+          { path: 'caminhoes', loadComponent: () => import('./pages/admin/caminhoes/caminhoes.component').then(m => m.CaminhoesComponent) },
+        ]
+      },
+      { path: 'configuracoes', loadComponent: () => import('./pages/admin/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent) },
+      { path: 'logs', loadComponent: () => import('./pages/admin/logs/logs').then(m => m.Logs) },
     ]
   },
 

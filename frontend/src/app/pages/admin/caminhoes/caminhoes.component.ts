@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 // We fix the import to point to the correct environment structure we will assume if not existent, or just omit if no env is generated yet. 
 // Assuming the backend runs on 3000 since we saw NestJS. Let's use a standard default approach or environment
-import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Truck, UserCircle, Hash, Briefcase, Users, User } from 'lucide-angular';
+import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Truck, UserCircle, Hash, Briefcase, Users, User, CheckCircle, Check } from 'lucide-angular';
 
 @Component({
     selector: 'app-caminhoes',
@@ -14,7 +14,7 @@ import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Truck, UserCircle,
     styleUrls: ['./caminhoes.component.scss']
 })
 export class CaminhoesComponent implements OnInit {
-    icons = { search: Search, plus: Plus, edit2: Edit2, trash2: Trash2, x: X, truck: Truck, userCircle: UserCircle, hash: Hash, briefcase: Briefcase, users: Users, user: User };
+    icons = { search: Search, plus: Plus, edit2: Edit2, trash2: Trash2, x: X, truck: Truck, userCircle: UserCircle, hash: Hash, briefcase: Briefcase, users: Users, user: User, checkCircle: CheckCircle, check: Check };
 
     caminhoes: any[] = [];
     motoristas: any[] = []; // for dropdown
@@ -23,6 +23,7 @@ export class CaminhoesComponent implements OnInit {
 
     // Modal state
     showModal = false;
+    showSuccessModal = false;
     isEditing = false;
 
     // Form Model
@@ -40,7 +41,7 @@ export class CaminhoesComponent implements OnInit {
     private apiUrl = `http://localhost:3000/caminhoes`;
     private motoristasUrl = `http://localhost:3000/motoristas`;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
         this.carregarDados();
@@ -55,6 +56,7 @@ export class CaminhoesComponent implements OnInit {
             next: (data) => {
                 this.caminhoes = data;
                 this.loading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Erro ao carregar', err);
@@ -65,7 +67,10 @@ export class CaminhoesComponent implements OnInit {
 
     carregarMotoristas() {
         this.http.get<any[]>(this.motoristasUrl).subscribe({
-            next: (data) => this.motoristas = data,
+            next: (data) => {
+                this.motoristas = data;
+                this.cdr.detectChanges();
+            },
             error: (err) => console.error(err)
         });
     }
@@ -90,6 +95,14 @@ export class CaminhoesComponent implements OnInit {
 
     fecharModal() {
         this.showModal = false;
+        this.showSuccessModal = false;
+    }
+
+    @HostListener('document:keydown.escape', ['$event'])
+    onKeydownHandler(event: Event) {
+        if (this.showModal || this.showSuccessModal) {
+            this.fecharModal();
+        }
     }
 
     salvar() {
@@ -99,7 +112,10 @@ export class CaminhoesComponent implements OnInit {
         }
 
         // Convert string to number if needed for motorista_id
-        const payload: any = { ...this.caminhaoForm };
+        const payload: any = {
+            ...this.caminhaoForm,
+            observacoes: this.caminhaoForm.observacoes || ''
+        };
         if (payload.motorista_id) {
             payload.motorista_id = Number(payload.motorista_id);
         } else {
@@ -109,16 +125,20 @@ export class CaminhoesComponent implements OnInit {
         if (this.isEditing) {
             this.http.put(`${this.apiUrl}/${this.caminhaoForm.id}`, payload).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.showSuccessModal = true;
                     this.carregarDados();
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao atualizar: ' + (err.error?.message || 'Erro desconhecido'))
             });
         } else {
             this.http.post(this.apiUrl, payload).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.showSuccessModal = true;
                     this.carregarDados();
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao salvar: ' + (err.error?.message || 'Erro desconhecido'))
             });
