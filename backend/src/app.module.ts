@@ -6,6 +6,10 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module'; // <--- Importe o Módulo
 import { MotoristaModule } from './motorista/motorista.module';
 import { CaminhaoModule } from './caminhao/caminhao.module';
+import { ServicoModule } from './servico/servico.module';
+import { ConfiguracaoModule } from './configuracao/configuracao.module';
+import { LogModule } from './log/log.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -17,6 +21,10 @@ import { CaminhaoModule } from './caminhao/caminhao.module';
     ClienteModule,
     MotoristaModule,
     CaminhaoModule,
+    ServicoModule,
+    ConfiguracaoModule,
+    LogModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [], // <--- Remova o PrismaService daqui

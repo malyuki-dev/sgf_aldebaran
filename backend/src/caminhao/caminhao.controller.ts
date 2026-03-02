@@ -1,23 +1,30 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, ParseIntPipe, Patch, HttpException, HttpStatus } from '@nestjs/common';
 import { CaminhaoService } from './caminhao.service';
 import { Prisma } from '@prisma/client';
 
 @Controller('caminhoes')
 export class CaminhaoController {
     constructor(private readonly caminhaoService: CaminhaoService) { }
-
     @Post()
-    create(@Body() createCaminhaoDto: Prisma.caminhaoCreateInput) {
-        return this.caminhaoService.create(createCaminhaoDto);
+    async create(@Body() createCaminhaoDto: Prisma.caminhaoCreateInput) {
+        try {
+            return await this.caminhaoService.create(createCaminhaoDto);
+        } catch (error: any) {
+            throw new HttpException(error.message || 'Erro Interno', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Post('operacional')
-    createOperacional(@Body() createCaminhaoDto: Prisma.caminhaoCreateInput) {
+    async createOperacional(@Body() createCaminhaoDto: Prisma.caminhaoCreateInput) {
         // RN02 — Cadastro Operacional Simplificado: Operador e Supervisor não vinculam motoristas.
         if (createCaminhaoDto.motorista) {
             delete createCaminhaoDto.motorista;
         }
-        return this.caminhaoService.create(createCaminhaoDto);
+        try {
+            return await this.caminhaoService.create(createCaminhaoDto);
+        } catch (error: any) {
+            throw new HttpException(error.message || 'Erro Interno', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Get()

@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Briefcase, Hash } from 'lucide-angular';
+import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Briefcase, Hash, User, CheckCircle, Truck, Check } from 'lucide-angular';
 
 @Component({
     selector: 'app-motoristas',
@@ -12,7 +12,7 @@ import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Briefcase, 
     styleUrls: ['./motoristas.component.scss']
 })
 export class MotoristasComponent implements OnInit {
-    icons = { search: Search, plus: Plus, edit2: Edit2, trash2: Trash2, x: X, users: Users, briefcase: Briefcase, hash: Hash };
+    icons = { search: Search, plus: Plus, edit2: Edit2, trash2: Trash2, x: X, users: Users, briefcase: Briefcase, hash: Hash, user: User, checkCircle: CheckCircle, truck: Truck, check: Check };
 
     motoristas: any[] = [];
     filtro = '';
@@ -20,6 +20,7 @@ export class MotoristasComponent implements OnInit {
 
     // Modal state
     showModal = false;
+    showSuccessModal = false;
     isEditing = false;
 
     // Form Model
@@ -35,7 +36,7 @@ export class MotoristasComponent implements OnInit {
 
     private apiUrl = `http://localhost:3000/motoristas`;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
         this.carregarMotoristas();
@@ -49,6 +50,7 @@ export class MotoristasComponent implements OnInit {
             next: (data) => {
                 this.motoristas = data;
                 this.loading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Erro ao carregar motoristas', err);
@@ -75,6 +77,14 @@ export class MotoristasComponent implements OnInit {
 
     fecharModal() {
         this.showModal = false;
+        this.showSuccessModal = false;
+    }
+
+    @HostListener('document:keydown.escape', ['$event'])
+    onKeydownHandler(event: Event) {
+        if (this.showModal || this.showSuccessModal) {
+            this.fecharModal();
+        }
     }
 
     salvar() {
@@ -82,20 +92,30 @@ export class MotoristasComponent implements OnInit {
             alert('Nome, CPF e CNH são obrigatórios!');
             return;
         }
+        const payload = {
+            ...this.motoristaForm,
+            email: this.motoristaForm.email || '',
+            telefone: this.motoristaForm.telefone || '',
+            transportadora: this.motoristaForm.transportadora || ''
+        };
 
         if (this.isEditing) {
-            this.http.put(`${this.apiUrl}/${this.motoristaForm.id}`, this.motoristaForm).subscribe({
+            this.http.put(`${this.apiUrl}/${this.motoristaForm.id}`, payload).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.showSuccessModal = true;
                     this.carregarMotoristas();
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao atualizar: ' + (err.error?.message || 'Erro desconhecido'))
             });
         } else {
-            this.http.post(this.apiUrl, this.motoristaForm).subscribe({
+            this.http.post(this.apiUrl, payload).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.showSuccessModal = true;
                     this.carregarMotoristas();
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao salvar: ' + (err.error?.message || 'Erro desconhecido'))
             });
@@ -105,7 +125,10 @@ export class MotoristasComponent implements OnInit {
     excluir(id: number) {
         if (confirm('Tem certeza que deseja inativar este motorista? Esta ação não excluirá os dados históricos.')) {
             this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-                next: () => this.carregarMotoristas(),
+                next: () => {
+                    this.carregarMotoristas();
+                    this.cdr.detectChanges();
+                },
                 error: (err) => alert('Erro ao inativar motorista')
             });
         }

@@ -1,158 +1,199 @@
 <div class="crud-page animate-up">
-    <div class="page-header">
-        <div class="titles">
-            <h1>Gestão de Usuários (Colaboradores)</h1>
-            <p>Gerencie quem tem acesso ao sistema Administrativo e Operacional</p>
-        </div>
-
-        <button class="btn-primary" (click)="abrirModalNovo()">
-            <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
-            Novo Usuário
-        </button>
-    </div>
-
-    <div class="filters-bar">
-        <div class="search-box">
-            <lucide-icon [img]="icons.search" size="20"></lucide-icon>
-            <input type="text" placeholder="Buscar por Nome, E-mail ou Login..." [(ngModel)]="filtro"
-                (keyup.enter)="buscar()">
-        </div>
-        <button class="btn-outline" (click)="buscar()">Filtrar</button>
-    </div>
-
-    <div class="skeleton-loader" *ngIf="loading">
-        <div class="skel-card" *ngFor="let i of [1,2,3,4]"></div>
-    </div>
-
-    <div class="cards-grid" *ngIf="!loading">
-        <ng-container *ngIf="usuarios.length > 0">
-            <div class="data-card" *ngFor="let u of usuarios" [class.inactive-card]="!u.ativo">
-                <div class="card-header">
-                    <div class="avatar-circle" [style.backgroundColor]="getPerfilColor(u.perfil)">
-                        <lucide-icon [img]="icons.shield" size="24" *ngIf="u.perfil === 'ADMIN'"></lucide-icon>
-                        <lucide-icon [img]="icons.users" size="24" *ngIf="u.perfil !== 'ADMIN'"></lucide-icon>
-                    </div>
-                    <div class="info">
-                        <h3>{{ u.nome }}</h3>
-                        <span class="subtitle">{{ u.perfil }}</span>
-                        <span class="status-badge" [class.active]="u.ativo" [class.inactive]="!u.ativo">
-                            {{ u.ativo ? 'Ativo' : 'Inativo' }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <div class="data-row">
-                        <lucide-icon [img]="icons.mail" size="16"></lucide-icon>
-                        <span><strong>E-mail:</strong> {{ u.email || 'Não informado' }}</span>
-                    </div>
-                    <div class="data-row">
-                        <lucide-icon [img]="icons.userX" size="16"></lucide-icon>
-                        <span><strong>Login:</strong> {{ u.login }}</span>
-                    </div>
-                </div>
-
-                <div class="card-actions config-actions">
-                    <button class="icon-btn" (click)="abrirModalRedefinirSenha(u)" title="Redefinir Senha">
-                        <lucide-icon [img]="icons.refresh" size="18"></lucide-icon>
-                    </button>
-                    <button class="icon-btn edit-btn" (click)="abrirModalEditar(u)" title="Editar">
-                        <lucide-icon [img]="icons.edit2" size="18"></lucide-icon>
-                    </button>
-                    <button class="icon-btn" [ngClass]="u.ativo ? 'delete-btn' : 'success-btn'"
-                        (click)="alternarStatus(u.id, u.ativo)" [title]="u.ativo ? 'Inativar' : 'Reativar'">
-                        <lucide-icon [img]="u.ativo ? icons.trash2 : icons.checkCircle" size="18"></lucide-icon>
-                    </button>
-                </div>
+    <div class="list-card">
+        <div class="list-card-header">
+            <div class="titles">
+                <h2>Usuários do Sistema</h2>
             </div>
-        </ng-container>
+            <button class="btn-primary" (click)="abrirModalNovo()">
+                <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+                Novo Usuário
+            </button>
+        </div>
 
-        <!-- Empty State -->
-        <div class="empty-state" *ngIf="usuarios.length === 0">
+        <!-- Se não houver usuários e não estiver carregando, mostrar estado vazio logo de cara? Mockup não especifica a barra de busca, mas vamos manter o padrão global -->
+        <div class="list-card-search" *ngIf="usuarios.length > 0 || filtro">
+            <div class="search-input-wrapper">
+                <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+                <input type="text" placeholder="Buscar por Nome, E-mail ou Login..." [(ngModel)]="filtro"
+                    (keyup.enter)="buscar()">
+            </div>
+        </div>
+
+        <div class="skeleton-loader" *ngIf="loading" style="padding: 2rem;">
+            Aguarde, carregando...
+        </div>
+
+        <div class="table-responsive" *ngIf="!loading && usuarios.length > 0">
+            <table class="list-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Função</th>
+                        <th>Filial</th>
+                        <th>Idioma</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let u of usuarios">
+                        <td>
+                            <div class="tb-profile">
+                                <div class="avatar-initials" [style.backgroundColor]="getPerfilColor(u.perfil)">
+                                    {{ u.nome.substring(0,2).toUpperCase() }}
+                                </div>
+                                <div>
+                                    <span class="tb-title">{{ u.nome }}</span>
+                                    <span class="tb-subtitle">{{ u.login }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.email || 'Não informado' }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="{
+                                'badge-admin': u.perfil === 'ADMIN',
+                                'badge-operador': u.perfil === 'OPERADOR',
+                                'badge-supervisor': u.perfil === 'SUPERVISOR'
+                            }">
+                                <lucide-icon [img]="icons.shield" size="12" *ngIf="u.perfil === 'ADMIN'"></lucide-icon>
+                                <lucide-icon [img]="icons.users" size="12" *ngIf="u.perfil !== 'ADMIN'"></lucide-icon>
+                                {{ u.perfil }}
+                            </span>
+                        </td>
+                        <td>Matriz - Centro</td>
+                        <td>PT</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-edit" (click)="abrirModalEditar(u)" title="Editar">
+                                    <lucide-icon [img]="icons.edit2" size="14"></lucide-icon>
+                                </button>
+                                <button class="btn-delete" (click)="alternarStatus(u.id, u.ativo)"
+                                    [title]="u.ativo ? 'Inativar' : 'Reativar'">
+                                    <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && usuarios.length === 0" style="padding: 3rem;">
             <div class="icon-circle empty">
                 <lucide-icon [img]="icons.users" size="40"></lucide-icon>
             </div>
             <h3>Nenhum usuário encontrado</h3>
-            <p>Não há registros que correspondam à busca ou o banco está vazio.</p>
+            <p>O banco está vazio ou a busca não retornou resultados.</p>
+        </div>
+
+        <div class="list-card-footer" *ngIf="!loading && usuarios.length > 0">
+            <span>Total: {{ usuarios.length }} usuário(s)</span>
         </div>
     </div>
 
     <!-- Modal de Cadastro / Edição -->
-    <div class="modal-backdrop fade-in" *ngIf="showModal">
-        <div class="modal-content scale-up">
+    <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
             <div class="modal-header">
-                <h2>{{ isEditing ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+                <h2>
+                    <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+                    {{ isEditing ? 'Editar Usuário' : 'Novo Usuário' }}
+                </h2>
                 <button class="close-btn" (click)="fecharModal()">
-                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                    <lucide-icon [img]="icons.x" size="20"></lucide-icon>
                 </button>
             </div>
 
             <div class="modal-body">
-                <div class="form-grid">
+                <div class="form-group">
+                    <label>Nome Completo *</label>
+                    <input type="text" [(ngModel)]="usuarioForm.nome" placeholder="Nome do colaborador">
+                </div>
 
-                    <div class="input-group full-width">
-                        <label>Nome Completo *</label>
-                        <input type="text" [(ngModel)]="usuarioForm.nome" placeholder="Nome do colaborador">
-                    </div>
-
-                    <div class="input-group">
+                <div class="form-row">
+                    <div class="form-group flex-1">
                         <label>E-mail</label>
                         <input type="email" [(ngModel)]="usuarioForm.email" placeholder="email@empresa.com">
                     </div>
-
-                    <div class="input-group">
+                    <div class="form-group flex-1">
                         <label>Login *</label>
                         <input type="text" [(ngModel)]="usuarioForm.login" placeholder="Ex: joao.silva">
                     </div>
+                </div>
 
-                    <div class="input-group" *ngIf="!isEditing">
-                        <label>Senha Provisória *</label>
-                        <input type="password" [(ngModel)]="usuarioForm.senha" placeholder="Mínimo 6 caracteres">
-                    </div>
+                <div class="form-group" *ngIf="!isEditing">
+                    <label>Senha Provisória *</label>
+                    <input type="password" [(ngModel)]="usuarioForm.senha" placeholder="Mínimo 6 caracteres">
+                </div>
 
-                    <div class="input-group full-width">
-                        <label>Perfil de Acesso *</label>
-                        <select [(ngModel)]="usuarioForm.perfil">
-                            <option value="OPERADOR">OPERADOR - Acesso apenas ao painel de atendimento</option>
-                            <option value="SUPERVISOR">SUPERVISOR - Acesso ao dashboard e monitoramento</option>
-                            <option value="ADMIN">ADMINISTRADOR - Acesso total ao sistema e cadastros</option>
-                        </select>
-                    </div>
-
+                <div class="form-group">
+                    <label>Perfil de Acesso *</label>
+                    <select [(ngModel)]="usuarioForm.perfil">
+                        <option value="OPERADOR">OPERADOR - Acesso apenas ao painel de atendimento</option>
+                        <option value="SUPERVISOR">SUPERVISOR - Acesso ao dashboard e monitoramento</option>
+                        <option value="ADMIN">ADMINISTRADOR - Acesso total ao sistema e cadastros</option>
+                    </select>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
-                <button class="btn-primary" (click)="salvar()">Salvar</button>
+                <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+                <button type="button" class="btn-primary" (click)="salvar()">
+                    <lucide-icon [img]="icons.checkCircle" size="18"></lucide-icon>
+                    {{ isEditing ? 'Atualizar' : 'Cadastrar' }}
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Modal de Redefinição de Senha -->
-    <div class="modal-backdrop fade-in" *ngIf="showPasswordResetModal">
-        <div class="modal-content scale-up" style="max-width: 400px;">
+    <div class="modal-overlay" *ngIf="showPasswordResetModal" (click)="fecharModal()">
+        <div class="modal-content" style="max-width: 400px;" (click)="$event.stopPropagation()">
             <div class="modal-header">
-                <h2>Redefinir Senha</h2>
+                <h2>
+                    <lucide-icon [img]="icons.shield" size="20"></lucide-icon>
+                    Redefinir Senha
+                </h2>
                 <button class="close-btn" (click)="fecharModal()">
-                    <lucide-icon [img]="icons.x" size="24"></lucide-icon>
+                    <lucide-icon [img]="icons.x" size="20"></lucide-icon>
                 </button>
             </div>
 
             <div class="modal-body">
-                <div class="form-grid">
-                    <div class="input-group full-width">
-                        <label>Nova Senha *</label>
-                        <input type="password" [(ngModel)]="novaSenhaForm.senha" placeholder="Mínimo 6 caracteres">
-                        <small class="helper-text">Esta senha substituirá a senha atual do usuário.</small>
-                    </div>
+                <div class="form-group">
+                    <label>Nova Senha *</label>
+                    <input type="password" [(ngModel)]="novaSenhaForm.senha" placeholder="Mínimo 6 caracteres">
+                    <small
+                        style="color: var(--text-secondary); font-size: 0.8rem; display: block; margin-top: 4px;">Esta
+                        senha substituirá a senha atual do usuário.</small>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn-text" (click)="fecharModal()">Cancelar</button>
-                <button class="btn-primary" (click)="salvarNovaSenha()">Salvar Nova Senha</button>
+                <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+                <button class="btn-primary" (click)="salvarNovaSenha()">
+                    <lucide-icon [img]="icons.checkCircle" size="18"></lucide-icon>
+                    Salvar Nova Senha
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- Modal de Sucesso -->
+    <div class="modal-overlay" *ngIf="showSuccessModal" (click)="fecharModal()">
+        <div class="modal-content" style="max-width: 380px; padding: 2rem; border-radius: 20px;"
+            (click)="$event.stopPropagation()">
+            <div class="success-view">
+                <div class="icon-halo">
+                    <div class="icon-circle">
+                        <lucide-icon [img]="icons.check" size="40" strokeWidth="3"></lucide-icon>
+                    </div>
+                </div>
+                <h2>Sucesso!</h2>
+                <p>{{ successMessage }}</p>
+                <button class="btn-success-ok" (click)="fecharModal()">OK, Entendi</button>
+            </div>
+        </div>
+    </div>
+
 </div>

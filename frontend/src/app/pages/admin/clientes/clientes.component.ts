@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { LucideAngularModule, Search, Plus, Filter, User, Users, Building, Phone, Edit2, AlertCircle, X, ShieldAlert, Check, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Search, Plus, Filter, User, Users, Building, Phone, Edit2, AlertCircle, X, ShieldAlert, Check, Calendar, Trash2, CheckCircle } from 'lucide-angular';
 import { DatePipe } from '@angular/common';
 
 @Component({
@@ -14,7 +14,7 @@ import { DatePipe } from '@angular/common';
   styleUrls: ['./clientes.component.scss']
 })
 export class ClientesComponent implements OnInit {
-  readonly icons = { search: Search, plus: Plus, filter: Filter, user: User, users: Users, building: Building, phone: Phone, edit: Edit2, alertCircle: AlertCircle, x: X, shieldAlert: ShieldAlert, check: Check, calendar: Calendar };
+  readonly icons = { search: Search, plus: Plus, filter: Filter, user: User, users: Users, building: Building, phone: Phone, edit: Edit2, alertCircle: AlertCircle, x: X, shieldAlert: ShieldAlert, check: Check, calendar: Calendar, trash2: Trash2, checkCircle: CheckCircle };
 
   clientes: any[] = [];
   loading = true;
@@ -22,6 +22,7 @@ export class ClientesComponent implements OnInit {
   filtroStatus: 'TODOS' | 'ATIVOS' | 'INATIVOS' = 'TODOS';
 
   showModal = false;
+  showSuccessModal = false;
   isEditing = false;
 
   // US-0002 Fields
@@ -33,12 +34,14 @@ export class ClientesComponent implements OnInit {
     cpf: '',
     cnpj: '',
     telefone: '',
+    endereco: '',
+    ativo: true,
     senha: '' // Default password placeholder logic is handled in backend, but we can allow admin to set one.
   };
 
   private apiUrl = `http://localhost:3000/clientes`;
 
-  constructor(private http: HttpClient, private datePipe: DatePipe) { }
+  constructor(private http: HttpClient, private datePipe: DatePipe, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.carregarClientes();
@@ -73,6 +76,7 @@ export class ClientesComponent implements OnInit {
 
         this.clientes = filtrados;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Erro ao carregar clientes', err);
@@ -84,7 +88,7 @@ export class ClientesComponent implements OnInit {
 
   abrirModalNovo() {
     this.isEditing = false;
-    this.clienteForm = { id: null, nome: '', email: '', tipo: 'PF', cpf: '', cnpj: '', telefone: '', senha: '' };
+    this.clienteForm = { id: null, nome: '', email: '', tipo: 'PF', cpf: '', cnpj: '', telefone: '', endereco: '', ativo: true, senha: '' };
     this.showModal = true;
   }
 
@@ -97,6 +101,14 @@ export class ClientesComponent implements OnInit {
 
   fecharModal() {
     this.showModal = false;
+    this.showSuccessModal = false;
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onKeydownHandler(event: Event) {
+    if (this.showModal || this.showSuccessModal) {
+      this.fecharModal();
+    }
   }
 
   salvar() {
@@ -117,7 +129,9 @@ export class ClientesComponent implements OnInit {
       nome: this.clienteForm.nome,
       email: this.clienteForm.email,
       tipo: this.clienteForm.tipo,
-      telefone: this.clienteForm.telefone
+      telefone: this.clienteForm.telefone,
+      endereco: this.clienteForm.endereco,
+      ativo: this.clienteForm.ativo
     };
     if (this.clienteForm.tipo === 'PF') payload.cpf = this.clienteForm.cpf;
     if (this.clienteForm.tipo === 'PJ') payload.cnpj = this.clienteForm.cnpj;
@@ -131,8 +145,10 @@ export class ClientesComponent implements OnInit {
       this.http.put(`${this.apiUrl}/${this.clienteForm.id}`, payload, { headers: this.getHeaders() })
         .subscribe({
           next: () => {
+            this.showModal = false;
+            this.showSuccessModal = true;
             this.carregarClientes();
-            this.fecharModal();
+            this.cdr.detectChanges();
           },
           error: (err) => this.handleError(err, 'Erro ao atualizar.')
         });
@@ -140,8 +156,10 @@ export class ClientesComponent implements OnInit {
       this.http.post(this.apiUrl, payload, { headers: this.getHeaders() })
         .subscribe({
           next: () => {
+            this.showModal = false;
+            this.showSuccessModal = true;
             this.carregarClientes();
-            this.fecharModal();
+            this.cdr.detectChanges();
           },
           error: (err) => this.handleError(err, 'Erro ao criar cliente.')
         });

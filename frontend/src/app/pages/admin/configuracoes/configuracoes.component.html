@@ -1,0 +1,58 @@
+<div class="page-container">
+
+    <div class="header-section">
+        <div class="title-group">
+            <lucide-icon [img]="icons.settings" size="28" class="title-icon"></lucide-icon>
+            <div>
+                <h1>Configurações do Sistema</h1>
+                <p>Gerencie parâmetros globais da plataforma Aldebaran.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <lucide-icon [img]="icons.database" size="18"></lucide-icon>
+            <span class="header-title">Parâmetros Operacionais</span>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="loading">
+            <p>Carregando configurações...</p>
+        </div>
+
+        <div class="form-grid" *ngIf="!loading">
+
+            <div class="form-group">
+                <label>Tempo de Tolerância (No-Show) (Minutos)</label>
+                <div class="input-wrapper">
+                    <input type="number" [(ngModel)]="form.TOLERANCIA_NOSHOW" min="1" max="60">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Limite de Senhas em Espera</label>
+                <div class="input-wrapper">
+                    <input type="number" [(ngModel)]="form.LIMITE_SENHAS" min="10" max="1000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tempo Médio de Atendimento Estimado (Minutos)</label>
+                <div class="input-wrapper">
+                    <input type="number" [(ngModel)]="form.TEMPO_MEDIO" min="1" max="120">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-actions" *ngIf="!loading">
+            <button class="btn-save" [disabled]="salvando" (click)="salvar()">
+                <lucide-icon [img]="icons.save" size="16"></lucide-icon>
+                {{ salvando ? 'Salvando...' : 'Salvar Alterações' }}
+            </button>
+        </div>
+
+    </div>
+
+</div>

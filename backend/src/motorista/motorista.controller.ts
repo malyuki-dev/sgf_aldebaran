@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, ParseIntPipe, HttpException, HttpStatus } from '@nestjs/common';
 import { MotoristaService } from './motorista.service';
 import { Prisma } from '@prisma/client';
 
@@ -7,8 +7,12 @@ export class MotoristaController {
     constructor(private readonly motoristaService: MotoristaService) { }
 
     @Post()
-    create(@Body() createMotoristaDto: Prisma.motoristaCreateInput) {
-        return this.motoristaService.create(createMotoristaDto);
+    async create(@Body() createMotoristaDto: Prisma.motoristaCreateInput) {
+        try {
+            return await this.motoristaService.create(createMotoristaDto);
+        } catch (error: any) {
+            throw new HttpException(error.message || 'Erro Interno', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Get()
