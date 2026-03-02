@@ -35,10 +35,21 @@ export class AuthService {
       const senhaValida = await bcrypt.compare(body.senha, staff.senha);
       if (!senhaValida) throw new UnauthorizedException('Credenciais incorretas.');
 
-      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil };
+      // Extrai Iniciais (ex: "Carlos Admin" -> "CA", "Administrador" -> "AD")
+      const nomes = (staff.nome || '').trim().split(' ');
+      let iniciais = '';
+      if (nomes.length > 1) {
+        iniciais = (nomes[0][0] + nomes[nomes.length - 1][0]).toUpperCase();
+      } else if (nomes.length === 1 && nomes[0].length >= 2) {
+        iniciais = nomes[0].substring(0, 2).toUpperCase();
+      } else if (nomes.length === 1) {
+        iniciais = nomes[0].toUpperCase();
+      }
+
+      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil, iniciais };
       return {
         token: this.jwtService.sign(payload),
-        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil }
+        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil, iniciais }
       };
     }
 

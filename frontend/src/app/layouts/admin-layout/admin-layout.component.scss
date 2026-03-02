@@ -1,42 +1,84 @@
 :host {
-  --sidebar-bg: #005f6b;
-  --sidebar-bg-gradient: linear-gradient(180deg, #004d56 0%, #007685 100%);
-  --sidebar-hover: rgba(255, 255, 255, 0.1);
-  --sidebar-active: rgba(255, 255, 255, 0.2);
-  --sidebar-text: #ffffff;
-  --sidebar-icon: rgba(255, 255, 255, 0.8);
-  --topbar-height: 70px;
+  --sidebar-bg: var(--bg-card);
+  --sidebar-border: var(--border-color);
+  --sidebar-text: var(--text-secondary);
+  --sidebar-icon: var(--text-secondary);
+  --sidebar-hover: var(--bg-body);
+  --sidebar-active-bg: linear-gradient(135deg, #0ea5e9 0%, #0f766e 100%);
+  --sidebar-active-text: #ffffff;
+  --topbar-height: 80px;
+  --bg-color: var(--bg-body);
 }
 
 .admin-container {
   display: flex;
   min-height: 100vh;
-  background: #f4f7f6;
+  background: var(--bg-color);
   font-family: 'Inter', sans-serif;
 }
 
 .sidebar {
   width: 260px;
-  background: var(--sidebar-bg-gradient);
+  background: var(--sidebar-bg);
   color: var(--sidebar-text);
-  border-right: none;
+  border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
   position: fixed;
   height: 100%;
   z-index: 100;
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
 
   &.closed {
     width: 80px;
 
+    .menu-group-title {
+      display: none;
+    }
+
     .menu-item {
       justify-content: center;
+      padding: 12px;
+
+      span {
+        display: none;
+      }
     }
 
     .logo-area {
       padding: 0;
+
+      .logo-img {
+        display: none;
+      }
+
+      .logo-mini-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+
+        .logo-mini-img {
+          height: 32px;
+          width: 36px;
+          object-fit: cover;
+          object-position: left center;
+        }
+      }
+    }
+
+    .sidebar-user {
+      justify-content: center;
+
+      .text,
+      .chevron-icon {
+        display: none !important;
+      }
+
+      .avatar {
+        margin: 0;
+      }
     }
   }
 
@@ -45,10 +87,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--sidebar-border);
 
     .logo-img {
-      max-height: 40px;
+      max-height: 48px;
       max-width: 80%;
       object-fit: contain;
     }
@@ -56,27 +98,43 @@
     .logo-mini {
       font-size: 1.5rem;
       font-weight: 800;
-      letter-spacing: 1px;
-      color: white;
+      color: #005f6b;
     }
   }
 
   .menu {
     flex: 1;
-    padding: 20px 10px;
+    padding: 20px 16px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+
+    .menu-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 24px 0 8px 12px;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
   }
 
   .menu-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 12px 20px;
-    margin-bottom: 5px;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 4px;
     border-radius: 8px;
     cursor: pointer;
     color: var(--sidebar-text);
     text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
     transition: all 0.2s;
 
     lucide-icon {
@@ -85,34 +143,309 @@
       height: 20px;
     }
 
-    &:hover {
+    &:hover:not(.active) {
       background: var(--sidebar-hover);
+      color: #0f172a;
 
       lucide-icon {
-        color: white;
+        color: #0f172a;
       }
     }
 
     &.active {
-      background: var(--sidebar-active);
-      font-weight: 600;
-      color: white;
-      border-left: 4px solid white;
-      border-radius: 0 8px 8px 0;
+      background: var(--sidebar-active-bg);
+      color: var(--sidebar-active-text);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
 
       lucide-icon {
-        color: white;
+        color: var(--sidebar-active-text);
       }
     }
 
     &.totem-link {
-      margin-top: auto;
-      background: rgba(0, 0, 0, 0.15);
+      margin-top: 16px;
+      border: 1px dashed #cbd5e1;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.25);
+        border-color: #0ea5e9;
+        color: #0ea5e9;
+
+        lucide-icon {
+          color: #0ea5e9;
+        }
       }
     }
+  }
+
+  .sidebar-user {
+    position: relative;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover,
+    &.active {
+      background: var(--bg-body);
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #005f6b;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      .role {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+    }
+
+    .chevron-icon {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* PROFILE OVERLAY MENU */
+    .profile-menu {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 16px;
+      right: 16px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      padding: 8px 0;
+      z-index: 200;
+      animation: menuFadeIn 0.2s ease-out;
+
+      .menu-header {
+        padding: 8px 16px;
+        display: flex;
+        flex-direction: column;
+
+        .m-name {
+          font-weight: 600;
+          font-size: 0.85rem;
+          color: var(--text-primary);
+        }
+
+        .m-email {
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+        }
+      }
+
+      .menu-divider {
+        height: 1px;
+        background: var(--border-color);
+        margin: 8px 0;
+      }
+
+      .m-item {
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+
+        &:hover {
+          background: var(--bg-body);
+        }
+
+        &.text-danger {
+          color: #ef4444;
+
+          lucide-icon {
+            color: #ef4444;
+          }
+        }
+
+        /* CSS Toggle Switch inside m-item */
+        .toggle-switch {
+          margin-left: auto;
+          width: 32px;
+          height: 18px;
+          background: var(--border-color);
+          border-radius: 20px;
+          position: relative;
+          transition: background 0.3s;
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+          }
+
+          &.on {
+            background: #0ea5e9;
+
+            &::after {
+              transform: translateX(14px);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Confirmation for Logout */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+
+  .modal-content {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 32px;
+    width: 380px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .logout-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #fee2e2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+
+      .power-icon {
+        color: #ef4444;
+      }
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin: 0 0 32px 0;
+      font-size: 0.95rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+
+      button {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+      }
+
+      .btn-cancel {
+        background: var(--bg-body);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+
+        &:hover {
+          background: var(--bg-card);
+        }
+      }
+
+      .btn-confirm {
+        background: #ef4444;
+        color: white;
+
+        &:hover {
+          background: #dc2626;
+        }
+      }
+    }
+  }
+}
+
+.scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -131,14 +464,13 @@
 }
 
 .top-bar {
-  height: var(--topbar-height);
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+  min-height: var(--topbar-height);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  padding: 0 32px;
   z-index: 90;
   position: sticky;
   top: 0;
@@ -146,6 +478,7 @@
   .top-bar-left {
     display: flex;
     align-items: center;
+    gap: 24px;
   }
 
   .toggle-btn {
@@ -157,11 +490,44 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
-    border-radius: 50%;
+    border-radius: 8px;
+    transition: background 0.2s;
 
     &:hover {
       background: #f1f5f9;
       color: #0f172a;
+    }
+  }
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 4px;
+      font-weight: 500;
+
+      .separator {
+        margin: 0 8px;
+        color: #cbd5e1;
+      }
+
+      .current {
+        color: #0f172a;
+      }
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
     }
   }
 
@@ -171,72 +537,78 @@
     gap: 20px;
   }
 
-  .user-info {
+  .search-box {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    border-right: 1px solid #e2e8f0;
-    padding-right: 20px;
 
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #e0f2fe;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0284c7;
-
-      lucide-icon {
-        width: 20px;
-        height: 20px;
-      }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: #94a3b8;
     }
 
-    .text {
-      display: flex;
-      flex-direction: column;
+    input {
+      padding: 10px 16px 10px 40px;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      outline: none;
+      width: 250px;
+      transition: all 0.2s;
+      background: #fff;
 
-      .name {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #1e293b;
-      }
-
-      .role {
-        font-size: 0.8rem;
-        color: #64748b;
+      &:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
       }
     }
   }
 
-  .logout-btn {
-    background: none;
-    border: none;
-    color: #ef4444;
+  .notification-btn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
     cursor: pointer;
-    padding: 8px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     transition: all 0.2s;
 
     &:hover {
-      background: #fee2e2;
+      background: #f1f5f9;
+      color: #0f172a;
     }
 
-    lucide-icon {
-      width: 22px;
-      height: 22px;
+    .dot {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
     }
   }
 }
 
 .page-content {
-  padding: 30px;
+  padding: 24px;
   flex: 1;
   overflow-y: auto;
-  background: #f4f7f6;
+
+  @media (min-width: 768px) {
+    padding: 32px;
+  }
+
+  >* {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: block;
+  }
 }

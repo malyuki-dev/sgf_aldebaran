@@ -1,49 +1,87 @@
 <div class="admin-container">
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR (Light Theme) -->
   <aside class="sidebar" [class.closed]="!sidebarOpen">
-    <div class="logo-area">
-      <img *ngIf="sidebarOpen" src="assets/logo-aldebaran.png" alt="Águas Aldebaran" class="logo-img" />
-      <span *ngIf="!sidebarOpen" class="logo-mini">AL</span>
+    <div class="logo-area" (click)="toggleSidebar()" style="cursor: pointer;" title="Alternar Menu">
+      <div *ngIf="sidebarOpen"
+        style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 0 16px;">
+        <img src="assets/logo-aldebaran.png" alt="Águas Aldebaran"
+          style="max-height: 48px; max-width: 100%; object-fit: contain;" />
+      </div>
+      <div *ngIf="!sidebarOpen" class="logo-mini-wrap">
+        <img src="assets/logo-ticket.png" alt="Ticket" class="logo-mini-img" style="max-height: 32px; width: auto;" />
+      </div>
     </div>
 
     <nav class="menu">
-      <ng-container *ngFor="let item of menuItems">
-        <a *ngIf="!item.external" [routerLink]="item.path" routerLinkActive="active" class="menu-item">
-          <lucide-icon [img]="icons[item.icon]"></lucide-icon>
-          <span *ngIf="sidebarOpen">{{ item.label }}</span>
-        </a>
+      <ng-container *ngFor="let group of menuGroups">
+        <div class="menu-group-title" *ngIf="sidebarOpen">{{ group.title }}</div>
 
-        <a *ngIf="item.external" [routerLink]="item.path" class="menu-item totem-link" target="_blank">
-          <lucide-icon [img]="icons[item.icon]"></lucide-icon>
-          <span *ngIf="sidebarOpen">{{ item.label }}</span>
-        </a>
+        <ng-container *ngFor="let item of group.items">
+          <a *ngIf="!item.external" [routerLink]="item.path" routerLinkActive="active" class="menu-item">
+            <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+            <span *ngIf="sidebarOpen">{{ item.label }}</span>
+          </a>
+
+          <a *ngIf="item.external" [routerLink]="item.path" class="menu-item totem-link" target="_blank">
+            <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+            <span *ngIf="sidebarOpen">{{ item.label }}</span>
+          </a>
+        </ng-container>
       </ng-container>
     </nav>
+
+    <!-- BOTTOM PERFIL -->
+    <div class="sidebar-user" (click)="toggleProfileMenu($event)" [class.active]="showProfileMenu">
+      <div class="avatar">{{ userInitials }}</div>
+      <div class="text">
+        <div class="name">{{ usuario?.nome || userName }}</div>
+        <div class="role">Administrador</div>
+      </div>
+      <button class="chevron-icon" title="Abrir menu">
+        <lucide-icon [img]="showProfileMenu ? icons['chevronUp'] : icons['chevronDown']" size="18"></lucide-icon>
+      </button>
+
+      <!-- Profile Context Menu -->
+      <div class="profile-menu" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+        <div class="menu-header">
+          <span class="m-name">{{ usuario?.nome || userName }}</span>
+          <span class="m-email">{{ usuario?.email || 'admin@sistema.com' }}</span>
+        </div>
+        <div class="menu-divider"></div>
+        <a routerLink="/admin/meu-perfil" class="m-item" (click)="showProfileMenu = false">
+          <lucide-icon [img]="icons['user']" size="16"></lucide-icon>
+          Meu Perfil
+        </a>
+        <div class="m-item" (click)="toggleDarkMode($event)">
+          <lucide-icon [img]="icons['moon']" size="16"></lucide-icon>
+          Modo Escuro
+          <div class="toggle-switch" [class.on]="isDarkMode"></div>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="m-item text-danger" (click)="confirmLogout($event)">
+          <lucide-icon [img]="icons['logout']" size="16"></lucide-icon>
+          Sair do Sistema
+        </div>
+      </div>
+    </div>
   </aside>
 
   <!-- CONTEÚDO -->
   <div class="main-content-wrapper" [class.expanded]="!sidebarOpen">
-    <!-- TOP BAR -->
+    <!-- TOP BAR (White background) -->
     <header class="top-bar">
       <div class="top-bar-left">
-        <button class="toggle-btn" (click)="toggleSidebar()">
-          <lucide-icon [img]="icons['menu']"></lucide-icon>
-        </button>
+        <!-- O botão sanduíche foi movido para a logo na sidebar -->
       </div>
 
       <div class="top-bar-right">
-        <div class="user-info">
-          <div class="avatar">
-            <lucide-icon [img]="icons['user']"></lucide-icon>
-          </div>
-          <div class="text">
-            <div class="name">{{ usuario?.nome || 'Administrador' }}</div>
-            <div class="role">Admin</div>
-          </div>
+        <div class="search-box">
+          <lucide-icon [img]="icons['search']" class="search-icon" size="18"></lucide-icon>
+          <input type="text" placeholder="Buscar..." />
         </div>
-
-        <button (click)="logout()" class="logout-btn" title="Sair do Sistema">
-          <lucide-icon [img]="icons['logout']"></lucide-icon>
+        <button class="notification-btn">
+          <lucide-icon [img]="icons['bell']" size="20"></lucide-icon>
+          <span class="dot"></span>
         </button>
       </div>
     </header>
@@ -51,5 +89,20 @@
     <main class="page-content">
       <router-outlet></router-outlet>
     </main>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="showLogoutModal">
+    <div class="modal-content text-center scale-up">
+      <div class="logout-icon-wrapper">
+        <lucide-icon [img]="icons['power']" size="32" class="power-icon"></lucide-icon>
+      </div>
+      <h2>Deseja sair do sistema?</h2>
+      <p>Sua sessão atual será encerrada.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelLogout()">Cancelar</button>
+        <button class="btn-confirm" (click)="logout()">Sim, Sair</button>
+      </div>
+    </div>
   </div>
 </div>

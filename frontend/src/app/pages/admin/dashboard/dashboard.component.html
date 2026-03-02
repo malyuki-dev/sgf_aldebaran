@@ -1,62 +1,80 @@
-<div class="dashboard-container">
-  <div class="header-dash">
-    <div>
-      <h1>Dashboard</h1>
-      <p>Visão geral da operação em tempo real.</p>
-    </div>
-    <div class="date-badge">
-      <lucide-icon [img]="icons.calendar" [size]="16"></lucide-icon>
-      {{ dataHoje | date:'dd/MM/yyyy' }}
-    </div>
+<div class="page-container">
+
+  <div class="page-header">
+    <h1>Dashboard</h1>
   </div>
 
-  <div class="cards-grid">
-    <div class="card card-main">
-      <div class="content">
-        <p class="label">Senha em Atendimento</p>
-        <div class="row">
-          <h2>{{ senhaAtual }}</h2>
-          <div class="meta">
-            <span class="badge">Guichê 01</span>
-            <span class="time">Atualizado agora</span>
-          </div>
+  <div class="dashboard-grid" *ngIf="!loading">
+    <!-- Card 1 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper cyan-bg">
+          <lucide-icon [img]="icons.building" size="20" class="cyan-icon"></lucide-icon>
         </div>
+        <span class="trend positive">+12%</span>
       </div>
+      <div class="card-value">{{ stats.filiais }}</div>
+      <div class="card-label">Filiais Ativas</div>
     </div>
 
-    <div class="card mini-card border-blue">
-      <div class="info">
-        <span class="label">Pessoas na Fila</span>
-        <h3>{{ stats.fila }}</h3>
+    <!-- Card 2 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper blue-bg">
+          <lucide-icon [img]="icons.monitor" size="20" class="blue-icon"></lucide-icon>
+        </div>
+        <span class="trend positive">+8%</span>
       </div>
-      <div class="icon-circle blue"><lucide-icon [img]="icons.users"></lucide-icon></div>
+      <div class="card-value">{{ stats.guiches }}</div>
+      <div class="card-label">Guichês Ativos</div>
     </div>
 
-    <div class="card mini-card border-orange">
-      <div class="info">
-        <span class="label">Tempo Médio</span>
-        <h3>{{ stats.tempo }} min</h3>
+    <!-- Card 3 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper purple-bg">
+          <lucide-icon [img]="icons.userCheck" size="20" class="purple-icon"></lucide-icon>
+        </div>
+        <span class="trend positive">+5%</span>
       </div>
-      <div class="icon-circle orange"><lucide-icon [img]="icons.clock"></lucide-icon></div>
+      <div class="card-value">{{ stats.atendimentos }}</div>
+      <div class="card-label">Atendimentos Hoje</div>
     </div>
 
-    <div class="card mini-card border-green">
-      <div class="info">
-        <span class="label">Atendidos Hoje</span>
-        <h3>{{ stats.atendidos }}</h3>
+    <!-- Card 4 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper orange-bg">
+          <lucide-icon [img]="icons.clock" size="20" class="orange-icon"></lucide-icon>
+        </div>
+        <span class="trend negative">-3%</span>
       </div>
-      <div class="icon-circle green"><lucide-icon [img]="icons.check"></lucide-icon></div>
+      <div class="card-value">{{ stats.esperaMedio }} min</div>
+      <div class="card-label">Tempo Médio de Espera</div>
     </div>
   </div>
 
-  <div class="card chart-card">
-    <h3><lucide-icon [img]="icons.trending" [size]="18"></lucide-icon> Fluxo de Pessoas (Hoje)</h3>
-    <div class="chart-bars">
-      <div *ngFor="let item of dadosFluxo" class="bar-group">
-        <div class="bar" [style.height.px]="item.pessoas * 10 + 5" [title]="item.pessoas"></div>
-        <span class="axis-label">{{ item.hora }}</span>
+  <div class="activity-section" *ngIf="!loading">
+    <h2>Atividade Recente</h2>
+
+    <div class="activity-list">
+      <div class="activity-item" *ngFor="let item of atividadesRecentes">
+        <div class="time">{{ item.horario }}</div>
+        <div class="details">
+          <div class="title">{{ item.titulo }}</div>
+          <div class="location">{{ item.local }}</div>
+        </div>
+        <!-- Simple color mapping based broadly on typeId -->
+        <span class="tag"
+          [ngClass]="{'cyan-tag': item.tipoId === 'Caminhão' || item.tipoId === 'Retirada Pesada', 'gray-tag': item.tipoId !== 'Caminhão' && item.tipoId !== 'Retirada Pesada'}">
+          {{ item.tipoId }}
+        </span>
       </div>
-      <p *ngIf="dadosFluxo.length === 0" style="text-align: center; width: 100%; color: #ccc">Carregando...</p>
     </div>
   </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <p>Carregando métricas reais...</p>
+  </div>
+
 </div>

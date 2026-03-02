@@ -51,10 +51,13 @@ export class LoginComponent {
         // Se tiver o nome do usuário, pode salvar também
         if (resposta.usuario) {
           localStorage.setItem('usuario_nome', resposta.usuario.nome);
+          localStorage.setItem('usuario_sgf', JSON.stringify(resposta.usuario));
         }
 
         // Redirecionamento rápido por papéis (RBAC)
+        console.log('--- DEBUG LOGIN RESPONSE ---', resposta);
         const tipoUsuario = resposta.usuario?.tipo;
+        console.log('Tipo de usuário interpretado:', tipoUsuario);
         switch (tipoUsuario) {
           case 'ADMIN':
             this.router.navigate(['/admin/dashboard']);

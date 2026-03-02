@@ -12,37 +12,37 @@ export class UsuarioController {
   }
 
   // Endpoints protegidos por JWT
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post()
   criarUsuario(@Body() body: any) {
     return this.usuarioService.criar(body);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usuarioService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usuarioService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.usuarioService.update(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   toggleStatus(@Param('id', ParseIntPipe) id: number) {
     return this.usuarioService.toggleStatus(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Patch(':id/senha')
   resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: { senha: string }) {
     return this.usuarioService.resetPassword(id, body.senha);

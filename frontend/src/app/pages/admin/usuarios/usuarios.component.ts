@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Mail, Shield, UserX, CheckCircle, RefreshCw } from 'lucide-angular';
+import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Mail, Shield, UserX, CheckCircle, RefreshCw, User, Check } from 'lucide-angular';
 
 @Component({
     selector: 'app-usuarios',
@@ -15,7 +15,7 @@ export class UsuariosComponent implements OnInit {
     icons = {
         search: Search, plus: Plus, edit2: Edit2,
         trash2: Trash2, x: X, users: Users,
-        mail: Mail, shield: Shield, userX: UserX, checkCircle: CheckCircle, refresh: RefreshCw
+        mail: Mail, shield: Shield, userX: UserX, checkCircle: CheckCircle, refresh: RefreshCw, user: User, check: Check
     };
 
     usuarios: any[] = [];
@@ -25,6 +25,8 @@ export class UsuariosComponent implements OnInit {
     // Modal state
     showModal = false;
     showPasswordResetModal = false;
+    showSuccessModal = false;
+    successMessage = '';
     isEditing = false;
 
     // Form Model
@@ -44,7 +46,7 @@ export class UsuariosComponent implements OnInit {
 
     private apiUrl = `http://localhost:3000/usuarios`;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
         this.carregarUsuarios();
@@ -72,6 +74,7 @@ export class UsuariosComponent implements OnInit {
                     this.usuarios = data;
                 }
                 this.loading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Erro ao carregar usuários', err);
@@ -124,6 +127,14 @@ export class UsuariosComponent implements OnInit {
     fecharModal() {
         this.showModal = false;
         this.showPasswordResetModal = false;
+        this.showSuccessModal = false;
+    }
+
+    @HostListener('document:keydown.escape', ['$event'])
+    onKeydownHandler(event: Event) {
+        if (this.showModal || this.showPasswordResetModal || this.showSuccessModal) {
+            this.fecharModal();
+        }
     }
 
     salvar() {
@@ -149,8 +160,11 @@ export class UsuariosComponent implements OnInit {
             };
             this.http.put(`${this.apiUrl}/${this.usuarioForm.id}`, payload, { headers }).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.successMessage = 'Usuário atualizado com sucesso.';
+                    this.showSuccessModal = true;
                     this.carregarUsuarios();
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao atualizar: ' + (err.error?.message || 'Erro desconhecido'))
             });
@@ -158,7 +172,9 @@ export class UsuariosComponent implements OnInit {
             // Create
             this.http.post(this.apiUrl, this.usuarioForm, { headers }).subscribe({
                 next: () => {
-                    this.fecharModal();
+                    this.showModal = false;
+                    this.successMessage = 'Usuário cadastrado com sucesso.';
+                    this.showSuccessModal = true;
                     this.carregarUsuarios();
                 },
                 error: (err) => alert('Erro ao salvar: ' + (err.error?.message || 'Erro desconhecido'))
@@ -175,8 +191,10 @@ export class UsuariosComponent implements OnInit {
         this.http.patch(`${this.apiUrl}/${this.novaSenhaForm.id}/senha`, { senha: this.novaSenhaForm.senha }, { headers: this.getHeaders() })
             .subscribe({
                 next: () => {
-                    alert('Senha redefinida com sucesso!');
-                    this.fecharModal();
+                    this.showPasswordResetModal = false;
+                    this.successMessage = 'Senha redefinida com sucesso!';
+                    this.showSuccessModal = true;
+                    this.cdr.detectChanges();
                 },
                 error: (err) => alert('Erro ao redefinir senha: ' + (err.error?.message || 'Erro desconhecido'))
             });
@@ -186,7 +204,10 @@ export class UsuariosComponent implements OnInit {
         const acao = statusAtual ? 'inativar' : 'ativar';
         if (confirm(`Tem certeza que deseja ${acao} este usuário?`)) {
             this.http.patch(`${this.apiUrl}/${id}/status`, {}, { headers: this.getHeaders() }).subscribe({
-                next: () => this.carregarUsuarios(),
+                next: () => {
+                    this.carregarUsuarios();
+                    this.cdr.detectChanges();
+                },
                 error: (err) => alert(`Erro ao ${acao} usuário`)
             });
         }

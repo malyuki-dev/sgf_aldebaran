@@ -1,0 +1,25 @@
+<div class="page-container">
+
+    <div class="header-section">
+        <div class="breadcrumbs">
+            <span>Gestão</span>
+            <span class="separator">&gt;</span>
+            <span class="current">Cadastros Gerais</span>
+        </div>
+        <h1>Cadastros Gerais</h1>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <a *ngFor="let tab of tabs" [routerLink]="tab.route" class="tab-btn" [class.active]="currentTab === tab.id">
+                <lucide-icon [img]="tab.icon" size="18"></lucide-icon>
+                {{ tab.label }}
+            </a>
+        </div>
+
+        <div class="tab-content">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+
+</div>
