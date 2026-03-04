@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ClientService } from './client.service';
+import { CreateClienteDto } from './dto/create-client.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-// Assuming DTOs exist or using any for rapid prototyping as agreed.
 
 @Controller('clientes')
 export class ClienteController {
@@ -9,7 +9,7 @@ export class ClienteController {
 
   // US-0001: Rota Pública - Autocadastro
   @Post('autocadastro')
-  createPublic(@Body() createClienteDto: any) {
+  createPublic(@Body() createClienteDto: CreateClienteDto) {
     return this.clienteService.createPublic(createClienteDto);
   }
 
