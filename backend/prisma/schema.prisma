@@ -27,20 +27,10 @@ model atendimento {
   senha_id          Int?
   senha             senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
 }
-
-model cliente {
-  id             Int       @id(map: "PK_18990e8df6cf7fe71b9dc0f5f39") @default(autoincrement())
-  nome           String    @db.VarChar(150)
-  documento      String    @unique(map: "UQ_ff8b9ce3895d7283cb8604d5685") @db.VarChar(18)
-  email          String    @db.VarChar(100)
-  telefone       String?   @db.VarChar(15)
-  dataNascimento DateTime? @db.Date
-  endereco       String?   @db.VarChar(200)
-  ativo          Boolean   @default(true)
-  criadoEm       DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm   DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm     DateTime? @db.Timestamp(6)
-}
+// NOTE: legacy model `cliente` removed on 2026-03-04.
+// The application uses `clientes` (plural) for public clients/autocadastro.
+// A DB backup was taken before removal:
+// backend/backup_pre_remove_cliente_20260304111518.dump
 
 model clientes {
   id        String    @id(map: "PK_d76bf3571d906e4e86470482c08") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid

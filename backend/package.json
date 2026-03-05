@@ -59,6 +59,7 @@
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "jest": "^30.0.0",
+    "jest-mock-extended": "^4.0.0",
     "minimatch": "^10.2.1",
     "prettier": "^3.4.2",
     "prisma": "^7.4.0",
@@ -90,13 +91,15 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed-admin.ts"
   },
   "overrides": {
     "minimatch": "^10.2.1",
     "hono": "^4.12.0",
     "lodash": "^4.17.21",
     "ajv": "^8.18.0",
-    "schema-utils": "^4.3.0"
+    "schema-utils": "^4.3.0",
+    "multer": "^2.1.0",
+    "serialize-javascript": "^7.0.3"
   }
 }
