@@ -50,63 +50,122 @@
         </div>
 
         <form (ngSubmit)="criar()">
-          
-          <div class="input-group">
-            <label>NOME COMPLETO</label>
-            <div class="input-wrapper">
-              <lucide-icon [img]="icons.user" size="20" class="input-icon"></lucide-icon>
-              <input type="text" placeholder="Seu nome" [(ngModel)]="dados.nome" name="nome" required>
-            </div>
-          </div>
 
-          <div class="input-group" *ngIf="tipo === 'PF'">
-            <label>CPF</label>
-            <div class="input-wrapper">
-              <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
-              <input type="text" placeholder="000.000.000-00" [(ngModel)]="dados.cpf" name="cpf">
+          <!-- Pessoa Física -->
+          <ng-container *ngIf="tipo === 'PF'">
+            <div class="input-group" [class.has-error]="erros['nome']">
+              <label>NOME COMPLETO</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.user" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="João da Silva"
+                  [(ngModel)]="dados.nome" name="nome"
+                  (blur)="validarCampo('nome')">
+              </div>
+              <span class="field-error" *ngIf="erros['nome']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['nome'] }}
+              </span>
             </div>
-          </div>
 
-          <div *ngIf="tipo === 'PJ'">
-            <div class="input-group">
+            <div class="input-group" [class.has-error]="erros['cpf']">
+              <label>CPF</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="000.000.000-00"
+                  [ngModel]="dados.cpf" name="cpf"
+                  (input)="onCPFInput($event)"
+                  (blur)="validarCampo('cpf')"
+                  maxlength="14">
+              </div>
+              <span class="field-error" *ngIf="erros['cpf']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['cpf'] }}
+              </span>
+            </div>
+          </ng-container>
+
+          <!-- Pessoa Jurídica -->
+          <ng-container *ngIf="tipo === 'PJ'">
+            <div class="input-group" [class.has-error]="erros['razao']">
               <label>RAZÃO SOCIAL</label>
               <div class="input-wrapper">
                 <lucide-icon [img]="icons.building" size="20" class="input-icon"></lucide-icon>
-                <input type="text" placeholder="Nome da Empresa" [(ngModel)]="dados.razao" name="razao">
+                <input type="text" placeholder="Empresa LTDA"
+                  [(ngModel)]="dados.razao" name="razao"
+                  (blur)="validarCampo('razao')">
               </div>
+              <span class="field-error" *ngIf="erros['razao']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['razao'] }}
+              </span>
             </div>
-            <div class="input-group">
+
+            <div class="input-group" [class.has-error]="erros['cnpj']">
               <label>CNPJ</label>
               <div class="input-wrapper">
                 <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
-                <input type="text" placeholder="00.000.000/0000-00" [(ngModel)]="dados.cnpj" name="cnpj">
+                <input type="text" placeholder="00.000.000/0000-00"
+                  [ngModel]="dados.cnpj" name="cnpj"
+                  (input)="onCNPJInput($event)"
+                  (blur)="validarCampo('cnpj')"
+                  maxlength="18">
               </div>
+              <span class="field-error" *ngIf="erros['cnpj']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['cnpj'] }}
+              </span>
             </div>
-          </div>
+          </ng-container>
 
-          <div class="input-group">
+          <!-- Campos comuns -->
+          <div class="input-group" [class.has-error]="erros['email']">
             <label>E-MAIL</label>
             <div class="input-wrapper">
               <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
-              <input type="email" placeholder="seu@email.com" [(ngModel)]="dados.email" name="email" required>
+              <input type="email" placeholder="seu@email.com"
+                [(ngModel)]="dados.email" name="email"
+                (blur)="validarCampo('email')">
             </div>
+            <span class="field-error" *ngIf="erros['email']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['email'] }}
+            </span>
           </div>
 
-          <div class="row-inputs">
-            <div class="input-group">
-              <label>SENHA</label>
-              <div class="input-wrapper">
-                <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
-                <input type="password" placeholder="••••••" [(ngModel)]="dados.senha" name="senha" required>
-              </div>
+          <div class="input-group" [class.has-error]="erros['telefone']">
+            <label>TELEFONE / CELULAR <span class="optional">(opcional)</span></label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.phone" size="20" class="input-icon"></lucide-icon>
+              <input type="tel" placeholder="(00) 00000-0000"
+                [ngModel]="dados.telefone" name="telefone"
+                (input)="onTelefoneInput($event)"
+                (blur)="validarCampo('telefone')"
+                maxlength="15">
             </div>
-            <div class="input-group">
-              <label>CONFIRMAR</label>
-              <div class="input-wrapper">
-                <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
-                <input type="password" placeholder="••••••" [(ngModel)]="dados.confirmarSenha" name="confirmar" required>
-              </div>
+            <span class="field-error" *ngIf="erros['telefone']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['telefone'] }}
+            </span>
+          </div>
+
+          <div class="input-group" [class.has-error]="erros['senha']">
+            <label>SENHA</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+              <input type="password" placeholder="Mínimo 8 caracteres"
+                [(ngModel)]="dados.senha" name="senha"
+                (blur)="validarCampo('senha')">
             </div>
+            <span class="field-error" *ngIf="erros['senha']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['senha'] }}
+            </span>
+          </div>
+
+          <div class="input-group" [class.has-error]="erros['confirmarSenha']">
+            <label>CONFIRMAR SENHA</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+              <input type="password" placeholder="Digite a senha novamente"
+                [(ngModel)]="dados.confirmarSenha" name="confirmar"
+                (blur)="validarCampo('confirmarSenha')">
+            </div>
+            <span class="field-error" *ngIf="erros['confirmarSenha']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['confirmarSenha'] }}
+            </span>
           </div>
 
           <button type="submit" class="btn-gradient" [disabled]="carregando">
