@@ -29,7 +29,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
-    "@prisma/adapter-pg": "^7.4.0",
+    "@prisma/adapter-pg": "^7.4.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
@@ -47,7 +47,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
-    "@prisma/client": "^7.4.0",
+    "@prisma/client": "^7.4.2",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
@@ -59,9 +59,10 @@
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "jest": "^30.0.0",
+    "jest-mock-extended": "^4.0.0",
     "minimatch": "^10.2.1",
     "prettier": "^3.4.2",
-    "prisma": "^7.4.0",
+    "prisma": "^7.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -90,13 +91,15 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed-admin.ts"
   },
   "overrides": {
     "minimatch": "^10.2.1",
     "hono": "^4.12.0",
     "lodash": "^4.17.21",
     "ajv": "^8.18.0",
-    "schema-utils": "^4.3.0"
+    "schema-utils": "^4.3.0",
+    "multer": "^2.1.0",
+    "serialize-javascript": "^7.0.3"
   }
 }
