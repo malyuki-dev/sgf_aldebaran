@@ -23,8 +23,8 @@ export class ClientService {
     const emailExiste = await this.prisma.clientes.findUnique({ where: { email: data.email } });
     if (emailExiste) throw new ConflictException('E-mail já cadastrado.');
 
-    if (!data.senha || data.senha.length < 6) {
-      throw new BadRequestException('A senha deve ter no mínimo 6 caracteres.');
+    if (!data.senha || data.senha.length < 8) {
+      throw new BadRequestException('A senha deve ter no mínimo 8 caracteres.');
     }
 
     const senhaHash = await bcrypt.hash(data.senha, 12);

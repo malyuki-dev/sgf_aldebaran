@@ -210,6 +210,38 @@ h2 {
   .input-group { flex: 1; }
 }
 
+/* Validação inline */
+.input-group {
+  &.has-error {
+    .input-wrapper input {
+      border-color: #e53935;
+      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.08);
+    }
+    .input-icon { color: #e53935; }
+    label { color: #e53935; }
+  }
+
+  .field-error {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #e53935;
+    lucide-icon { flex-shrink: 0; }
+  }
+
+  label .optional {
+    font-weight: 400;
+    font-style: normal;
+    color: #bbb;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.65rem;
+  }
+}
+
 /* Botão */
 .btn-gradient {
   width: 100%;
