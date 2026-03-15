@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { FilaModule } from './fila/fila.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { ClienteModule } from './cliente/client.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module'; // <--- Importe o Módulo
+import { PrismaModule } from './prisma/prisma.module';
 import { MotoristaModule } from './motorista/motorista.module';
 import { CaminhaoModule } from './caminhao/caminhao.module';
 import { ServicoModule } from './servico/servico.module';
@@ -13,9 +15,12 @@ import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
-    PrismaModule, // <--- Adicione aqui
+    PrismaModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     AuthModule,
-    // Se esses módulos não existirem ou derem erro, comente-os por enquanto:
     FilaModule,
     UsuarioModule,
     ClienteModule,
@@ -27,6 +32,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DashboardModule,
   ],
   controllers: [],
-  providers: [], // <--- Remova o PrismaService daqui
+  providers: [],
 })
 export class AppModule {}

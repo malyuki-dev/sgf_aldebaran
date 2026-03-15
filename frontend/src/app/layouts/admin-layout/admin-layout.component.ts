@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Ticket, Settings, Monitor, LogOut, Menu, Users, Calendar, Truck, User, Bell, Search, ChevronDown, ChevronUp, FileText, Moon, Power } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Ticket, Settings, Monitor, LogOut, Menu, Users, Calendar, Truck, User, Bell, Search, ChevronDown, ChevronUp, FileText, Moon, Power, History } from 'lucide-angular';
 
 @Component({
   selector: 'app-admin-layout',
@@ -17,6 +17,7 @@ export class AdminLayoutComponent implements OnInit {
   userName: string = 'Carlos Admin';
 
   showProfileMenu = false;
+  showSupervisorProfileMenu = false;
   showLogoutModal = false;
   isDarkMode = false;
 
@@ -37,10 +38,13 @@ export class AdminLayoutComponent implements OnInit {
     chevronUp: ChevronUp,
     fileText: FileText,
     moon: Moon,
-    power: Power
+    power: Power,
+    history: History
   };
 
-  menuGroups = [
+  menuGroups: any[] = [];
+
+  adminMenuGroups = [
     {
       title: 'PRINCIPAL',
       items: [
@@ -64,6 +68,18 @@ export class AdminLayoutComponent implements OnInit {
     }
   ];
 
+  supervisorMenuGroups = [
+    {
+      title: 'SISTEMA',
+      items: [
+        { path: '/supervisor/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { path: '/supervisor/relatorios', label: 'Ver Relatórios', icon: 'fileText' },
+        { path: '/supervisor/gerenciar-fila', label: 'Gerenciar Fila', icon: 'monitor' },
+        { path: '/supervisor/configuracoes', label: 'Configurações', icon: 'settings' }
+      ]
+    }
+  ];
+
   constructor(private router: Router) { }
 
   ngOnInit() {
@@ -77,6 +93,12 @@ export class AdminLayoutComponent implements OnInit {
       } else {
         const fallbackName = this.usuario?.nome || 'Administrador';
         this.userInitials = fallbackName.length >= 2 ? fallbackName.substring(0, 2).toUpperCase() : 'AD';
+      }
+
+      if (this.usuario.perfil === 'SUPERVISOR' || this.usuario.tipo === 'SUPERVISOR') {
+        this.menuGroups = this.supervisorMenuGroups;
+      } else {
+        this.menuGroups = this.adminMenuGroups;
       }
     }
 
@@ -92,11 +114,19 @@ export class AdminLayoutComponent implements OnInit {
   toggleProfileMenu(event: Event) {
     event.stopPropagation();
     this.showProfileMenu = !this.showProfileMenu;
+    this.showSupervisorProfileMenu = false;
+  }
+
+  toggleSupervisorProfileMenu(event: Event) {
+    event.stopPropagation();
+    this.showSupervisorProfileMenu = !this.showSupervisorProfileMenu;
+    this.showProfileMenu = false;
   }
 
   @HostListener('document:click')
   closeMenu() {
     this.showProfileMenu = false;
+    this.showSupervisorProfileMenu = false;
   }
 
   toggleDarkMode(event: Event) {
@@ -117,6 +147,7 @@ export class AdminLayoutComponent implements OnInit {
   confirmLogout(event: Event) {
     event.stopPropagation();
     this.showProfileMenu = false;
+    this.showSupervisorProfileMenu = false;
     this.showLogoutModal = true;
   }
 

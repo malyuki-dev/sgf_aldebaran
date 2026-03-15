@@ -24,6 +24,8 @@ model atendimento {
   inicioAtendimento DateTime  @default(now()) @db.Timestamp(6)
   fimAtendimento    DateTime? @db.Timestamp(6)
   notaAvaliacao     Int?
+  justificativaDemora String? @db.VarChar(500)
+  motivoDemora      String? @db.VarChar(100)
   senha_id          Int?
   senha             senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
 }
@@ -107,6 +109,7 @@ model usuario {
   email        String?   @unique @db.VarChar(100)
   login        String    @unique(map: "UQ_59bc805e13413e4be83be3a7752") @db.VarChar
   senha        String    @db.VarChar
+  fotoPerfil   String?   @db.VarChar(500)
   perfil       String    @default("OPERADOR") @db.VarChar(20) // ADMIN, SUPERVISOR, OPERADOR
   ativo        Boolean   @default(true)
   criadoEm     DateTime  @default(now()) @db.Timestamp(6)

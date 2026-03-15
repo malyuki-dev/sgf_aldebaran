@@ -139,4 +139,13 @@ export class UsuarioService {
       select: { id: true, nome: true }
     });
   }
+
+  async updateFoto(id: number, fotoUrl: string) {
+    await this.findOne(id);
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { fotoPerfil: fotoUrl, atualizadoEm: new Date() },
+      select: { id: true, nome: true, fotoPerfil: true }
+    });
+  }
 }

@@ -1,4 +1,7 @@
-import { Controller, Post, Body, Get, Put, Patch, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Patch, Param, UseGuards, ParseIntPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { UsuarioService } from './usuario.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -46,5 +49,22 @@ export class UsuarioController {
   @Patch(':id/senha')
   resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: { senha: string }) {
     return this.usuarioService.resetPassword(id, body.senha);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @Post(':id/foto')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads/perfil',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname);
+        cb(null, `perfil-${req.params.id}-${uniqueSuffix}${ext}`);
+      }
+    })
+  }))
+  uploadFoto(@Param('id', ParseIntPipe) id: number, @UploadedFile() file: Express.Multer.File) {
+    const fotoUrl = `/uploads/perfil/${file.filename}`;
+    return this.usuarioService.updateFoto(id, fotoUrl);
   }
 }

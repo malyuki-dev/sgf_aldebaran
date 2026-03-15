@@ -1,0 +1,375 @@
+<div class="config-page">
+  
+  <div class="top-nav">
+    <div class="logo-space">
+      <!-- The main layout probably has the logo, so we leave it empty or add the text if the layout doesn't cover this -->
+    </div>
+    <button class="btn-voltar" routerLink="/supervisor/dashboard">Voltar</button>
+  </div>
+
+  <div class="config-container">
+    
+    <!-- MENU LATERAL -->
+    <aside class="config-sidebar">
+      <div class="sidebar-group">
+        <h4 class="group-title">SISTEMA</h4>
+        <nav class="sidebar-nav">
+          <button 
+            *ngFor="let tab of tabs" 
+            class="nav-item" 
+            [class.active]="currentTab === tab.id"
+            (click)="setTab(tab.id)">
+            {{ tab.label }}
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="config-main">
+      
+      <form [formGroup]="configForm" *ngIf="currentTab === 'geral'" class="tab-content">
+        
+        <div class="header-section">
+          <h2>Configurações Gerais</h2>
+          <p>Gerencie as informações básicas da filial e aparência do sistema.</p>
+        </div>
+
+        <hr class="divider">
+
+        <div class="settings-group">
+          <h3>Identidade</h3>
+          <div class="form-row">
+            <div class="form-field mix-width">
+              <label>Nome da Filial</label>
+              <input type="text" formControlName="nomeFilial">
+            </div>
+            <div class="form-field mix-width">
+              <label>Fuso Horário</label>
+              <div class="select-wrapper">
+                <select formControlName="fusoHorario">
+                  <option>(GMT-03:00) Brasília</option>
+                  <option>(GMT-04:00) Manaus</option>
+                  <option>(GMT-05:00) Acre</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Margin top for separation -->
+        <div class="settings-group mt-32">
+          <h3>Preferências</h3>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Modo Escuro Automático</h4>
+              <p>Alternar tema baseado no horário do sistema.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="modoEscuro">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <hr class="light-divider">
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Sons de Alerta</h4>
+              <p>Reproduzir som quando um novo caminhão entrar na fila.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="sonsAlerta">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <hr class="light-divider">
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Impressão Automática de Senha</h4>
+              <p>Imprimir ticket assim que o cadastro for concluído.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="impressaoAutomatica">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="danger-zone mt-32">
+          <div class="danger-info">
+            <h4 class="text-red">Reiniciar Numeração da Fila</h4>
+            <p class="text-red-light">Esta ação irá zerar o contador de senhas do dia. Não pode ser desfeito.</p>
+          </div>
+          <button type="button" class="btn-danger" (click)="zerarFila()">Zerar Fila</button>
+        </div>
+
+        <div class="form-actions mt-32">
+          <button type="button" class="btn-solid-blue" (click)="salvarConfiguracoes()">Salvar Configurações</button>
+        </div>
+      </form>
+
+      <!-- REGRAS DA FILA -->
+      <form [formGroup]="configForm" *ngIf="currentTab === 'regras'" class="tab-content">
+        <div class="header-section">
+          <h2>Regras da Fila</h2>
+          <p>Defina limites de tempo e prioridades de atendimento.</p>
+        </div>
+        <hr class="divider">
+        
+        <div class="settings-group">
+          <h3>Tempos e Limites</h3>
+          <div class="form-row">
+            <div class="form-field mix-width">
+              <label>Tempo de Tolerância (Atrasos)</label>
+              <div class="input-with-suffix">
+                 <input type="number" formControlName="tempoTolerancia">
+                 <span class="suffix">minutos</span>
+              </div>
+            </div>
+            <div class="form-field mix-width">
+              <label>Limite Atendimentos/Dia</label>
+              <input type="number" formControlName="limiteAtendimentos">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group mt-32">
+          <h3>Prioridades</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Prioridade Automática (PCD / Idosos)</h4>
+              <p>Mover automaticamente para o topo da fila em sua categoria.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="prioridadePcdIdoso">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <hr class="light-divider">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Redirecionar Ausentes</h4>
+              <p>Mover clientes não comparecidos para o final da fila em vez de cancelar.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="redirecionarAusentes">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-actions mt-32">
+           <button type="button" class="btn-solid-blue" (click)="salvarRegras()">Salvar Regras</button>
+        </div>
+      </form>
+
+      <!-- NOTIFICAÇÕES -->
+      <form [formGroup]="configForm" *ngIf="currentTab === 'notificacoes'" class="tab-content">
+        <div class="header-section">
+          <h2>Notificações</h2>
+          <p>Gerencie como a filial e os clientes recebem avisos.</p>
+        </div>
+        <hr class="divider">
+
+        <div class="settings-group">
+          <h3>Canais de Contato</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Notificar por E-mail</h4>
+              <p>Enviar resumo diário e alertas críticos para os supervisores.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="notificarEmail">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <hr class="light-divider">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Notificar por WhatsApp</h4>
+              <p>Avisar clientes quando sua vez estiver próxima.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="notificarWhatsapp">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="form-actions mt-32">
+          <button type="button" class="btn-solid-blue" (click)="salvarNotificacoes()">Salvar Notificações</button>
+        </div>
+      </form>
+
+      <!-- GESTÃO DE USUÁRIOS -->
+      <div *ngIf="currentTab === 'usuarios'" class="tab-content">
+        <div class="users-header">
+           <div class="header-section">
+             <h2>Gestão de Usuários</h2>
+             <p>Gerencie quem tem acesso ao sistema da filial.</p>
+           </div>
+           <button class="btn-solid-blue btn-add-user" (click)="abrirModalUsuario()">
+              <lucide-icon [img]="icons.plus" size="18"></lucide-icon> Novo Usuário
+           </button>
+        </div>
+
+        <div class="users-controls">
+           <div class="search-box">
+             <lucide-icon [img]="icons.search" size="18" class="text-sec"></lucide-icon>
+             <input type="text" placeholder="Buscar por nome ou e-mail...">
+           </div>
+           
+           <div class="filter-box custom-select">
+              <select>
+                 <option>Todos os Perfis</option>
+                 <option>Admin</option>
+                 <option>Supervisor</option>
+                 <option>Operador</option>
+              </select>
+           </div>
+        </div>
+
+        <div class="users-table-container mt-16">
+           <table class="users-table">
+              <thead>
+                 <tr>
+                    <th>NOME / E-MAIL</th>
+                    <th>PERFIL</th>
+                    <th>STATUS</th>
+                    <th class="text-right">AÇÕES</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 <tr *ngFor="let u of usuariosMock">
+                    <td>
+                       <div class="user-cell">
+                          <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
+                          <div class="user-info">
+                             <span class="user-name">{{ u.nome }}</span>
+                             <span class="user-email">{{ u.email }}</span>
+                          </div>
+                       </div>
+                    </td>
+                    <td><span class="badge badge-role">{{ u.perfil }}</span></td>
+                    <td>
+                       <span class="badge" [ngClass]="u.status === 'Ativo' ? 'badge-green' : 'badge-gray'">{{ u.status }}</span>
+                    </td>
+                    <td class="text-right">
+                       <button class="action-btn text-blue" title="Editar"><lucide-icon [img]="icons.edit" size="16"></lucide-icon></button>
+                       <button class="action-btn text-red" title="Excluir"><lucide-icon [img]="icons.trash" size="16"></lucide-icon></button>
+                    </td>
+                 </tr>
+              </tbody>
+           </table>
+        </div>
+        
+        <div class="pagination">
+           <span class="page-info">Mostrando 1 a 3 de 3 registros</span>
+           <div class="page-controls">
+              <button class="btn-page" disabled>Anterior</button>
+              <button class="btn-page active">1</button>
+              <button class="btn-page" disabled>Próxima</button>
+           </div>
+        </div>
+      </div>
+
+      <!-- MODAL NOVO USUARIO -->
+      <div class="modal-backdrop" *ngIf="usuarioModal">
+        <div class="modal-c redesign-modal">
+          <div class="modal-header-gradient">
+            <div class="modal-title-area">
+              <div class="modal-icon-container">
+                 <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
+              </div>
+              <h2>Novo Usuário</h2>
+            </div>
+            <button class="close-btn-ghost" (click)="fecharModalUsuario()">
+              <lucide-icon [img]="icons.x" size="20"></lucide-icon> <!-- make sure x is imported in TS -->
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <form [formGroup]="novoUsuarioForm">
+              <div class="settings-group">
+                <div class="form-field mb-16">
+                  <label>Nome Completo</label>
+                  <input type="text" formControlName="nome" placeholder="Digite o nome completo">
+                </div>
+                
+                <div class="form-field mb-16">
+                  <label>E-mail</label>
+                  <input type="email" formControlName="email" placeholder="email@empresa.com">
+                </div>
+
+                <div class="form-field mb-16">
+                  <label>Perfil de Acesso</label>
+                  <div class="select-wrapper">
+                    <select formControlName="perfil">
+                      <option value="" disabled selected>Selecione um perfil...</option>
+                      <option value="Admin">Administrador</option>
+                      <option value="Supervisor">Supervisor</option>
+                      <option value="Operador">Operador (Guichê)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label>Senha Temporária</label>
+                  <input type="password" formControlName="senha" placeholder="••••••••">
+                  <span class="text-sm mt-4 text-sec">O usuário deverá criar uma nova senha no primeiro acesso.</span>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="modal-footer-gradient">
+            <button class="btn-ghost" (click)="fecharModalUsuario()">Cancelar</button>
+            <button class="btn-solid-blue" (click)="criarUsuario()">Criar Usuário</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Modal: Zerar Fila -->
+  <div class="modal-backdrop" *ngIf="showZerarModal">
+    <div class="modal-c redesign-modal">
+      <div class="modal-header-gradient">
+        <div class="modal-title-area">
+          <h2 style="color: #e11d48;">Atenção!</h2>
+        </div>
+        <button class="close-btn-ghost" (click)="cancelarZerar()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem;">Esta ação irá <strong>zerar a numeração</strong> de todas as senhas do dia. Não pode ser desfeita.</p>
+        <p style="margin-bottom:0.5rem;">Para confirmar, digite <strong>ZERAR</strong> abaixo:</p>
+        <input type="text" [(ngModel)]="zerarInput" placeholder="Digite ZERAR para confirmar" style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+      </div>
+      <div class="modal-footer-gradient">
+        <button class="btn-ghost" (click)="cancelarZerar()">Cancelar</button>
+        <button class="btn-danger" (click)="confirmarZerar()" [disabled]="zerarInput.trim().toUpperCase() !== 'ZERAR'">Sim, Zerar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Sucesso -->
+  <div class="modal-backdrop" *ngIf="showSuccessModal">
+    <div class="modal-c success-modal">
+      <div class="s-icon">
+        <lucide-icon [img]="icons.check" size="48" color="#22c55e"></lucide-icon>
+      </div>
+      <h2>Sucesso!</h2>
+      <p>{{ successMessage }}</p>
+      <button class="btn-solid-teal w-full" (click)="fecharSuccessModal()">OK, Entendi</button>
+    </div>
+  </div>
+
+</div>

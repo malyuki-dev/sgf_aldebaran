@@ -63,4 +63,10 @@ export class FilaController {
 
   @Get('status/:id')
   consultarStatus(@Param('id') id: string) { return this.filaService.consultarPosicao(+id); }
+
+  // Atendimento
+  @Patch('atendimento/:id/justificar')
+  justificarDemora(@Param('id') id: string, @Body() body: { justificativaDemora: string; motivoDemora: string }) {
+    return this.filaService.justificarDemora(+id, body);
+  }
 }

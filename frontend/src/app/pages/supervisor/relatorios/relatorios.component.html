@@ -1,0 +1,337 @@
+<div class="relatorios-page">
+  
+  <div class="page-header white-header">
+    <div class="header-left">
+      <button class="back-btn" routerLink="/supervisor/dashboard">
+        <lucide-icon [img]="icons.arrowLeft" size="20"></lucide-icon>
+      </button>
+      <div class="header-titles">
+        <h1>Relatórios</h1>
+        <span class="header-subtitle">Matriz - Centro</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="date-pills">
+        <button class="active">Hoje</button>
+        <button>Semana</button>
+        <button>Mês</button>
+      </div>
+      <button class="btn-solid-teal">
+        <lucide-icon [img]="icons.download" size="16"></lucide-icon>
+        Exportar PDF
+      </button>
+      <div class="language-toggle">
+        <button class="active">PT</button>
+        <button>EN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <!-- Top Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-indicator bg-blue-light">
+          <lucide-icon [img]="icons.user" size="24" class="text-blue"></lucide-icon>
+        </div>
+        <div class="kpi-info">
+           <strong class="kpi-value">147</strong>
+           <span class="kpi-label">Total Atendidos</span>
+        </div>
+        <div class="trend text-green">+8%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-indicator bg-red-light"></div>
+        <div class="kpi-info">
+           <strong class="kpi-value">8 min</strong>
+           <span class="kpi-label">Tempo Médio de Espera</span>
+        </div>
+        <div class="trend text-red">+15%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-indicator bg-green-light"></div>
+        <div class="kpi-info">
+           <strong class="kpi-value">9 min</strong>
+           <span class="kpi-label">Tempo Médio Atendimento</span>
+        </div>
+        <div class="trend text-green">-3%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-indicator bg-purple-light"></div>
+        <div class="kpi-info">
+           <strong class="kpi-value">14h-16h</strong>
+           <span class="kpi-label">Horário de Pico</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Grid -->
+    <div class="charts-grid mt-24">
+      <div class="chart-card fill-h">
+         <h3 class="chart-title">Histórico da Fila (por Hora)</h3>
+         <div class="bar-chart teal-bars">
+             <div class="bar" style="height: 30%"></div>
+             <div class="bar" style="height: 60%"></div>
+             <div class="bar" style="height: 80%"></div>
+             <div class="bar" style="height: 100%"></div>
+             <div class="bar" style="height: 65%"></div>
+             <div class="bar" style="height: 20%"></div>
+             <div class="bar" style="height: 40%"></div>
+             <div class="bar" style="height: 90%"></div>
+             <div class="bar" style="height: 50%"></div>
+         </div>
+         <div class="x-axis"><span>08:00</span><span>15:00</span></div>
+      </div>
+      <div class="chart-card fill-h">
+         <h3 class="chart-title">Tempo de Espera (por Hora)</h3>
+         <div class="bar-chart orange-bars">
+             <div class="bar" style="height: 40%"></div>
+             <div class="bar" style="height: 50%"></div>
+             <div class="bar" style="height: 60%"></div>
+             <div class="bar" style="height: 30%"></div>
+             <div class="bar" style="height: 40%"></div>
+             <div class="bar" style="height: 80%"></div>
+             <div class="bar" style="height: 90%"></div>
+             <div class="bar" style="height: 50%"></div>
+             <div class="bar" style="height: 60%"></div>
+         </div>
+         <div class="x-axis"><span>08:00</span><span>15:00</span></div>
+      </div>
+      <div class="chart-card fill-h">
+         <h3 class="chart-title">Tempo de Atendimento (por Hora)</h3>
+         <div class="bar-chart green-bars">
+             <div class="bar" style="height: 20%"></div>
+             <div class="bar" style="height: 40%"></div>
+             <div class="bar" style="height: 50%"></div>
+             <div class="bar" style="height: 50%"></div>
+             <div class="bar" style="height: 30%"></div>
+             <div class="bar" style="height: 80%"></div>
+             <div class="bar" style="height: 70%"></div>
+             <div class="bar" style="height: 40%"></div>
+             <div class="bar" style="height: 30%"></div>
+         </div>
+         <div class="x-axis" style="visibility:hidden"><span>08:00</span><span>15:00</span></div>
+      </div>
+      <div class="chart-card performance-card w-2col">
+         <h3 class="chart-title">Desempenho por Categoria</h3>
+         <div class="category-list">
+            <div class="cat-item">
+               <div class="cat-color bg-teal-light"></div>
+               <div class="cat-info">
+                  <strong>Caminhão</strong>
+                  <span>Espera: 8 min  |  Atend: 12 min</span>
+               </div>
+               <div class="cat-value"><strong>42</strong><span>Atendidos</span></div>
+            </div>
+            <div class="cat-item">
+               <div class="cat-color bg-orange-light"></div>
+               <div class="cat-info">
+                  <strong>Retirada Pesada</strong>
+                  <span>Espera: 10 min  |  Atend: 15 min</span>
+               </div>
+               <div class="cat-value"><strong>28</strong><span>Atendidos</span></div>
+            </div>
+            <div class="cat-item">
+               <div class="cat-color bg-red-light"></div>
+               <div class="cat-info">
+                  <strong>Cliente Rápido</strong>
+                  <span>Espera: 3 min  |  Atend: 5 min</span>
+               </div>
+               <div class="cat-value"><strong>65</strong><span>Atendidos</span></div>
+            </div>
+         </div>
+      </div>
+    </div>
+
+    <!-- Bottom Lists -->
+    <div class="bottom-grid mt-24">
+      <div class="chart-card">
+        <h3 class="chart-title">Desempenho dos Operadores</h3>
+        <div class="operator-list">
+          <div class="op-item">
+             <div class="op-avatar bg-teal text-white">MS</div>
+             <div class="op-info">
+                <strong>Maria Silva</strong>
+                <span>7.5 min</span>
+             </div>
+             <div class="op-score"><strong>38</strong><span class="text-blue">94%</span></div>
+          </div>
+          <div class="op-item">
+             <div class="op-avatar bg-teal text-white">JS</div>
+             <div class="op-info">
+                <strong>João Santos</strong>
+                <span>8.2 min</span>
+             </div>
+             <div class="op-score"><strong>35</strong><span class="text-blue">91%</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-card">
+        <h3 class="chart-title mb-16">Insights</h3>
+        <div class="insights-list">
+           <div class="insight-alert alert-red">
+               <lucide-icon [img]="icons.alert" size="16"></lucide-icon>
+               <span>Alta demanda detectada entre 14:00-15:00. Considere alocar mais...</span>
+           </div>
+           <div class="insight-alert alert-yellow">
+               <lucide-icon [img]="icons.alert" size="16"></lucide-icon>
+               <span>2 operador(es) com eficiência abaixo de 90%. Revisar processos.</span>
+           </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modais -->
+  <div class="modal-backdrop" *ngIf="activeModal">
+    <div class="modal-c redesign-modal">
+      <div class="modal-header-gradient" [ngClass]="activeModal">
+        <div class="modal-title-area">
+          <div class="modal-icon-container">
+             <lucide-icon *ngIf="activeModal === 'detalhes'" [img]="icons.fileText" size="24"></lucide-icon>
+             <lucide-icon *ngIf="activeModal === 'justificativa'" [img]="icons.clock" size="24"></lucide-icon>
+          </div>
+          <h2 *ngIf="activeModal === 'detalhes'">Detalhes do Atendimento</h2>
+          <h2 *ngIf="activeModal === 'justificativa'">Justificar Demora</h2>
+        </div>
+        <button class="close-btn-ghost" (click)="fecharModal()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- DETALHES -->
+      <div class="modal-body modal-detalhes" *ngIf="activeModal === 'detalhes'">
+        <div class="ticket-header">
+           <span class="ticket-badge bg-teal-light text-teal">{{ selectedTicket?.categoria }}</span>
+           <h3>Ticket {{ selectedTicket?.senha }}</h3>
+        </div>
+        
+        <div class="info-grid mt-16">
+          <div class="info-box">
+             <span class="info-label">Cliente</span>
+             <strong>{{ selectedTicket?.clienteNome }}</strong>
+          </div>
+          <div class="info-box">
+             <span class="info-label">Transportadora</span>
+             <strong>{{ selectedTicket?.clienteSub || 'N/A' }}</strong>
+          </div>
+          <div class="info-box">
+             <span class="info-label">Operador</span>
+             <strong>{{ selectedTicket?.operador }}</strong>
+          </div>
+          <div class="info-box">
+             <span class="info-label">Guichê</span>
+             <strong>01</strong> <!-- Mock -->
+          </div>
+        </div>
+
+        <div class="timeline-section mt-24">
+           <h4>Auditoria de Tempos</h4>
+           <div class="timeline">
+              <div class="t-item">
+                <div class="t-dot bg-blue-light text-blue"><lucide-icon [img]="icons.check" size="12"></lucide-icon></div>
+                <div class="t-content">
+                  <span>Chegada na Filial (Totem)</span>
+                  <strong>14:30:00</strong>
+                </div>
+              </div>
+              <div class="t-item">
+                <div class="t-dot bg-blue-light text-blue"><lucide-icon [img]="icons.check" size="12"></lucide-icon></div>
+                <div class="t-content">
+                  <span>Chamado para Baia</span>
+                  <strong>14:45:00</strong>
+                </div>
+                <div class="t-time-elapsed text-red">Espera: {{ selectedTicket?.espera }}</div>
+              </div>
+              <div class="t-item">
+                <div class="t-dot bg-blue-light text-blue"><lucide-icon [img]="icons.check" size="12"></lucide-icon></div>
+                <div class="t-content">
+                  <span>Início do Atendimento</span>
+                  <strong>14:46:00</strong>
+                </div>
+              </div>
+              <div class="t-item">
+                <div class="t-dot bg-blue-light text-blue"><lucide-icon [img]="icons.check" size="12"></lucide-icon></div>
+                <div class="t-content">
+                  <span>Fim do Atendimento</span>
+                  <strong>14:58:00</strong>
+                </div>
+                <div class="t-time-elapsed text-green">Atendimento: {{ selectedTicket?.atendimento }}</div>
+              </div>
+           </div>
+        </div>
+
+        <div class="eval-section mt-24" *ngIf="selectedTicket?.avaliacao !== '-'">
+           <h4>Avaliação do Cliente</h4>
+           <div class="stars">
+              <lucide-icon [img]="icons.star" size="24" color="#fbbf24" [class.fill-yellow]="true"></lucide-icon>
+              <lucide-icon [img]="icons.star" size="24" color="#fbbf24" [class.fill-yellow]="true"></lucide-icon>
+              <lucide-icon [img]="icons.star" size="24" color="#fbbf24" [class.fill-yellow]="true"></lucide-icon>
+              <lucide-icon [img]="icons.star" size="24" color="#fbbf24" [class.fill-yellow]="true"></lucide-icon>
+              <lucide-icon [img]="icons.star" size="24" color="#fbbf24" *ngIf="selectedTicket?.avaliacao !== 'Péssimo'"></lucide-icon>
+           </div>
+        </div>
+      </div>
+
+      <!-- JUSTIFICATIVA -->
+      <div class="modal-body modal-justificativa" *ngIf="activeModal === 'justificativa'">
+        <div class="alert-box bg-red-light mb-16">
+          <lucide-icon [img]="icons.clock" size="20" class="text-red"></lucide-icon>
+          <div>
+            <strong class="text-red">Tempo Excedido!</strong>
+            <p class="text-red text-sm">O tempo de espera deste ticket foi de {{ selectedTicket?.espera }}.</p>
+          </div>
+        </div>
+
+        <form [formGroup]="justificativaForm">
+          <div class="form-group full-width">
+            <label>Motivo do Atraso <span>*</span></label>
+             <div class="input-with-icon select-wrapper">
+                <select formControlName="motivo">
+                  <option value="" disabled selected>Selecione um motivo...</option>
+                  <option value="Sistema Lento">Problema no Sistema / Lentidão</option>
+                  <option value="Falta Documento">Falta de Documentação do Cliente</option>
+                  <option value="Alta Demanda">Alta Demanda / Poucos Operadores</option>
+                  <option value="Outros">Outros Motivos</option>
+                </select>
+                <lucide-icon [img]="icons.chevronDown" size="16" class="field-icon-right text-sec"></lucide-icon>
+            </div>
+          </div>
+          <div class="form-group full-width mt-16">
+            <label>Observações Adicionais</label>
+            <div class="input-with-icon">
+              <textarea formControlName="observacoes" placeholder="Descreva os fatores que levaram a este atraso..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer-gradient" *ngIf="activeModal === 'detalhes'">
+        <button class="btn-solid-red" *ngIf="selectedTicket?.esperaAlerta" (click)="abrirModal('justificativa', selectedTicket)">Justificar Demora</button>
+        <button class="btn-ghost" *ngIf="!selectedTicket?.esperaAlerta" (click)="fecharModal()">Fechar</button>
+        <button class="btn-solid-blue" *ngIf="selectedTicket?.esperaAlerta" (click)="fecharModal()">Fechar</button>
+      </div>
+
+      <div class="modal-footer-gradient" *ngIf="activeModal === 'justificativa'">
+        <button class="btn-ghost" (click)="fecharModal()">Cancelar</button>
+        <button class="btn-solid-blue" (click)="salvarJustificativa()">Salvar Justificativa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Sucesso -->
+  <div class="modal-backdrop" *ngIf="successModal">
+    <div class="modal-c success-modal">
+      <div class="s-icon bg-green-light">
+        <lucide-icon [img]="icons.check" size="48" color="#22c55e"></lucide-icon>
+      </div>
+      <h2>Justificativa Salva!</h2>
+      <p>A justificativa para o atraso foi registrada com sucesso no sistema.</p>
+      
+      <button class="btn-solid-blue w-full" (click)="fecharModal()">OK</button>
+    </div>
+  </div>
+
+</div>

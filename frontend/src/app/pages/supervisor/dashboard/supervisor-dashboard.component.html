@@ -1,75 +1,83 @@
 <div class="supervisor-page">
 
-  <header class="top-bar">
-    <div class="logo">
-      <img src="assets/logo-aldebaran.png" alt="Aldebaran">
-    </div>
-
-    <div class="right-actions">
-      <div class="input-group">
-        <label>Filial</label>
-        <select><option>Matriz Centro</option></select>
-      </div>
-
-      <div class="lang-toggle">
-        <span class="active">PT</span>
-        <span>EN</span>
-      </div>
-
-      <button class="header-btn purple">
-        <lucide-icon [img]="icons.history" size="18"></lucide-icon>
-        Atendimentos
-        <span class="badge">5</span>
-      </button>
-
-      <button class="header-btn teal">
-        <lucide-icon [img]="icons.calendar" size="18"></lucide-icon>
-        Agendamentos
-        <span class="badge">5</span>
-      </button>
-
-      <div class="user-profile">
-        <div class="text">
-          <strong>Roberta Alves</strong>
-          <span>Supervisor</span>
-        </div>
-        <div class="avatar">
-          <lucide-icon [img]="icons.user" size="20"></lucide-icon>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="alert-banner">
+  <!-- Alert Banner (only on high demand) -->
+  <div class="alert-banner" *ngIf="showAlertBanner">
     <div class="alert-content">
-      <lucide-icon [img]="icons.alert" size="20"></lucide-icon>
+      <lucide-icon [img]="icons.alert" class="alert-icon" size="20"></lucide-icon>
       <span>Alertas: Alta demanda detectada na categoria Retirada Pesada</span>
     </div>
-    <a href="#" class="alert-link">
-      Ver Relatórios <lucide-icon [img]="icons.right" size="16"></lucide-icon>
+    <a class="alert-link" routerLink="/supervisor/relatorios">
+      Ver Relatórios &gt;
     </a>
   </div>
 
   <main class="dashboard-content">
     
+    <!-- Visão Geral (KPIs) -->
     <section class="section">
       <h2 class="section-title">Visão Geral</h2>
       <div class="kpi-grid">
-        <div class="kpi-card" *ngFor="let kpi of visaoGeral">
-          <div class="icon-box" [style.backgroundColor]="kpi.bgIcon" [style.color]="kpi.colorIcon">
-            <lucide-icon [img]="kpi.icon" size="24"></lucide-icon>
-          </div>
-          <div class="kpi-info">
-            <span class="kpi-title">{{ kpi.titulo }}</span>
-            <div class="kpi-value-row">
-              <strong class="kpi-value">{{ kpi.valor }}</strong>
-              <span class="kpi-indicator" [ngClass]="kpi.corInfo">{{ kpi.info }}</span>
+        
+        <!-- Total Hoje -->
+        <div class="kpi-card">
+          <span class="trend-indicator trend-up absolute-top-right">+12%</span>
+          <div class="kpi-content">
+            <div class="icon-box bg-blue-light text-blue">
+              <lucide-icon [img]="icons.trendingUp" size="24"></lucide-icon>
+            </div>
+            <div class="kpi-info-flex">
+              <span class="kpi-label">Total Hoje</span>
+              <strong class="kpi-value">147</strong>
             </div>
           </div>
         </div>
+
+        <!-- Tempo Médio -->
+        <div class="kpi-card">
+          <span class="trend-indicator trend-down absolute-top-right">+3 min</span>
+          <div class="kpi-content">
+            <div class="icon-box bg-green-light text-green">
+              <lucide-icon [img]="icons.clock" size="24"></lucide-icon>
+            </div>
+            <div class="kpi-info-flex">
+              <span class="kpi-label">Tempo Médio</span>
+              <strong class="kpi-value">8 min</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guichês Ativos -->
+        <div class="kpi-card">
+          <span class="trend-indicator trend-up absolute-top-right">75%</span>
+          <div class="kpi-content">
+            <div class="icon-box bg-green-light text-green">
+              <lucide-icon [img]="icons.activity" size="24"></lucide-icon>
+            </div>
+            <div class="kpi-info-flex">
+              <span class="kpi-label">Guichês Ativos</span>
+              <strong class="kpi-value">5/6</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila Atual -->
+        <div class="kpi-card">
+          <span class="trend-indicator trend-neutral absolute-top-right">Normal</span>
+          <div class="kpi-content">
+            <div class="icon-box bg-purple-light text-purple">
+              <lucide-icon [img]="icons.users" size="24"></lucide-icon>
+            </div>
+            <div class="kpi-info-flex">
+              <span class="kpi-label">Fila Atual</span>
+              <strong class="kpi-value">12</strong>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
+    <!-- Status dos Guichês -->
     <section class="section">
       <h2 class="section-title">Status dos Guichês</h2>
       <div class="desk-grid">
@@ -77,37 +85,46 @@
         <div class="desk-card" *ngFor="let guiche of guiches" [ngClass]="guiche.status.toLowerCase()">
           
           <div class="desk-header">
-            <div class="desk-title">
+            <div class="desk-info-left">
               <span class="desk-label">Guichê</span>
               <strong class="desk-number">{{ guiche.numero }}</strong>
+              <div class="operator" *ngIf="guiche.operador && guiche.status !== 'FECHADO'">
+                <lucide-icon [img]="icons.user" size="14"></lucide-icon>
+                {{ guiche.operador }}
+              </div>
             </div>
-            <span class="status-badge">{{ guiche.status === 'DISPONIVEL' ? 'Disponível' : guiche.status === 'ATENDENDO' ? 'Atendendo' : 'Fechado' }}</span>
+            <div class="desk-info-right">
+              <span class="status-badge">
+                {{ guiche.status === 'DISPONIVEL' ? 'Disponível' : guiche.status === 'ATENDENDO' ? 'Atendendo' : 'Fechado' }}
+              </span>
+            </div>
           </div>
 
-          <div class="desk-body" *ngIf="guiche.status !== 'FECHADO'">
-            <div class="operator">
-              <lucide-icon [img]="icons.user" size="14"></lucide-icon>
-              {{ guiche.operador }}
-            </div>
+          <div class="desk-body">
             
-            <div class="desk-details" *ngIf="guiche.status === 'ATENDENDO'">
-              <div class="detail-col">
-                <span class="detail-label">Atendendo</span>
-                <strong class="ticket-number">{{ guiche.ticket }}</strong>
+            <ng-container *ngIf="guiche.status === 'ATENDENDO'">
+              <div class="desk-details space-between bg-gray-box">
+                <div class="detail-col">
+                  <span class="detail-label text-xs">Atendendo</span>
+                  <strong class="ticket-number text-lg">{{ guiche.ticket }}</strong>
+                </div>
+                <div class="time-pill inline-time">
+                  <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+                  {{ guiche.tempo }}
+                </div>
               </div>
-              <div class="time-box">
-                <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
-                {{ guiche.tempo }}
-              </div>
-            </div>
+            </ng-container>
 
-            <div class="desk-details center-content" *ngIf="guiche.status === 'DISPONIVEL'">
-               <div class="time-box blue">
-                <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
-                {{ guiche.tempo }}
+            <ng-container *ngIf="guiche.status === 'DISPONIVEL'">
+              <div class="desk-details center-content transparent-bg">
+                 <div class="time-pill blue-bg center-pill">
+                  <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+                  {{ guiche.tempo }}
+                </div>
+                <h3 class="waiting-text">Aguardando Chamar</h3>
               </div>
-              <h3 class="waiting-text">Aguardando Chamar</h3>
-            </div>
+            </ng-container>
+
           </div>
 
         </div>
@@ -115,17 +132,397 @@
       </div>
     </section>
 
-    <section class="section">
+    <!-- Ações de Gerenciamento -->
+    <section class="section actions-section">
       <h2 class="section-title">Ações de Gerenciamento</h2>
       <div class="actions-grid">
-        <button class="action-card" *ngFor="let acao of acoes">
-          <div class="action-icon">
-            <lucide-icon [img]="acao.icon" size="24"></lucide-icon>
+        
+        <button class="action-card" (click)="abrirModal('truck')">
+          <div class="action-icon bg-teal-light text-teal">
+            <lucide-icon [img]="icons.truck" size="24"></lucide-icon>
           </div>
-          <span>{{ acao.nome }}</span>
+          <span>Cadastrar Caminhão</span>
         </button>
+
+        <button class="action-card" (click)="abrirModal('operator')">
+          <div class="action-icon bg-purple-light text-purple">
+            <lucide-icon [img]="icons.userPlus" size="24"></lucide-icon>
+          </div>
+          <span>Cadastrar Operador</span>
+        </button>
+
+        <button class="action-card" (click)="abrirModal('client')">
+          <div class="action-icon bg-blue-light text-blue">
+            <lucide-icon [img]="icons.user" size="24"></lucide-icon>
+          </div>
+          <span>Cadastrar Cliente</span>
+        </button>
+
+        <button class="action-card" routerLink="/supervisor/gerenciar-fila">
+          <div class="action-icon bg-teal-light text-teal">
+            <lucide-icon [img]="icons.settings" size="24"></lucide-icon>
+          </div>
+          <span>Gerenciar Fila</span>
+        </button>
+
+        <button class="action-card" routerLink="/supervisor/relatorios">
+          <div class="action-icon bg-blue-light text-blue">
+            <lucide-icon [img]="icons.barChart" size="24"></lucide-icon>
+          </div>
+          <span>Relatórios Gerenciais</span>
+        </button>
+
+        <button class="action-card" (click)="abrirModal('atendimentos')">
+          <div class="action-icon bg-purple-light text-purple">
+            <lucide-icon [img]="icons.history" size="24"></lucide-icon>
+          </div>
+          <span>Atendimentos</span>
+        </button>
+
+        <button class="action-card" (click)="abrirModal('agendamentos')">
+          <div class="action-icon bg-teal-light text-teal">
+            <lucide-icon [img]="icons.calendar" size="24"></lucide-icon>
+          </div>
+          <span>Agendamentos</span>
+        </button>
+
       </div>
     </section>
 
   </main>
+
+  <!-- Modais de Cadastro (Pixel-perfect com design) -->
+  <div class="modal-backdrop" *ngIf="activeModal">
+    <div class="modal-c redesign-modal">
+      <div class="modal-header-gradient" [ngClass]="activeModal">
+        <div class="modal-title-area">
+          <div class="modal-icon-container">
+             <lucide-icon *ngIf="activeModal === 'truck'" [img]="icons.truck" size="24"></lucide-icon>
+             <lucide-icon *ngIf="activeModal === 'operator'" [img]="icons.userPlus" size="24"></lucide-icon>
+             <lucide-icon *ngIf="activeModal === 'client'" [img]="icons.user" size="24"></lucide-icon>
+             <lucide-icon *ngIf="activeModal === 'agendamentos'" [img]="icons.calendar" size="24"></lucide-icon>
+             <lucide-icon *ngIf="activeModal === 'atendimentos'" [img]="icons.history" size="24"></lucide-icon>
+          </div>
+          <h2 *ngIf="activeModal === 'truck'">Cadastrar Caminhão</h2>
+          <h2 *ngIf="activeModal === 'operator'">Cadastrar Operador</h2>
+          <h2 *ngIf="activeModal === 'client'">Cadastrar Cliente</h2>
+          <h2 *ngIf="activeModal === 'agendamentos'">Agendamentos do Dia</h2>
+          <h2 *ngIf="activeModal === 'atendimentos'">Atendimentos em Andamento</h2>
+        </div>
+        <button class="close-btn-ghost" (click)="fecharModal()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        
+        <form *ngIf="activeModal === 'truck'" [formGroup]="caminhaoForm">
+          <div class="form-group full-width">
+            <label>Placa <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.hash" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="placa" placeholder="ABC-1234" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Modelo <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.truck" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="modelo" placeholder="Ex: Mercedes-Benz Atego 1719" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Transportadora <span>*</span></label>
+            <div class="input-with-icon">
+               <lucide-icon [img]="icons.building" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="transportadora" placeholder="Ex: Transportadora ABC Ltda" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Capacidade <span>*</span></label>
+            <div class="input-with-icon">
+               <lucide-icon [img]="icons.package" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="capacidade" placeholder="Ex: 10 toneladas" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Observações</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.fileText" size="18" class="field-icon align-top"></lucide-icon>
+              <textarea formControlName="observacao" placeholder="Informações adicionais sobre o veículo..." class="has-icon"></textarea>
+            </div>
+          </div>
+        </form>
+
+        <form *ngIf="activeModal === 'operator'" [formGroup]="operadorForm">
+          <div class="form-group full-width">
+            <label>Nome Completo <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.user" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="nome" placeholder="Ex: João Silva" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Nome de Usuário <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.key" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="nomeUsuario" placeholder="Ex: joao.silva" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Senha <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.lock" size="18" class="field-icon"></lucide-icon>
+              <input type="password" formControlName="senha" placeholder="********" class="has-icon">
+            </div>
+            <span style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Mínimo 8 caracteres</span>
+          </div>
+          <div class="form-group full-width">
+            <label>Confirmar Senha <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.lock" size="18" class="field-icon"></lucide-icon>
+              <input type="password" formControlName="confirmarSenha" placeholder="********" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Filial <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.building" size="18" class="field-icon"></lucide-icon>
+              <!-- Select doesn't align icons well natively without wrapper trick, using text input for visual purity of the mockup for now -->
+              <input type="text" formControlName="filial" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Telefone <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.phone" size="18" class="field-icon"></lucide-icon>
+              <input type="text" formControlName="telefone" placeholder="(11) 98765-4321" class="has-icon">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>E-mail <span>*</span></label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.mail" size="18" class="field-icon"></lucide-icon>
+              <input type="email" formControlName="email" placeholder="exemplo@email.com" class="has-icon">
+            </div>
+          </div>
+        </form>
+
+        <form *ngIf="activeModal === 'client'" [formGroup]="clienteForm">
+          <div class="form-group full-width filter-tipo-redesign">
+             <label class="radio-label">
+                <input type="radio" formControlName="tipoPessoa" value="Fisica"> Pessoa Física
+             </label>
+             <label class="radio-label">
+                <input type="radio" formControlName="tipoPessoa" value="Juridica"> Pessoa Jurídica
+             </label>
+          </div>
+          <div class="form-group full-width">
+            <label>Nome Completo (ou Razão Social) <span>*</span></label>
+            <input type="text" formControlName="nome" placeholder="Ex: Nome do Cliente">
+          </div>
+          <div class="form-group full-width">
+            <label>{{ clienteForm.get('tipoPessoa')?.value === 'Fisica' ? 'CPF' : 'CNPJ' }} <span>*</span></label>
+            <input type="text" formControlName="cpfCnpj" placeholder="000.000.000-00">
+          </div>
+          <div class="form-group full-width">
+            <label>E-mail <span>*</span></label>
+            <input type="email" formControlName="email">
+          </div>
+          <div class="form-group full-width">
+            <label>Telefone <span>*</span></label>
+            <input type="text" formControlName="telefone">
+          </div>
+        </form>
+
+        <!-- Tabela de Agendamentos (Imagem 13) -->
+        <div *ngIf="activeModal === 'agendamentos'" class="agendamentos-table-wrapper">
+          <table class="agendamentos-table">
+            <thead>
+              <tr>
+                <th>Senha</th>
+                <th>Transportadora</th>
+                <th>Horário</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let agenda of agendamentos">
+                <td class="table-senha"><strong>{{ agenda.senha }}</strong></td>
+                <td>{{ agenda.transportadora }}</td>
+                <td>{{ agenda.horario }}</td>
+                <td>
+                  <span class="status-pill" [ngClass]="agenda.status.toLowerCase()">{{ agenda.status }}</span>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <button class="btn-icon text-green"><lucide-icon [img]="icons.check" size="16"></lucide-icon></button>
+                    <button class="btn-icon text-red"><lucide-icon [img]="icons.x" size="16"></lucide-icon></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tabela de Atendimentos -->
+        <div *ngIf="activeModal === 'atendimentos'" class="agendamentos-table-wrapper">
+          <table class="agendamentos-table">
+            <thead>
+              <tr>
+                <th>Senha</th>
+                <th>Cliente</th>
+                <th>Categoria</th>
+                <th>Operador</th>
+                <th>Tempo Espera</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let atend of atendimentosList">
+                <td class="table-senha"><strong>{{ atend.ticket }}</strong></td>
+                <td>{{ atend.cliente }}</td>
+                <td>{{ atend.categoria }}</td>
+                <td>{{ atend.operador }}</td>
+                <td>
+                  <div class="time-pill inline-flex" [class.time-danger]="atend.status === 'Atrasado'">
+                    <lucide-icon [img]="icons.clock" size="12"></lucide-icon>
+                    {{ atend.tempoEspera }}
+                  </div>
+                </td>
+                <td>
+                  <span class="status-pill" [ngClass]="atend.status.toLowerCase().replace(' ', '-')">{{ atend.status }}</span>
+                </td>
+                <td>
+                  <button class="btn-icon text-blue" title="Ver detalhes" (click)="verAtendimento(atend)">
+                    <lucide-icon [img]="icons.eye" size="16"></lucide-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+      <div class="modal-footer-gradient" *ngIf="activeModal !== 'agendamentos' && activeModal !== 'atendimentos'">
+        <button class="btn-ghost" (click)="fecharModal()">Cancelar</button>
+        <button class="btn-solid-blue" (click)="salvarCadastro()">Salvar</button>
+      </div>
+      
+      <!-- Rodapé para Agendamentos e Atendimentos: só Fechar -->
+      <div class="modal-footer-gradient" *ngIf="activeModal === 'agendamentos' || activeModal === 'atendimentos'">
+        <button class="btn-solid-blue w-full" (click)="fecharModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detalhe do Atendimento -->
+  <div class="modal-backdrop" *ngIf="atendimentoSelecionado && !showJustificativaModal">
+    <div class="modal-c redesign-modal">
+      <div class="modal-header-gradient">
+        <div class="modal-title-area">
+          <div class="modal-icon-container">
+            <lucide-icon [img]="icons.alertCircle" size="24"></lucide-icon>
+          </div>
+          <h2>Detalhe do Atendimento</h2>
+        </div>
+        <button class="close-btn-ghost" (click)="fecharAtendimentoDetalhe()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detalhe-atend">
+          <div class="detalhe-row">
+            <span class="detalhe-label">Senha</span>
+            <strong>{{ atendimentoSelecionado?.ticket }}</strong>
+          </div>
+          <div class="detalhe-row">
+            <span class="detalhe-label">Cliente</span>
+            <span>{{ atendimentoSelecionado?.cliente }}</span>
+          </div>
+          <div class="detalhe-row">
+            <span class="detalhe-label">Categoria</span>
+            <span>{{ atendimentoSelecionado?.categoria }}</span>
+          </div>
+          <div class="detalhe-row">
+            <span class="detalhe-label">Operador</span>
+            <span>{{ atendimentoSelecionado?.operador }}</span>
+          </div>
+          <div class="detalhe-row">
+            <span class="detalhe-label">Tempo de Espera</span>
+            <span>{{ atendimentoSelecionado?.tempoEspera }}</span>
+          </div>
+          <div class="detalhe-row">
+            <span class="detalhe-label">Status</span>
+            <span class="status-pill" [ngClass]="atendimentoSelecionado?.status?.toLowerCase().replace(' ', '-')">{{ atendimentoSelecionado?.status }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-gradient">
+        <button class="btn-ghost" (click)="fecharAtendimentoDetalhe()">Fechar</button>
+        <button class="btn-solid-blue" (click)="abrirJustificativa()">Justificar Demora</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Justificar Demora -->
+  <div class="modal-backdrop" *ngIf="showJustificativaModal">
+    <div class="modal-c redesign-modal">
+      <div class="modal-header-gradient">
+        <div class="modal-title-area">
+          <div class="modal-icon-container">
+            <lucide-icon [img]="icons.fileText" size="24"></lucide-icon>
+          </div>
+          <h2>Justificar Demora</h2>
+        </div>
+        <button class="close-btn-ghost" (click)="fecharAtendimentoDetalhe()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="justificativaForm">
+          <div class="form-group full-width">
+            <label>Motivo <span>*</span></label>
+            <select formControlName="motivo">
+              <option value="">Selecione um motivo...</option>
+              <option value="alto_volume">Alto volume de atendimentos</option>
+              <option value="problema_tecnico">Problema técnico</option>
+              <option value="cliente_dificultando">Cliente dificultando atendimento</option>
+              <option value="falta_operador">Falta de operador</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Observações Adicionais</label>
+            <textarea formControlName="observacoes" placeholder="Descreva mais detalhes sobre a situação..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer-gradient">
+        <button class="btn-ghost" (click)="fecharAtendimentoDetalhe()">Cancelar</button>
+        <button class="btn-solid-blue" (click)="salvarJustificativa()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Sucesso -->
+  <div class="modal-backdrop" *ngIf="successModal">
+    <div class="modal-c success-modal">
+      <div class="s-icon">
+        <lucide-icon [img]="icons.check" size="48" color="#22c55e"></lucide-icon>
+      </div>
+      <h2 *ngIf="successModal === 'truck'">Sucesso!</h2>
+      <h2 *ngIf="successModal === 'operator'">Sucesso!</h2>
+      <h2 *ngIf="successModal === 'client'">Sucesso!</h2>
+      
+      <p *ngIf="successModal === 'truck'">Caminhão cadastrado corretamente.</p>
+      <p *ngIf="successModal === 'operator'">Operador cadastrado corretamente.</p>
+      <p *ngIf="successModal === 'client'">Cliente registrado corretamente.</p>
+      
+      <button class="btn-solid-teal w-full" (click)="fecharModal()">OK, Entendi</button>
+    </div>
+  </div>
+
 </div>

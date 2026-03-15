@@ -235,6 +235,19 @@ export class FilaService {
     return { ...senha, posicao: naFrente + 1, estimativa: (naFrente + 1) * 5 };
   }
 
+  async justificarDemora(id: number, dados: { justificativaDemora: string; motivoDemora: string }) {
+    const atendimento = await this.prisma.atendimento.findUnique({ where: { id } });
+    if (!atendimento) throw new NotFoundException('Atendimento não encontrado');
+
+    return await this.prisma.atendimento.update({
+      where: { id },
+      data: {
+        justificativaDemora: dados.justificativaDemora,
+        motivoDemora: dados.motivoDemora,
+      }
+    });
+  }
+
   async getDashboardData() {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);

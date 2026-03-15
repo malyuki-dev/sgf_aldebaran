@@ -1,0 +1,213 @@
+<div class="fila-page">
+  <div class="page-header">
+    <div class="title-section">
+      <div class="breadcrumb-nav">
+        <a routerLink="/supervisor/dashboard" class="btn-voltar">
+          <lucide-icon [img]="icons.arrowLeft" size="16"></lucide-icon>
+          Voltar ao Dashboard
+        </a>
+      </div>
+      <h1>Gerenciamento de Fila e Fluxo</h1>
+      <div class="statistics-bar">
+        <span class="stat-pill"><lucide-icon [img]="icons.users" size="14"></lucide-icon> {{ filaEspera.length }} na fila</span>
+        <span class="stat-pill"><lucide-icon [img]="icons.clock" size="14"></lucide-icon> 22 min média</span>
+      </div>
+    </div>
+    <div class="search-wrapper">
+      <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+      <input type="text" placeholder="Buscar por placa, ticket...">
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="custom-tabs">
+      <div 
+        class="tab" 
+        [class.active]="currentTab === 'espera'" 
+        (click)="currentTab = 'espera'">
+        Fila de Espera <span class="badge">{{ filaEspera.length }}</span>
+      </div>
+      <div 
+        class="tab" 
+        [class.active]="currentTab === 'baia'" 
+        (click)="currentTab = 'baia'">
+        Status das Baias <span class="badge blue-bg">{{ baias.length }}</span>
+      </div>
+      <div 
+        class="tab" 
+        [class.active]="currentTab === 'config'" 
+        (click)="currentTab = 'config'">
+        Configurações
+      </div>
+    </div>
+
+    <!-- Fila de Espera -->
+    <div class="tab-body" *ngIf="currentTab === 'espera'">
+      <div class="queue-list">
+        <div class="queue-card" *ngFor="let item of filaEspera" [ngClass]="item.prioridade">
+          
+          <div class="ticket-col">
+            <span class="ticket-number">{{ item.ticket }}</span>
+            <span class="priority-label" [ngClass]="item.prioridade">{{ item.prioridadeLabel }}</span>
+          </div>
+
+          <div class="info-col">
+            <div class="info-row">
+              <lucide-icon [img]="icons.user" size="16"></lucide-icon>
+              <span class="driver">{{ item.motorista }}</span>
+              <span class="plate-badge">{{ item.placa }}</span>
+            </div>
+            <div class="info-row text-muted">
+              <span>Serviço: <strong>{{ item.servico }}</strong></span>
+            </div>
+          </div>
+
+          <div class="time-col">
+            <div class="time-box" [class.alert]="item.tempoEspera > 30">
+              <lucide-icon [img]="icons.clock" size="16"></lucide-icon>
+              <span>{{ item.tempoEspera }} min aguardando</span>
+              <lucide-icon *ngIf="item.tempoEspera > 30" [img]="icons.alert" size="16"></lucide-icon>
+            </div>
+          </div>
+
+          <div class="action-col">
+            <button class="btn-cancel">Cancelar</button>
+            <button class="btn-call" (click)="chamar(item)">Chamar Agora</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Status das Baias -->
+    <div class="tab-body" *ngIf="currentTab === 'baia'">
+      <div class="baias-grid">
+        <div class="baia-card" *ngFor="let baia of baias" [ngClass]="baia.status">
+          <div class="card-header">
+            <h3>Baia {{ baia.numero }}</h3>
+            <span class="status-pill">{{ baia.statusLabel }}</span>
+          </div>
+
+          <div class="card-content" *ngIf="baia.status === 'ocupada'">
+            <div class="data-row">
+              <span class="label">Operador:</span>
+              <span class="value">{{ baia.operador }}</span>
+            </div>
+            <div class="data-row">
+              <span class="label">Atendendo:</span>
+              <span class="value font-bold">{{ baia.ticket }}</span>
+            </div>
+            <div class="data-row">
+              <span class="label">Veículo:</span>
+              <span class="value">{{ baia.placa }}</span>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-track">
+                <div class="progress-fill" [style.width]="baia.progresso + '%'"></div>
+              </div>
+              <span class="time-left">{{ baia.tempoOcupado }} min</span>
+            </div>
+          </div>
+
+          <div class="card-content empty-state" *ngIf="baia.status === 'livre'">
+            <div class="icon-circle green-circle">
+              <lucide-icon [img]="icons.check" size="24"></lucide-icon>
+            </div>
+            <h4>Pronta para Uso</h4>
+            <span class="op-name">Operador: {{ baia.operador }}</span>
+          </div>
+
+          <div class="card-content empty-state" *ngIf="baia.status === 'manutencao'">
+            <div class="icon-circle orange-circle">
+              <lucide-icon [img]="icons.alert" size="24"></lucide-icon>
+            </div>
+            <h4>Em Manutenção</h4>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-action btn-chamar-proximo" (click)="chamarProximo(baia)" *ngIf="baia.status === 'livre'">
+              <lucide-icon [img]="icons.up" size="16"></lucide-icon>
+              Chamar Próximo
+            </button>
+            <button class="btn-action btn-encerrar" (click)="encerrar(baia)" *ngIf="baia.status === 'ocupada'">
+              <lucide-icon [img]="icons.check" size="16"></lucide-icon>
+              Encerrar Atendimento
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Configurações da Fila -->
+    <div class="tab-body" *ngIf="currentTab === 'config'">
+      <form [formGroup]="configForm" class="config-form-container">
+        <div class="header-section">
+          <h2>Regras da Fila</h2>
+          <p>Defina limites de tempo e prioridades de atendimento.</p>
+        </div>
+        <hr class="divider">
+        
+        <div class="settings-group">
+          <h3>Tempos e Limites</h3>
+          <div class="form-row">
+            <div class="form-field mix-width">
+              <label>Tempo de Tolerância (Atrasos)</label>
+              <div class="input-with-suffix">
+                 <input type="number" formControlName="tempoTolerancia">
+                 <span class="suffix">minutos</span>
+              </div>
+            </div>
+            <div class="form-field mix-width">
+              <label>Limite Atendimentos/Dia</label>
+              <input type="number" formControlName="limiteAtendimentos">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group mt-32">
+          <h3>Prioridades</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Prioridade Automática (PCD / Idosos)</h4>
+              <p>Mover automaticamente para o topo da fila em sua categoria.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="prioridadePcdIdoso">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <hr class="light-divider">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Redirecionar Ausentes</h4>
+              <p>Mover clientes não comparecidos para o final da fila em vez de cancelar.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="redirecionarAusentes">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-actions mt-32">
+           <button type="button" class="btn-solid-blue" (click)="salvarConfiguracoes()">Salvar Regras</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Modal: Sucesso -->
+  <div class="modal-backdrop" *ngIf="showSuccessModal">
+    <div class="modal-c success-modal">
+      <div class="s-icon">
+        <lucide-icon [img]="icons.check" size="48" color="#22c55e"></lucide-icon>
+      </div>
+      <h2>Sucesso!</h2>
+      <p>Regras da fila atualizadas com sucesso.</p>
+      <button class="btn-solid-teal w-full" (click)="fecharSuccessModal()">OK, Entendi</button>
+    </div>
+  </div>
+</div>

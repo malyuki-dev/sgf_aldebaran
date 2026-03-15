@@ -5,6 +5,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { RecoverComponent } from './pages/recover/recover.component';
 import { SignupComponent } from './pages/signup/signup.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { roleGuard } from './guards/role.guard';
 
 // Layouts
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
@@ -48,14 +49,15 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
 
   // 3. ÁREA DO CLIENTE (Protegida futuramente)
-  { path: 'client/home', component: ClientHomeComponent },
-  { path: 'client/agendar', component: AgendamentoComponent },
-  { path: 'client/meus-agendamentos', component: ClientAppointmentsComponent },
+  { path: 'client/home', component: ClientHomeComponent, canActivate: [roleGuard] },
+  { path: 'client/agendar', component: AgendamentoComponent, canActivate: [roleGuard] },
+  { path: 'client/meus-agendamentos', component: ClientAppointmentsComponent, canActivate: [roleGuard] },
 
   // 4. ÁREA DO ADMIN
   {
     path: 'admin',
     component: AdminLayoutComponent,
+    canActivate: [roleGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
@@ -82,9 +84,15 @@ export const routes: Routes = [
   // 4.5. ÁREA DO SUPERVISOR
   {
     path: 'supervisor',
+    component: AdminLayoutComponent,
+    canActivate: [roleGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: SupervisorDashboardComponent },
+      { path: 'relatorios', loadComponent: () => import('./pages/supervisor/relatorios/relatorios.component').then(m => m.SupervisorRelatoriosComponent) },
+      { path: 'gerenciar-fila', loadComponent: () => import('./pages/supervisor/gerenciar-fila/gerenciar-fila.component').then(m => m.SupervisorGerenciarFilaComponent) },
+      { path: 'configuracoes', loadComponent: () => import('./pages/supervisor/configuracoes/configuracoes.component').then(m => m.SupervisorConfiguracoesComponent) },
+      { path: 'meu-perfil', loadComponent: () => import('./pages/supervisor/perfil/perfil.component').then(m => m.SupervisorPerfilComponent) },
       // O Supervisor precisa interagir com a tela administrativa de cadastro de Funcionários (Operador)
       { path: 'operadores/novo', loadComponent: () => import('./pages/admin/usuarios/usuarios.component').then(m => m.UsuariosComponent) }
     ]
@@ -107,6 +115,6 @@ export const routes: Routes = [
   { path: 'painel', component: PainelTvComponent },
 
   // 7. ÁREA DO OPERADOR
-  { path: 'operador/escolha-guiches', component: EscolhaGuiches },
-  { path: 'operador/painel', loadComponent: () => import('./pages/operador/painel/painel.component').then(m => m.PainelOperadorComponent) },
+  { path: 'operador/escolha-guiches', component: EscolhaGuiches, canActivate: [roleGuard] },
+  { path: 'operador/painel', loadComponent: () => import('./pages/operador/painel/painel.component').then(m => m.PainelOperadorComponent), canActivate: [roleGuard] },
 ];

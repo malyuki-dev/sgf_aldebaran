@@ -91,4 +91,44 @@ export class DashboardService {
       atividadeRecente: atividadeRecente.length > 0 ? atividadeRecente : fallbackActivities
     };
   }
+
+  async getRelatorios(periodo: string) {
+    // periodo can be 'dia', 'semana', 'mes'
+    const now = new Date();
+    let dataInicio = new Date();
+
+    if (periodo === 'dia') {
+      dataInicio.setHours(0, 0, 0, 0);
+    } else if (periodo === 'semana') {
+      dataInicio.setDate(now.getDate() - 7);
+      dataInicio.setHours(0, 0, 0, 0);
+    } else if (periodo === 'mes') {
+      dataInicio.setDate(1);
+      dataInicio.setHours(0, 0, 0, 0);
+    }
+
+    const totalAtendimentos = await this.prisma.atendimento.count({
+      where: { inicioAtendimento: { gte: dataInicio } }
+    });
+
+    const atendimentosRecentes = await this.prisma.atendimento.findMany({
+      where: { inicioAtendimento: { gte: dataInicio } },
+      orderBy: { inicioAtendimento: 'desc' },
+      take: 20,
+      include: { senha: { include: { servico: true } } }
+    });
+
+    return {
+      totalAtendimentos,
+      periodoAtual: periodo,
+      atendimentos: atendimentosRecentes.map(a => ({
+        id: a.id,
+        inicio: a.inicioAtendimento,
+        fim: a.fimAtendimento,
+        guiche: a.guiche,
+        servico: a.senha?.servico?.nome || 'N/A',
+        justificativa: a.justificativaDemora || null
+      }))
+    };
+  }
 }

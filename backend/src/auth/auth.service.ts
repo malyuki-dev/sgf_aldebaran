@@ -46,10 +46,10 @@ export class AuthService {
         iniciais = nomes[0].toUpperCase();
       }
 
-      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil, iniciais };
+      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil, perfil: staff.perfil, iniciais };
       return {
         token: this.jwtService.sign(payload),
-        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil, iniciais }
+        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil, perfil: staff.perfil, iniciais, id: staff.id }
       };
     }
 

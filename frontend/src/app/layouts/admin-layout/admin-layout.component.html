@@ -70,20 +70,93 @@
   <div class="main-content-wrapper" [class.expanded]="!sidebarOpen">
     <!-- TOP BAR (White background) -->
     <header class="top-bar">
-      <div class="top-bar-left">
-        <!-- O botão sanduíche foi movido para a logo na sidebar -->
-      </div>
-
-      <div class="top-bar-right">
-        <div class="search-box">
-          <lucide-icon [img]="icons['search']" class="search-icon" size="18"></lucide-icon>
-          <input type="text" placeholder="Buscar..." />
+      <!-- MODO ADMIN -->
+      <ng-container *ngIf="usuario?.perfil !== 'SUPERVISOR'">
+        <div class="top-bar-left">
+          <!-- O botão sanduíche foi movido para a logo na sidebar -->
         </div>
-        <button class="notification-btn">
-          <lucide-icon [img]="icons['bell']" size="20"></lucide-icon>
-          <span class="dot"></span>
-        </button>
-      </div>
+
+        <div class="top-bar-right">
+          <div class="search-box">
+            <lucide-icon [img]="icons['search']" class="search-icon" size="18"></lucide-icon>
+            <input type="text" placeholder="Buscar..." />
+          </div>
+          <button class="notification-btn">
+            <lucide-icon [img]="icons['bell']" size="20"></lucide-icon>
+            <span class="dot"></span>
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- MODO SUPERVISOR -->
+      <ng-container *ngIf="usuario?.perfil === 'SUPERVISOR'">
+        <div class="supervisor-nav-full">
+           <div class="nav-left">
+             <!-- Logo removida para ficar apenas na sidebar -->
+           </div>
+           
+           <div class="nav-right">
+            <div class="nav-group">
+              <div class="info-group">
+                <span class="info-label">Filial</span>
+                <div class="fake-input-box"></div>
+              </div>
+
+              <div class="info-group">
+                <span class="info-label">Language</span>
+                <div class="language-toggle">
+                  <button class="active">PT</button>
+                  <button>EN</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="nav-btn btn-transparent text-purple" [routerLink]="['/supervisor/dashboard']" [queryParams]="{modal: 'atendimentos'}">
+              <lucide-icon [img]="icons['history']" size="18"></lucide-icon>
+              Atendimentos
+              <span class="badge badge-purple">5</span>
+            </button>
+
+            <button class="nav-btn btn-transparent text-blue" [routerLink]="['/supervisor/dashboard']" [queryParams]="{modal: 'agendamentos'}">
+              <lucide-icon [img]="icons['calendar']" size="18"></lucide-icon>
+              Agendamentos
+              <span class="badge badge-blue">5</span>
+            </button>
+
+            <div class="profile-dropdown-container">
+              <div class="profile-trigger" (click)="toggleSupervisorProfileMenu($event)" [class.active]="showSupervisorProfileMenu">
+                <div class="profile-info">
+                  <span class="profile-name">{{ usuario?.nome || 'Roberta Alves' }}</span>
+                  <span class="profile-role">Supervisor</span>
+                </div>
+                <div class="avatar-box bg-teal-dark">
+                  <lucide-icon [img]="icons['user']" size="20" color="white"></lucide-icon>
+                </div>
+              </div>
+
+              <!-- Supervisor Profile Menu Dropdown -->
+              <div class="profile-menu supervisor-menu" *ngIf="showSupervisorProfileMenu" (click)="$event.stopPropagation()">
+                <div class="menu-header" style="padding: 1rem; border-bottom: 1px solid #eee;">
+                  <span class="m-name" style="font-weight: 600; display: block;">{{ usuario?.nome || 'Roberta Alves' }}</span>
+                  <span class="m-email" style="font-size: 0.8rem; color: #666;">{{ usuario?.email || 'supervisor@sistema.com' }}</span>
+                </div>
+                
+                <a routerLink="/supervisor/meu-perfil" class="m-item" (click)="showSupervisorProfileMenu = false" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 8px; color: #333; cursor: pointer;">
+                  <lucide-icon [img]="icons['user']" size="16"></lucide-icon>
+                  Meu Perfil
+                </a>
+                
+                <div class="menu-divider" style="height: 1px; background: #eee; margin: 4px 0;"></div>
+                
+                <div class="m-item text-danger" (click)="confirmLogout($event)" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 8px; color: #e11d48; cursor: pointer;">
+                  <lucide-icon [img]="icons['logout']" size="16"></lucide-icon>
+                  Sair do Sistema
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </header>
 
     <main class="page-content">
