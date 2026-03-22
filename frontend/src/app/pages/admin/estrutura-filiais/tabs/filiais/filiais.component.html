@@ -1,0 +1,176 @@
+<div class="list-card animate-up">
+    <div class="list-card-header">
+        <div class="titles">
+            <h2>Filiais Cadastradas</h2>
+            <p>Gerencie as unidades e pontos de atendimento</p>
+        </div>
+        <button class="btn-primary" (click)="abrirModal()">
+            <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+            Nova Filial
+        </button>
+    </div>
+
+    <div class="table-container">
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>FILIAL</th>
+                <th>LOCALIZAÇÃO</th>
+                <th>TELEFONE</th>
+                <th>GUICHÊS</th>
+                <th>STATUS</th>
+                <th>AÇÕES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let f of filiais">
+                <!-- Filial Info -->
+                <td class="col-filial">
+                    <div class="filial-card">
+                        <div class="filial-icon" [style.background-color]="f.cor || '#0ea5e9'">
+                            <lucide-icon [img]="icons.building" size="20" color="white"></lucide-icon>
+                        </div>
+                        <div class="filial-info">
+                            <span class="name">{{ f.nome }}</span>
+                            <span class="email">{{ f.email || 'sem-email@hydroqueue.com.br' }}</span>
+                        </div>
+                    </div>
+                </td>
+
+                <!-- Localization -->
+                <td class="col-loc">
+                    <div class="loc-wrapper">
+                        <lucide-icon [img]="icons.map" size="16" class="gray-icon"></lucide-icon>
+                        <span class="address">{{ f.endereco || 'Endereço não informado' }}</span>
+                    </div>
+                </td>
+
+                <!-- Telefone -->
+                <td class="col-phone">
+                    <div class="phone-wrapper">
+                        <lucide-icon [img]="icons.phone" size="16" class="gray-icon"></lucide-icon>
+                        <span class="number">{{ f.telefone || '(00) 0000-0000' }}</span>
+                    </div>
+                </td>
+
+                <!-- Guichês -->
+                <td class="col-guiches">
+                    <div class="guiche-count">
+                        {{ f._count?.guiches || 0 }}
+                    </div>
+                </td>
+
+                <!-- Status -->
+                <td>
+                    <span class="badge" [class.badge-ativo]="f.ativo" [class.badge-inativo]="!f.ativo">
+                        {{ f.ativo ? 'Ativo' : 'Inativo' }}
+                    </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="col-actions">
+                    <div class="action-buttons">
+                        <button class="btn-action edit" (click)="abrirModal(f)">
+                            <lucide-icon [img]="icons.edit" size="18"></lucide-icon>
+                        </button>
+                        <button class="btn-action toggle" [class.active]="!f.ativo" (click)="toggleStatus(f)">
+                            <lucide-icon [img]="icons.power" size="18"></lucide-icon>
+                        </button>
+                        <button class="btn-action delete" (click)="excluirFilial(f.id)">
+                            <lucide-icon [img]="icons.trash" size="18"></lucide-icon>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="table-footer">
+        Total de {{ filiais.length }} filial(is)
+    </div>
+</div>
+
+<!-- Modal: Nova/Editar Filial -->
+<div class="modal-overlay" *ngIf="showModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>{{ editando ? 'Editar Filial' : 'Nova Filial' }}</h3>
+            <button class="btn-close" (click)="fecharModal()">
+                <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="form-row">
+                <label>Nome da Filial</label>
+                <input type="text" [(ngModel)]="form.nome" placeholder="Ex: Matriz - Centro">
+            </div>
+
+            <div class="form-row">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="form.email" placeholder="filial@empresa.com.br">
+            </div>
+
+            <div class="form-row">
+                <label>Localização</label>
+                <input type="text" [(ngModel)]="form.endereco" placeholder="Rua, número - Bairro, Cidade/Estado">
+            </div>
+
+            <div class="form-grid">
+                <div class="form-row">
+                    <label>Telefone</label>
+                    <input type="text" [(ngModel)]="form.telefone" placeholder="(11) 3000-0000">
+                </div>
+                <div class="form-row">
+                    <label>Status</label>
+                    <select [(ngModel)]="form.ativo">
+                        <option [ngValue]="true">Ativo</option>
+                        <option [ngValue]="false">Inativo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" (click)="fecharModal()">Cancelar</button>
+            <button class="btn-submit" (click)="salvarFilial()" [disabled]="loading">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmação de Exclusão -->
+<div class="modal-overlay refined-overlay" *ngIf="showConfirmDelete">
+    <div class="modal-card mini-modal refined-card">
+        <div class="modal-body text-center">
+            <div class="refined-icon-box alert-circle">
+                <lucide-icon [img]="icons.power" size="32" color="#ef4444"></lucide-icon>
+            </div>
+            <h2 class="refined-title">Deseja excluir?</h2>
+            <p class="refined-desc">
+                A filial <strong>{{ filialParaExcluir?.nome }}</strong>
+                será removida permanentemente do sistema.
+            </p>
+
+            <div class="refined-actions">
+                <button class="btn-refined-outline" (click)="fecharConfirmacao()">Cancelar</button>
+                <button class="btn-refined-danger" (click)="confirmarExclur()">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sucesso -->
+<div class="modal-overlay refined-overlay" *ngIf="showSuccessModal">
+    <div class="modal-card mini-modal refined-card">
+        <div class="modal-body text-center">
+            <div class="refined-icon-box success-circle">
+                <lucide-icon [img]="icons.check" size="32" color="#22c55e"></lucide-icon>
+            </div>
+            <h2 class="refined-title">Sucesso!</h2>
+            <p class="refined-desc">Os dados foram salvos corretamente.</p>
+
+            <div class="refined-actions mt-4">
+                <button class="btn-refined-teal" (click)="fecharSucesso()">OK, Entendi</button>
+            </div>
+        </div>
+    </div>
+</div>

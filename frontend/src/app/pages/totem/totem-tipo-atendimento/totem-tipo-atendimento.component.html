@@ -1,0 +1,64 @@
+<div class="totem-container">
+  
+  <header>
+    <div class="brand-area">
+      <img src="assets/logo-aldebaran.png" class="brand-logo">
+    </div>
+
+    <div class="lang-switch">
+      <div class="lang-option active">PT</div>
+      <div class="lang-option">EN</div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    
+    <div class="center-wrapper">
+      
+      <div class="heading-group">
+        <h1>Tipo de Atendimento</h1>
+        <p>Selecione a opção que se aplica a você</p>
+      </div>
+
+      <div class="cards-row">
+        
+        <div class="action-card" (click)="selecionarConvencional()">
+          <div class="icon-box">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0099CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <h2>Convencional</h2>
+          <p>Atendimento padrão</p>
+          <div class="bar-indicator"></div>
+        </div>
+
+        <div class="action-card" (click)="selecionarPreferencial()">
+          
+          <div class="badge-lei">Lei 10.048</div>
+
+          <div class="icon-box">
+            <img src="assets/icon-idoso-degrade.png" class="icon-img">
+          </div>
+          
+          <h2>Preferencial</h2>
+          <p class="desc-long">Idosos 60+, Gestantes, PCD,<br>Autistas e lactantes</p>
+          <div class="bar-indicator"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="footer-action">
+      <button class="btn-back" routerLink="/totem">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Voltar
+      </button>
+    </div>
+
+  </main>
+</div>

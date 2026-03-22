@@ -1,0 +1,107 @@
+<div class="page-container">
+  
+  <!-- Seletor de Filial (Glassmorphism) -->
+  <div class="filial-selector-wrapper">
+    <div class="filial-selector-glass">
+      <div class="selector-content">
+        <div class="selector-info">
+          <lucide-icon [img]="icons.building" size="18" class="selector-icon"></lucide-icon>
+          <div class="selector-text">
+            <span class="selector-label">Filial atual</span>
+            <span class="selector-value">{{ selectedFilialName || 'Todas as Unidades' }}</span>
+          </div>
+        </div>
+        <div class="selector-action">
+          <select [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select-modern">
+            <option [ngValue]="null">🌍 Configurações Gerais (Global)</option>
+            <option *ngFor="let f of filiais" [ngValue]="f.id">
+              🏢 {{ f.nome }}
+            </option>
+          </select>
+          <div class="select-arrow">
+            <lucide-icon [img]="icons.chevronDown" size="16"></lucide-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid" *ngIf="!loading">
+    <!-- Card 1 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper cyan-bg">
+          <lucide-icon [img]="icons.building" size="20" class="cyan-icon"></lucide-icon>
+        </div>
+        <span class="trend positive">+12%</span>
+      </div>
+      <div class="card-value">{{ stats.filiais }}</div>
+      <div class="card-label">Filiais Ativas</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper blue-bg">
+          <lucide-icon [img]="icons.monitor" size="20" class="blue-icon"></lucide-icon>
+        </div>
+        <span class="trend positive">+8%</span>
+      </div>
+      <div class="card-value">{{ stats.guiches }}</div>
+      <div class="card-label">Guichês Ativos</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper purple-bg">
+          <lucide-icon [img]="icons.userCheck" size="20" class="purple-icon"></lucide-icon>
+        </div>
+        <span class="trend positive">+5%</span>
+      </div>
+      <div class="card-value">{{ stats.atendimentos }}</div>
+      <div class="card-label">Atendimentos Hoje</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="stat-card">
+      <div class="card-top">
+        <div class="icon-wrapper orange-bg">
+          <lucide-icon [img]="icons.clock" size="20" class="orange-icon"></lucide-icon>
+        </div>
+        <span class="trend negative">-3%</span>
+      </div>
+      <div class="card-value">{{ stats.esperaMedio }} min</div>
+      <div class="card-label">Tempo Médio de Espera</div>
+    </div>
+  </div>
+
+  <div class="activity-section" *ngIf="!loading">
+    <h2>Atividade Recente</h2>
+
+    <div class="activity-list">
+      <div class="activity-item" *ngFor="let item of atividadesRecentes">
+        <div class="time">{{ item.horario }}</div>
+        <div class="details">
+          <div class="title">{{ item.titulo }}</div>
+          <div class="location">{{ item.local }}</div>
+        </div>
+        <!-- Simple color mapping based broadly on typeId -->
+        <span class="tag"
+          [ngClass]="{
+            'cyan-tag': item.tipoId === 'Caminhão', 
+            'teal-tag': item.tipoId === 'Retirada Pesada',
+            'blue-tag': item.tipoId === 'Sistema',
+            'gray-tag': !['Caminhão', 'Retirada Pesada', 'Sistema'].includes(item.tipoId)
+          }">
+          {{ item.tipoId }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <p>Carregando métricas reais...</p>
+  </div>
+
+</div>

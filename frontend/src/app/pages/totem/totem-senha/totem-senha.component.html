@@ -1,0 +1,35 @@
+<div class="totem-container" *ngIf="ticket">
+  
+  <div class="ticket-card">
+    
+    <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
+    
+    <div class="success-msg">Senha retirada com sucesso!</div>
+
+    <div class="senha-big">{{ ticket.numeroDisplay }}</div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span>Categoria:</span>
+        <strong>{{ ticket.categoria }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Tipo:</span>
+        <strong>{{ ticket.tipo }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Data:</span>
+        <strong>{{ ticket.dataHora | date:'dd/MM HH:mm' }}</strong>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <p>Escaneie para acompanhar:</p>
+      <img [src]="qrCodeUrl" class="qr-img" alt="QR Code">
+    </div>
+
+  </div>
+
+  <div class="status-print">Imprimindo ticket...</div>
+
+</div>

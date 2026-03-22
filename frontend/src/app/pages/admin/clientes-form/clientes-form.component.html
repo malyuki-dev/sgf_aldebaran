@@ -1,0 +1,85 @@
+<div class="page-container">
+  <div class="page-header">
+    <button class="btn-back" (click)="cancelar()">
+      <lucide-icon [img]="icons.back"></lucide-icon> Voltar
+    </button>
+    <div>
+      <h1>{{ modoEdicao ? 'Editar Cliente' : 'Novo Cliente' }}</h1>
+      <p>{{ modoEdicao ? 'Atualize os dados cadastrais.' : 'Preencha as informações abaixo.' }}</p>
+    </div>
+  </div>
+
+  <div class="card form-container">
+    <form (ngSubmit)="salvar()">
+      
+      <div class="form-grid">
+        <div class="input-group span-2">
+          <label>Nome Completo / Razão Social *</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.user" class="field-icon"></lucide-icon>
+            <input [(ngModel)]="form.nome" name="nome" placeholder="Ex: Empresa LTDA ou João Silva" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>CPF / CNPJ *</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.file" class="field-icon"></lucide-icon>
+            <input 
+              [(ngModel)]="form.documento" 
+              (input)="mascaraDocumento($event)"
+              name="documento" 
+              placeholder="000.000.000-00" 
+              [disabled]="modoEdicao" 
+              title="O documento não pode ser alterado após cadastro."
+              required>
+          </div>
+          <small *ngIf="modoEdicao" class="hint">Documento fixo.</small>
+        </div>
+
+        <div class="input-group">
+          <label>E-mail *</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.mail" class="field-icon"></lucide-icon>
+            <input [(ngModel)]="form.email" name="email" type="email" placeholder="contato@email.com" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Telefone / Celular</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.phone" class="field-icon"></lucide-icon>
+            <input [(ngModel)]="form.telefone" (input)="mascaraTelefone($event)" name="telefone" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+
+        <div class="input-group span-2">
+          <label>Endereço</label>
+          <div class="input-wrapper">
+            <lucide-icon [img]="icons.map" class="field-icon"></lucide-icon>
+            <input [(ngModel)]="form.endereco" name="endereco" placeholder="Rua, Número, Bairro...">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Status</label>
+          <select [(ngModel)]="form.ativo" name="ativo">
+            <option [ngValue]="true">Ativo</option>
+            <option [ngValue]="false">Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          <lucide-icon [img]="icons.save"></lucide-icon>
+          {{ loading ? 'Salvando...' : 'Salvar Dados' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -1,0 +1,411 @@
+<div class="page-container">
+  <!-- Branch Selector Header -->
+  <div class="settings-header-actions">
+    <div class="filial-selector-wrapper">
+      <lucide-icon [img]="icons.building" size="18" class="text-blue"></lucide-icon>
+      <label for="filialSelect">Filial atual:</label>
+      <select id="filialSelect" [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select">
+        <option [ngValue]="null">Configurações Gerais (Global)</option>
+        <option *ngFor="let f of filiais" [ngValue]="f.id">{{ f.nome }}</option>
+      </select>
+    </div>
+    
+    <div class="header-info" *ngIf="loading">
+      <span class="loading-spinner"></span>
+      Carregando...
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="settings-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'geral'" (click)="activeTab = 'geral'" type="button">
+      <lucide-icon [img]="icons.settings" size="20"></lucide-icon>
+      Geral
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'notificacoes'" (click)="activeTab = 'notificacoes'" type="button">
+      <lucide-icon [img]="icons.bell" size="20"></lucide-icon>
+      Notificações
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'integracoes'" (click)="activeTab = 'integracoes'" type="button">
+      <lucide-icon [img]="icons.power" size="20"></lucide-icon>
+      Integrações
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'seguranca'" (click)="activeTab = 'seguranca'" type="button">
+      <lucide-icon [img]="icons.shield" size="20"></lucide-icon>
+      Segurança
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'tv'" (click)="activeTab = 'tv'" type="button">
+      <lucide-icon [img]="icons.tv" size="20"></lucide-icon>
+      Gestão de TV/Dispositivos
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'templates'" (click)="activeTab = 'templates'" type="button">
+      <lucide-icon [img]="icons.mail" size="20"></lucide-icon>
+      Template de Mensagens
+    </button>
+  </div>
+
+  <div class="tab-content" [ngSwitch]="activeTab">
+    
+    <!-- GERAL -->
+    <div *ngSwitchCase="'geral'" class="tab-pane fade-in">
+      <div class="pane-header">
+        <h2>Configurações Gerais</h2>
+        <p>Configure os parâmetros básicos do sistema</p>
+      </div>
+
+      <div class="settings-grid">
+        <!-- Dados da Filial -->
+        <div class="settings-card">
+          <div class="card-header">
+            <lucide-icon [img]="icons.building" size="18" class="text-blue"></lucide-icon>
+            <h3>Dados da Filial</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Nome da Unidade</label>
+              <input type="text" [(ngModel)]="form.UNIDADE_NOME" placeholder="Ex: Filial Centro - São Paulo">
+            </div>
+            <div class="form-group">
+              <label>Fuso Horário</label>
+              <input type="text" [(ngModel)]="form.FUSO_HORARIO" placeholder="Escolha o fuso">
+            </div>
+            <div class="form-group">
+              <label>Idioma do Sistema</label>
+              <div class="toggle-group-btns">
+                <button class="lang-btn" [class.active]="form.IDIOMA_SISTEMA === 'PT'" (click)="form.IDIOMA_SISTEMA = 'PT'" type="button">PT</button>
+                <button class="lang-btn" [class.active]="form.IDIOMA_SISTEMA === 'EN'" (click)="form.IDIOMA_SISTEMA = 'EN'" type="button">EN</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Identidade Visual -->
+        <div class="settings-card">
+          <div class="card-header">
+            <lucide-icon [img]="icons.layout" size="18" class="text-blue"></lucide-icon>
+            <h3>Identidade Visual</h3>
+          </div>
+          <div class="card-body">
+            <div class="upload-row">
+              <div class="upload-area" (click)="logoInput.click()">
+                <input type="file" #logoInput (change)="onLogoSelected($event)" accept="image/*" style="display: none">
+                <lucide-icon [img]="icons.upload" size="32" class="upload-icon"></lucide-icon>
+                <p>{{ form.LOGO_SISTEMA ? 'Trocar Logo' : 'Arraste seu Logo aqui' }}</p>
+                <span>ou clique para selecionar</span>
+                <small>PNG, JPG (Max 2MB)</small>
+              </div>
+              <div class="preview-area">
+                <span>Preview Atual:</span>
+                <div class="preview-box" [class.empty]="!form.LOGO_SISTEMA">
+                   <img *ngIf="form.LOGO_SISTEMA" [src]="form.LOGO_SISTEMA" style="max-width: 100%; max-height: 100%; border-radius: 8px;">
+                   <lucide-icon *ngIf="!form.LOGO_SISTEMA" [img]="icons.layout" size="24"></lucide-icon>
+                   <small *ngIf="!form.LOGO_SISTEMA">Sem logo</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horário de Funcionamento (Totem) -->
+        <div class="settings-card full-width totem-card">
+          <div class="card-header">
+            <lucide-icon [img]="icons.clock" size="18" class="text-blue"></lucide-icon>
+            <h3>Funcionamento e Agendamentos</h3>
+          </div>
+          <div class="card-body">
+            <p class="desc">Defina os horários e dias permitidos para emissão de senhas e agendamentos.</p>
+            <div class="time-range">
+              <div class="form-group">
+                <label>Início</label>
+                <input type="time" [(ngModel)]="form.TOTEM_HORARIO_INICIO">
+              </div>
+              <div class="form-group">
+                <label>Fim</label>
+                <input type="time" [(ngModel)]="form.TOTEM_HORARIO_FIM">
+              </div>
+            </div>
+            <p class="error-inline" *ngIf="horarioInvalido">
+              <lucide-icon [img]="icons.bell" size="14"></lucide-icon>
+              Atenção: O horário de início deve ser anterior ao de término.
+            </p>
+            <div class="days-section">
+              <label class="label-dias">Dias da Semana</label>
+              <div class="days-grid">
+                <button *ngFor="let dia of diasDaSemanaLabels" 
+                        [class.active]="isDiaSelected(dia.id)"
+                        (click)="toggleDia(dia.id); $event.stopPropagation()"
+                        [title]="dia.full"
+                        type="button">{{ dia.label }}</button>
+              </div>
+              <p class="small-hint">Clique nos dias para ativar/desativar</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manutenção -->
+        <div class="settings-card full-width">
+          <div class="card-header">
+            <lucide-icon [img]="icons.database" size="18" class="text-blue"></lucide-icon>
+            <h3>Manutenção</h3>
+          </div>
+          <div class="card-body horizontal">
+            <div class="toggle-item-wrapper">
+              <div class="toggle-item-card active-blue">
+                <div class="icon-side">
+                   <lucide-icon [img]="icons.database" size="20"></lucide-icon>
+                </div>
+                <div class="info">
+                  <strong>Backup Automático Diário</strong>
+                  <span>Backup dos dados às 02:00</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" [(ngModel)]="form.BACKUP_DIARIO" id="chk-backup">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="toggle-item-wrapper">
+              <div class="toggle-item-card active-blue">
+                <div class="icon-side">
+                   <lucide-icon [img]="icons.layout" size="20"></lucide-icon>
+                </div>
+                <div class="info">
+                  <strong>Log de Auditoria Detalhado</strong>
+                  <span>Rastreia todas as ações</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" [(ngModel)]="form.LOG_DETALHADO" id="chk-log">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          </div>
+        </div>
+      </div>
+
+    <!-- NOTIFICAÇÕES -->
+    <div *ngSwitchCase="'notificacoes'" class="tab-pane fade-in">
+      <div class="pane-header">
+        <h2>Notificações e Mensagens</h2>
+        <p>Configure alertas via WhatsApp, SMS e E-mail</p>
+      </div>
+      
+      <div class="notif-grid">
+        <div class="notif-card highlight-green">
+           <lucide-icon [img]="icons.share" size="20" class="text-green"></lucide-icon>
+           <div class="info">
+             <strong>Ativar Alertas WhatsApp</strong>
+             <p>Enviar notificações via WhatsApp</p>
+           </div>
+           <label class="switch">
+             <input type="checkbox" [(ngModel)]="form.ALERTA_WHATSAPP">
+             <span class="slider round"></span>
+           </label>
+        </div>
+
+        <div class="notif-card highlight-blue">
+          <lucide-icon [img]="icons.power" size="20" class="text-blue"></lucide-icon>
+          <div class="info">
+            <strong>Ativar Alertas SMS</strong>
+            <p>Enviar notificações via SMS</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="form.ALERTA_SMS">
+            <span class="slider round"></span>
+          </label>
+       </div>
+
+       <div class="notif-card highlight-purple">
+        <lucide-icon [img]="icons.mail" size="20" class="text-purple"></lucide-icon>
+        <div class="info">
+          <strong>Ativar Alertas E-mail</strong>
+          <p>Enviar notificações via E-mail</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="form.ALERTA_EMAIL">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      </div>
+
+      <div class="models-section">
+        <h3>Modelos de Mensagem</h3>
+        <div class="models-list">
+          <div class="toggle-item-card white">
+            <div class="info">
+              <strong>Notificar ao Chamar Senha</strong>
+              <span>Cliente recebe notificação quando sua senha é chamada</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="form.NOTIF_CHAMADA">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="toggle-item-card white">
+            <div class="info">
+              <strong>Notificar ao Completar Atendimento</strong>
+              <span>Cliente recebe confirmação após atendimento</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="form.NOTIF_ATENDIMENTO">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="toggle-item-card white">
+            <div class="info">
+              <strong>Notificar ao Cancelar Senha</strong>
+              <span>Cliente recebe notificação se a senha for cancelada</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="form.NOTIF_CANCELAMENTO">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTEGRAÇÕES -->
+    <div *ngSwitchCase="'integracoes'" class="tab-pane fade-in">
+      <div class="pane-header">
+        <h2>Integrações Externas</h2>
+        <p>Configure conexões com serviços externos</p>
+      </div>
+
+      <div class="integracoes-list">
+        <div class="int-card-row green-border">
+           <lucide-icon [img]="icons.share" size="20"></lucide-icon>
+           <div class="int-body">
+              <label>WhatsApp API Key</label>
+              <input type="password" [(ngModel)]="form.WHATSAPP_API_KEY" placeholder="Digite sua API Key do WhatsApp Business">
+           </div>
+        </div>
+        <div class="int-card-row blue-border">
+          <lucide-icon [img]="icons.power" size="20"></lucide-icon>
+          <div class="int-body">
+             <label>Provedor de SMS</label>
+             <input type="text" [(ngModel)]="form.PROVEDOR_SMS" placeholder="Configure sua URL ou Token de SMS">
+          </div>
+       </div>
+       <div class="int-card-row purple-border">
+        <lucide-icon [img]="icons.mail" size="20"></lucide-icon>
+        <div class="int-body">
+           <label>Gateway de Pagamento</label>
+           <input type="text" [(ngModel)]="form.GATEWAY_PAGAMENTO" placeholder="Chave de API do meio de pagamento">
+        </div>
+     </div>
+      </div>
+    </div>
+
+    <!-- SEGURANÇA -->
+    <div *ngSwitchCase="'seguranca'" class="tab-pane fade-in">
+      <div class="pane-header">
+        <h2>Segurança e Privacidade</h2>
+        <p>Ajuste as políticas de acesso e proteção do sistema</p>
+      </div>
+      <div class="settings-grid">
+         <div class="settings-card">
+            <div class="card-header">
+              <lucide-icon [img]="icons.shield" size="18"></lucide-icon>
+              <h3>Proteção de Conta</h3>
+            </div>
+            <div class="card-body">
+              <div class="toggle-item-card">
+                <div class="info">
+                  <strong>Autenticação de Dois Fatores (MFA)</strong>
+                  <span>Exigir código por e-mail ou SMS no login</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" [(ngModel)]="form.MFA_ATIVO">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+         </div>
+      </div>
+    </div>
+
+    <!-- TV -->
+    <div *ngSwitchCase="'tv'" class="tab-pane fade-in">
+        <div class="pane-header">
+          <h2>Gestão de TV/Dispositivos</h2>
+          <p>Configure o layout e mídia para as telas de TV</p>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card full-width">
+            <div class="card-header">
+              <lucide-icon [img]="icons.tv" size="18" class="text-blue"></lucide-icon>
+              <h3>Configurações de Transmissão</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Layout da TV</label>
+                <select class="filial-select" [(ngModel)]="form.TV_LAYOUT" style="min-width: 100%; width: 100%;">
+                  <option value="PADRAO">Layout Padrão (Senhas + Notícias)</option>
+                  <option value="FULLVIDEO">Vídeo em Tela Cheia</option>
+                  <option value="SPLIT">Dividido (Vídeo + Chamadas)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>URL do Vídeo/Playlist (YouTube/MP4)</label>
+                <input type="text" [(ngModel)]="form.TV_VIDEO_URL" placeholder="https://youtube.com/...">
+              </div>
+              <div class="toggle-item-card white">
+                <div class="info">
+                  <strong>Mostrar Barra de Notícias</strong>
+                  <span>Exibir últimas notícias e avisos no rodapé da TV</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" [(ngModel)]="form.MOSTRAR_NOTICIAS">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div *ngSwitchCase="'templates'" class="tab-pane fade-in">
+        <div class="pane-header">
+          <h2>Template de Mensagens</h2>
+          <p>Personalize os textos enviados aos clientes</p>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card full-width">
+            <div class="card-header">
+              <lucide-icon [img]="icons.mail" size="18" class="text-blue"></lucide-icon>
+              <h3>Mensagens Customizadas</h3>
+            </div>
+            <div class="card-body">
+              <div class="alert-info-box">
+                <lucide-icon [img]="icons.bell" size="20"></lucide-icon>
+                <p>Em breve você poderá personalizar cada palavra enviada aos seus clientes via WhatsApp, SMS e E-mail.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="save-footer-global">
+    <button class="btn-save-modern" [disabled]="salvando" (click)="salvar(); $event.stopPropagation()" type="button">
+       <lucide-icon [img]="icons.save" size="20"></lucide-icon>
+       {{ salvando ? 'Salvando...' : 'Salvar Alterações' }}
+    </button>
+  </div>
+
+  <!-- Toast de Sucesso - POSICIONADO FORA DO CONTEÚDO TRANSFORMADO -->
+  <div class="success-toast" *ngIf="mostrarSucesso" [class.show]="mostrarSucesso">
+    <div class="toast-icon-wrapper">
+      <lucide-icon [img]="icons.check" class="toast-icon"></lucide-icon>
+    </div>
+    <div class="toast-content">
+      <strong>Sucesso!</strong>
+      <span>Configurações salvas com sucesso.</span>
+    </div>
+  </div>
+</div>

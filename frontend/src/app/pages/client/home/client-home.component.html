@@ -1,0 +1,95 @@
+<div class="client-page">
+  
+
+
+  <main class="content-container">
+    
+    <div class="greeting-section animate-up">
+      <h1>Olá, {{ usuario.nome }} 👋</h1>
+      <p class="section-label">SEU PRÓXIMO AGENDAMENTO</p>
+    </div>
+
+    <!-- NEXT APPOINTMENT CARD -->
+    <div class="next-appointment-card animate-up delay-1" *ngIf="proximoAgendamento">
+      <div class="card-main">
+        <div class="date-badge">
+          <span class="day">{{ proximoAgendamento.day }}</span>
+          <span class="month">{{ proximoAgendamento.month }}</span>
+        </div>
+        
+        <div class="appointment-info">
+          <h3>{{ proximoAgendamento.titulo }}</h3>
+          <div class="info-row">
+            <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+            <span>{{ proximoAgendamento.hora }}</span>
+          </div>
+          <div class="info-row">
+            <lucide-icon [img]="icons.map" size="14"></lucide-icon>
+            <span>{{ proximoAgendamento.local }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-voucher">
+        <lucide-icon [img]="icons.qrcode" size="20"></lucide-icon>
+        Abrir Voucher / Check-in
+      </button>
+
+      <button class="btn-cancel" (click)="cancelarAgendamento()">Cancelar este agendamento</button>
+    </div>
+
+    <!-- MENSAGEM QUANDO NÃO HÁ AGENDAMENTOS -->
+    <div class="no-appointments-card animate-up delay-1" *ngIf="!proximoAgendamento">
+      <div class="empty-icon-wrap">
+        <lucide-icon [img]="icons.calendar" size="48"></lucide-icon>
+      </div>
+      <h3>Nenhum agendamento para hoje</h3>
+      <p>Você não possui atendimentos agendados. Deseja realizar um novo agendamento?</p>
+      <button class="btn-primary-home" routerLink="/client/agendar">Agendar Novo Horário</button>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions-section animate-up delay-2">
+      <p class="section-label">AÇÕES RÁPIDAS</p>
+
+      <div class="actions-grid">
+        <button class="action-card" routerLink="/client/agendar">
+          <div class="icon-wrap blue">
+            <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
+          </div>
+          <div class="action-details">
+            <h3>Novo Agendamento</h3>
+            <span>Agende um novo horário</span>
+          </div>
+        </button>
+
+        <button class="action-card" routerLink="/client/meus-agendamentos">
+          <div class="icon-wrap tan">
+            <lucide-icon [img]="icons.list" size="24"></lucide-icon>
+          </div>
+          <div class="action-details">
+            <h3>Meus Agendamentos</h3>
+            <span>Consulte atendimentos passados</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL DE CANCELAMENTO -->
+  <div class="cancel-modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelModal()">
+    <div class="cancel-modal-card scale-up" (click)="$event.stopPropagation()">
+      <div class="warning-icon-wrap">
+        <lucide-icon [img]="icons.help" size="40"></lucide-icon>
+      </div>
+      <h2>Deseja mesmo cancelar?</h2>
+      <p>Esta ação não pode ser desfeita e seu horário será liberado para outros clientes.</p>
+      
+      <div class="cancel-actions">
+        <button class="btn-confirm-cancel" (click)="confirmarCancelamento()">Sim, cancelar</button>
+        <button class="btn-keep" (click)="fecharCancelModal()">Não, manter agendamento</button>
+      </div>
+    </div>
+  </div>
+</div>

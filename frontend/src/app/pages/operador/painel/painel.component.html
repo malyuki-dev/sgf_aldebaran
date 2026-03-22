@@ -1,0 +1,93 @@
+<div class="guiche-container">
+    <!-- Cabecalho Superior do Operador -->
+    <header class="operator-header">
+        <div class="header-left">
+            <div class="guiche-badge">
+                <lucide-angular [img]="icons.hash" class="mr-1"></lucide-angular>
+                Guichê {{ numeroGuiche }}
+            </div>
+            <div class="operator-info">
+                <h3>{{ nomeOperador }}</h3>
+                <span class="status online">Disponível</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="fila-live">
+                <lucide-angular [img]="icons.users"></lucide-angular>
+                <strong>{{ filaAguardando }}</strong> na fila
+            </div>
+            <button class="btn btn-logout" routerLink="/">Sair</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+
+        <!-- ESTADO 1: GUICHÊ LIVRE (Sem ticket atual) -->
+        <div *ngIf="!ticketAtual" class="estado-livre fade-in">
+            <div class="livre-content">
+                <div class="pulse-ring">
+                    <lucide-angular [img]="icons.play" class="play-icon"></lucide-angular>
+                </div>
+                <h2>Guichê Livre</h2>
+                <p>Aperte o botão abaixo ou pressione Espaço para chamar a próxima senha do painel.</p>
+
+                <button class="btn-chamada-mega" (click)="chamarProximo()">
+                    CHAMAR PRÓXIMO
+                </button>
+            </div>
+        </div>
+
+        <!-- ESTADO 2: TICKET CHAMADO / EM ATENDIMENTO -->
+        <div *ngIf="ticketAtual" class="estado-atendimento fade-in">
+
+            <!-- Dados do Ticket (Topo) -->
+            <section class="ticket-card">
+                <div class="ticket-header" [class.em-atendimento]="ticketAtual.status === 'EM_ATENDIMENTO'">
+                    <div class="tag-servico">{{ ticketAtual.servico }}</div>
+                    <h1 class="senha-numero">{{ ticketAtual.senha }}</h1>
+                    <span class="status-badge">{{ ticketAtual.status }}</span>
+                </div>
+
+                <div class="cliente-details">
+                    <div class="detail-row">
+                        <lucide-angular [img]="icons.user"></lucide-angular>
+                        <span><strong>Cliente:</strong> {{ ticketAtual.cliente }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <lucide-angular [img]="icons.briefcase"></lucide-angular>
+                        <span><strong>Documento:</strong> {{ ticketAtual.documento }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Grade de Acões (Rodapé do Ticket) -->
+            <section class="action-grid">
+
+                <!-- Ações Iniciais (Logo após chamar antes de começar a atender) -->
+                <ng-container *ngIf="ticketAtual.status === 'CHAMADO'">
+                    <button class="btn-action btn-iniciar" (click)="iniciarAtendimento()">
+                        <lucide-angular [img]="icons.play"></lucide-angular>
+                        Iniciar Atendimento
+                    </button>
+                    <button class="btn-action btn-rechamar" (click)="rechamar()">
+                        <lucide-angular [img]="icons.recall"></lucide-angular>
+                        Rechamar Painel
+                    </button>
+                    <button class="btn-action btn-ausente" (click)="naoCompareceu()">
+                        <lucide-angular [img]="icons.alert"></lucide-angular>
+                        Ausente (No-show)
+                    </button>
+                </ng-container>
+
+                <!-- Ação Secundária (Após o atendimento iniciar) -->
+                <ng-container *ngIf="ticketAtual.status === 'EM_ATENDIMENTO'">
+                    <button class="btn-action btn-concluir" (click)="finalizarAtendimento()">
+                        <lucide-angular [img]="icons.check"></lucide-angular>
+                        Finalizar Atendimento
+                    </button>
+                </ng-container>
+
+            </section>
+        </div>
+    </main>
+</div>

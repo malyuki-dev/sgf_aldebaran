@@ -1,0 +1,163 @@
+<div class="regras-container animate-up">
+    <!-- Header -->
+    <header class="section-header">
+        <h1>Regras e Controle de Filas</h1>
+        <p>Gerencie categorias base e regras lógicas de prioridade</p>
+    </header>
+
+    <!-- 1. Categorias de Atendimento (Físicas) -->
+    <div class="card-premium mb-8">
+        <h2 class="card-title">1. Categorias de Atendimento (Físicas)</h2>
+        <p class="card-subtitle">Categorias geradas no Quiosque/Totem presencial</p>
+
+        <div class="categories-list">
+            <div *ngFor="let s of servicos" class="category-item-card">
+                <div class="cat-info">
+                    <div class="cat-icon-box" [style.background]="s.cor || '#0ea5e9'">
+                        <lucide-icon [img]="getLucideIcon(s.icone)" size="24" color="white"></lucide-icon>
+                    </div>
+                    <div class="cat-name-box">
+                        <h3>{{ s.nome }}</h3>
+                        <span>Categoria Física</span>
+                    </div>
+                </div>
+
+                <div class="cat-fields">
+                    <div class="input-group-premium">
+                        <label>PREFIXO</label>
+                        <input type="text" [(ngModel)]="s.prefixo" placeholder="Ex: {{ s.sigla }}">
+                        <small>Ex: {{ s.prefixo || s.sigla }}-001</small>
+                    </div>
+                    
+                    <div class="input-group-premium">
+                        <label>PRIORIDADE</label>
+                        <input type="number" [(ngModel)]="s.prioridadePeso" placeholder="1">
+                    </div>
+
+                    <div class="sla-group">
+                        <label>METAS DE TEMPO (SLA)</label>
+                        <div class="sla-inputs">
+                            <div class="sla-item">
+                                <div class="sla-input-wrapper">
+                                    <lucide-icon [img]="iconsArr.clock" size="14" color="#0ea5e9"></lucide-icon>
+                                    <input type="number" [(ngModel)]="s.metaEspera" [style.width.ch]="(s.metaEspera?.toString()?.length || 1) + 1">
+                                    <span>min</span>
+                                </div>
+                                <span class="sla-label">Espera</span>
+                            </div>
+                            <div class="sla-item">
+                                <div class="sla-input-wrapper">
+                                    <lucide-icon [img]="iconsArr.headphones" size="14" color="#10b981"></lucide-icon>
+                                    <input type="number" [(ngModel)]="s.metaAtendimento" [style.width.ch]="(s.metaAtendimento?.toString()?.length || 1) + 1">
+                                    <span>min</span>
+                                </div>
+                                <span class="sla-label">Atend.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Lógica de Agendamento (Web/App) -->
+    <div class="card-premium scheduling-logic mb-8">
+        <h2 class="card-title">2. Lógica de Agendamento (Web/App)</h2>
+        <p class="card-subtitle">Modificador aplicado em senhas geradas online</p>
+
+        <div class="logic-settings">
+            <div class="logic-field-card">
+                <label>MODIFICADOR VISUAL</label>
+                <div class="logic-input">
+                    <input type="text" [(ngModel)]="configs.MODIFICADOR_AGENDAMENTO" maxlength="2">
+                </div>
+                <small>Letra adicionada ao prefixo (Ex: CM<strong>{{ configs.MODIFICADOR_AGENDAMENTO }}</strong>045)</small>
+            </div>
+
+            <div class="logic-field-card">
+                <label>BÔNUS DE PRIORIDADE</label>
+                <div class="logic-input">
+                    <input type="text" [(ngModel)]="configs.BONUS_PRIORIDADE_AGENDAMENTO">
+                </div>
+                <small>Quantos níveis de prioridade o agendamento ganha</small>
+            </div>
+        </div>
+
+        <!-- Diagrama Visual -->
+        <div class="logic-diagram">
+            <div class="diagram-step">
+                <span class="step-label">Categoria Original</span>
+                <div class="badge-base cat-orig">RP</div>
+                <span class="step-name">Retirada Pesada</span>
+            </div>
+            <div class="diagram-operator">+</div>
+            <div class="diagram-step">
+                <span class="step-label">Modificador</span>
+                <div class="badge-base mod-box">{{ configs.MODIFICADOR_AGENDAMENTO }}</div>
+                <span class="step-name">Agendado +{{ configs.BONUS_PRIORIDADE_AGENDAMENTO }}</span>
+            </div>
+            <div class="diagram-operator">
+                <lucide-icon [img]="iconsArr.arrowRight" size="24" color="#0ea5e9"></lucide-icon>
+            </div>
+            <div class="diagram-step">
+                <span class="step-label">Senha Gerada</span>
+                <div class="badge-final">RP-{{ configs.MODIFICADOR_AGENDAMENTO }}045</div>
+                <span class="step-name">Senha com prioridade aumentada</span>
+            </div>
+        </div>
+
+        <div class="info-box-blue">
+            <p>Quando um cliente agenda online, a senha recebe o modificador "{{ configs.MODIFICADOR_AGENDAMENTO }}" e ganha +{{ configs.BONUS_PRIORIDADE_AGENDAMENTO }} de prioridade na fila, sendo chamada mais rápido que senhas normais da mesma categoria.</p>
+        </div>
+    </div>
+
+    <!-- 3. Configurações Globais -->
+    <div class="card-premium mb-24 section-global">
+        <h2 class="card-title">3. Configurações Globais</h2>
+        <p class="card-subtitle">Controle do ciclo de vida e limpeza do sistema</p>
+
+        <div class="global-settings-grid">
+            <div class="global-setting-card">
+                <label>Horário de Reset</label>
+                <input type="time" [(ngModel)]="configs.HORARIO_RESET" class="reset-input">
+                <small>Horário em que as senhas serão resetadas automaticamente</small>
+            </div>
+
+            <div class="global-setting-card flex-row justify-between items-center">
+                <div class="setting-info">
+                    <label>Limpeza Automática</label>
+                    <p>Remover automaticamente senhas expiradas e canceladas do banco de dados</p>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" [(ngModel)]="configs.LIMPEZA_AUTOMATICA" (change)="configs.LIMPEZA_AUTOMATICA = $any($event.target).checked ? 'true' : 'false'" [checked]="configs.LIMPEZA_AUTOMATICA === 'true'">
+                    <span class="slider"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab-save" (click)="salvarAlteracoes()" [disabled]="loading">
+            <lucide-icon *ngIf="!loading" [img]="iconsArr.save" size="20"></lucide-icon>
+            <span *ngIf="loading" class="spinner"></span>
+            Salvar Alterações
+        </button>
+    </div>
+</div>
+
+<!-- Modal de Sucesso -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="fecharSucesso()">
+    <div class="modal-content animate-pop success-modal-small" (click)="$event.stopPropagation()">
+        <div class="success-view">
+            <div class="icon-halo">
+                <div class="icon-circle">
+                    <lucide-icon [img]="iconsArr.check" size="40" strokeWidth="3"></lucide-icon>
+                </div>
+            </div>
+            <h2>Sucesso!</h2>
+            <p>As configurações foram salvas e aplicadas em todo o sistema.</p>
+            <button class="btn-success-ok" (click)="fecharSucesso()">OK, Entendi</button>
+        </div>
+    </div>
+</div>

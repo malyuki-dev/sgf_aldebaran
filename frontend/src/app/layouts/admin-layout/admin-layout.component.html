@@ -1,0 +1,214 @@
+<div class="admin-container">
+  <!-- SIDEBAR (Light Theme) -->
+  <aside class="sidebar" [class.closed]="!sidebarOpen">
+    <div class="logo-area" (click)="toggleSidebar()" style="cursor: pointer;">
+      <div class="logo-wrapper" *ngIf="sidebarOpen">
+        <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo-full" />
+      </div>
+      <div *ngIf="!sidebarOpen" class="logo-mini-wrap">
+        <img src="assets/logo-ticket.png" alt="Ticket" class="logo-mini-img" />
+      </div>
+    </div>
+
+    <nav class="menu">
+      <ng-container *ngFor="let group of menuGroups">
+        <div class="menu-group-title" *ngIf="sidebarOpen">{{ group.title }}</div>
+
+        <ng-container *ngFor="let item of group.items">
+          <a *ngIf="!item.external" [routerLink]="item.path" routerLinkActive="active" class="menu-item">
+            <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+            <span *ngIf="sidebarOpen">{{ item.label }}</span>
+          </a>
+
+          <a *ngIf="item.external" [routerLink]="item.path" class="menu-item totem-link" target="_blank">
+            <lucide-icon [img]="icons[item.icon]"></lucide-icon>
+            <span *ngIf="sidebarOpen">{{ item.label }}</span>
+          </a>
+        </ng-container>
+      </ng-container>
+    </nav>
+
+    <!-- BOTTOM PERFIL -->
+    <div class="sidebar-user" (click)="toggleProfileMenu($event)" [class.active]="showProfileMenu">
+      <div class="avatar">{{ userInitials }}</div>
+      <div class="text">
+        <div class="name">{{ usuario?.nome || userName }}</div>
+        <div class="role">Administrador</div>
+      </div>
+      <button class="chevron-icon" title="Abrir menu">
+        <lucide-icon [img]="showProfileMenu ? icons['chevronUp'] : icons['chevronDown']" size="18"></lucide-icon>
+      </button>
+
+      <!-- Profile Context Menu -->
+      <div class="profile-menu" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+        <div class="menu-header">
+          <span class="m-name">{{ usuario?.nome || userName }}</span>
+          <span class="m-email">{{ usuario?.email || 'admin@sistema.com' }}</span>
+        </div>
+        <div class="menu-divider"></div>
+        <a routerLink="/admin/meu-perfil" class="m-item" (click)="showProfileMenu = false">
+          <lucide-icon [img]="icons['user']" size="16"></lucide-icon>
+          Meu Perfil
+        </a>
+        <div class="m-item" (click)="toggleDarkMode($event)">
+          <lucide-icon [img]="icons['moon']" size="16"></lucide-icon>
+          Modo Escuro
+          <div class="toggle-switch" [class.on]="isDarkMode"></div>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="m-item text-danger" (click)="confirmLogout($event)">
+          <lucide-icon [img]="icons['logout']" size="16"></lucide-icon>
+          Sair do Sistema
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="main-content-wrapper" [class.expanded]="!sidebarOpen">
+    <!-- TOP BAR (White background) -->
+    <header class="top-bar">
+      <!-- MODO ADMIN -->
+      <ng-container *ngIf="usuario?.perfil !== 'SUPERVISOR'">
+        <div class="top-bar-left">
+          <div class="breadcrumb-area">
+            <div class="breadcrumbs" *ngIf="activePageGroup">
+              <span class="root">{{ activePageGroup }}</span>
+              <lucide-icon [img]="icons['chevronRight']" size="14" class="separator"></lucide-icon>
+              <span class="current">{{ activePageTitle }}</span>
+            </div>
+            <h1 class="page-title">{{ activePageTitle }}</h1>
+          </div>
+        </div>
+
+        <div class="top-bar-right">
+          <div class="search-box">
+            <lucide-icon [img]="icons['search']" class="search-icon" size="18"></lucide-icon>
+            <input type="text" placeholder="Buscar..." />
+          </div>
+          <div class="notification-container">
+            <button class="notification-btn circular" (click)="toggleNotifications($event)" [class.active]="showNotifications">
+              <lucide-icon [img]="icons['bell']" size="20"></lucide-icon>
+              <span class="dot" *ngIf="hasUnreadNotifications"></span>
+            </button>
+
+            <!-- Notifications Dropdown -->
+            <div class="notifications-dropdown" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+              <div class="dropdown-header">
+                <h3>Notificações</h3>
+                <button class="btn-link" (click)="marcarTodasLidas()">Marcar como lidas</button>
+              </div>
+              <div class="dropdown-body">
+                <div class="empty-notif" *ngIf="notificacoesFiltradas.length === 0">
+                  Nenhuma notificação por enquanto.
+                </div>
+                <div class="notification-item" *ngFor="let n of notificacoesFiltradas" [class.unread]="!n.lida" (click)="onNotificationClick(n)">
+                  <div class="item-icon" [ngClass]="n.iconClass || 'blue-icon'">
+                    <lucide-icon [img]="icons[n.icon] || icons['bell']" size="18"></lucide-icon>
+                  </div>
+                  <div class="item-content">
+                    <div class="item-title">{{ n.titulo }}</div>
+                    <div class="item-desc">{{ n.mensagem }}</div>
+                  </div>
+                  <div class="item-time">{{ n.criadoEm | date:'HH:mm' }}</div>
+                </div>
+                <div *ngIf="notificacoes.length === 0" class="empty-notif">
+                  Nenhuma notificação por enquanto
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- MODO SUPERVISOR -->
+      <ng-container *ngIf="usuario?.perfil === 'SUPERVISOR'">
+        <div class="supervisor-nav-full">
+           <div class="nav-left">
+             <!-- Logo removida para ficar apenas na sidebar -->
+           </div>
+           
+           <div class="nav-right">
+            <div class="nav-group">
+              <div class="info-group">
+                <span class="info-label">Filial</span>
+                <div class="fake-input-box"></div>
+              </div>
+
+              <div class="info-group">
+                <span class="info-label">Language</span>
+                <div class="language-toggle">
+                  <button class="active">PT</button>
+                  <button>EN</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="nav-btn btn-transparent text-purple" [routerLink]="['/supervisor/dashboard']" [queryParams]="{modal: 'atendimentos'}">
+              <lucide-icon [img]="icons['history']" size="18"></lucide-icon>
+              Atendimentos
+              <span class="badge badge-purple">5</span>
+            </button>
+
+            <button class="nav-btn btn-transparent text-blue" [routerLink]="['/supervisor/dashboard']" [queryParams]="{modal: 'agendamentos'}">
+              <lucide-icon [img]="icons['calendar']" size="18"></lucide-icon>
+              Agendamentos
+              <span class="badge badge-blue">5</span>
+            </button>
+
+            <div class="profile-dropdown-container">
+              <div class="profile-trigger" (click)="toggleSupervisorProfileMenu($event)" [class.active]="showSupervisorProfileMenu">
+                <div class="profile-info">
+                  <span class="profile-name">{{ usuario?.nome || 'Roberta Alves' }}</span>
+                  <span class="profile-role">Supervisor</span>
+                </div>
+                <div class="avatar-box bg-teal-dark">
+                  <lucide-icon [img]="icons['user']" size="20" color="white"></lucide-icon>
+                </div>
+              </div>
+
+              <!-- Supervisor Profile Menu Dropdown -->
+              <div class="profile-menu supervisor-menu" *ngIf="showSupervisorProfileMenu" (click)="$event.stopPropagation()">
+                <div class="menu-header" style="padding: 1rem; border-bottom: 1px solid #eee;">
+                  <span class="m-name" style="font-weight: 600; display: block;">{{ usuario?.nome || 'Roberta Alves' }}</span>
+                  <span class="m-email" style="font-size: 0.8rem; color: #666;">{{ usuario?.email || 'supervisor@sistema.com' }}</span>
+                </div>
+                
+                <a routerLink="/supervisor/meu-perfil" class="m-item" (click)="showSupervisorProfileMenu = false" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 8px; color: #333; cursor: pointer;">
+                  <lucide-icon [img]="icons['user']" size="16"></lucide-icon>
+                  Meu Perfil
+                </a>
+                
+                <div class="menu-divider" style="height: 1px; background: #eee; margin: 4px 0;"></div>
+                
+                <div class="m-item text-danger" (click)="confirmLogout($event)" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 8px; color: #e11d48; cursor: pointer;">
+                  <lucide-icon [img]="icons['logout']" size="16"></lucide-icon>
+                  Sair do Sistema
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="showLogoutModal">
+    <div class="modal-content text-center scale-up">
+      <div class="logout-icon-wrapper">
+        <lucide-icon [img]="icons['power']" size="32" class="power-icon"></lucide-icon>
+      </div>
+      <h2>Deseja sair do sistema?</h2>
+      <p>Sua sessão atual será encerrada.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelLogout()">Cancelar</button>
+        <button class="btn-confirm" (click)="logout()">Sim, Sair</button>
+      </div>
+    </div>
+  </div>
+</div>

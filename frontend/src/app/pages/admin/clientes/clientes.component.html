@@ -1,0 +1,185 @@
+<div class="crud-page animate-up">
+  <div class="list-card">
+    <div class="list-card-header">
+      <div class="titles">
+        <h2>Clientes</h2>
+        <p>Gerencie os clientes cadastrados</p>
+      </div>
+      <button class="btn-primary" (click)="abrirModalNovo()">
+        <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+        Novo Cliente
+      </button>
+    </div>
+
+    <div class="list-card-search" *ngIf="clientes.length > 0 || filtro">
+      <div class="search-input-wrapper">
+        <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+        <input type="text" placeholder="Buscar por razão social, nome fantasia ou CNPJ/CPF..." [(ngModel)]="filtro"
+          (keyup.enter)="carregarClientes()">
+      </div>
+    </div>
+
+    <div class="skeleton-loader" *ngIf="loading" style="padding: 2rem;">
+      Aguarde, carregando...
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && clientes.length > 0">
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>CPF/CNPJ</th>
+            <th>Contato</th>
+            <th>Responsável</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of clientes" [class.inactive]="!isAtivo(c)">
+            <td>
+              <span class="tb-title">{{ c.nome }}</span>
+              <span class="tb-subtitle" *ngIf="c.tipo === 'PJ'">{{ c.nomeFantasia || 'Nome Fantasia N/A' }}</span>
+            </td>
+            <td>{{ getDocument(c) }}</td>
+            <td>
+              <span class="tb-title">{{ c.telefone || '(11) 0000-0000' }}</span>
+              <span class="tb-subtitle">{{ c.email }}</span>
+            </td>
+            <td>{{ c.responsavel || 'João Silva' }}</td>
+            <td>
+              <div class="status-badge" [ngClass]="isAtivo(c) ? 'active' : 'inactive'">
+                <lucide-icon [img]="isAtivo(c) ? icons.checkCircle : icons.shieldAlert" size="14"></lucide-icon>
+                {{ isAtivo(c) ? 'Ativo' : 'Inativo' }}
+              </div>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-edit" (click)="abrirModalEditar(c)" title="Editar">
+                  <lucide-icon [img]="icons.edit" size="14"></lucide-icon>
+                </button>
+                <button class="btn-toggle" [ngClass]="isAtivo(c) ? 'deactivate' : 'activate'" 
+                  (click)="alternarStatus(c.id)"
+                  [title]="isAtivo(c) ? 'Inativar' : 'Ativar'">
+                  <lucide-icon [img]="isAtivo(c) ? icons.trash2 : icons.checkCircle" size="14"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && clientes.length === 0" style="padding: 3rem;">
+      <div class="icon-circle empty">
+        <lucide-icon [img]="icons.users" size="40"></lucide-icon>
+      </div>
+      <h3>Nenhum cliente encontrado</h3>
+      <p>O banco está vazio ou a busca não retornou resultados.</p>
+    </div>
+
+    <div class="list-card-footer" *ngIf="!loading && clientes.length > 0">
+      <span>Total de {{ clientes.length }} cliente(s)</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (Edit/Create) -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+  <div class="modal-content animate-pop" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+        {{ isEditing ? 'Editar Cliente' : 'Criar Novo Cliente' }}
+      </h2>
+      <button class="close-btn" (click)="fecharModal()"><lucide-icon [img]="icons.x"></lucide-icon></button>
+    </div>
+
+    <!-- Alert for default passwords -->
+    <div class="alert-info" *ngIf="!isEditing && !clienteForm.senha" style="margin: 16px 24px 0;">
+      <lucide-icon [img]="icons.alertCircle" size="20"></lucide-icon>
+      <div>
+        <strong>Aviso:</strong> Se nenhuma senha for informada, o sistema usará o CPF/CNPJ (apenas números) como senha
+        padrão, ou <code>123456</code> se não houver documento. O cliente deverá trocar no primeiro acesso.
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <!-- PF/PJ Toggle - Segmented Control matching Screenshot 3 -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>TIPO</label>
+          <div class="segmented-control">
+            <button type="button" [class.active]="clienteForm.tipo === 'PF'" (click)="clienteForm.tipo = 'PF'">Pessoa Física</button>
+            <button type="button" [class.active]="clienteForm.tipo === 'PJ'" (click)="clienteForm.tipo = 'PJ'">Pessoa Jurídica</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>{{ clienteForm.tipo === 'PF' ? 'Nome Completo' : 'Razão Social' }} *</label>
+        <input type="text" [(ngModel)]="clienteForm.nome" [placeholder]="clienteForm.tipo === 'PF' ? 'Ex: João Silva' : 'Ex: Minha Empresa LTDA'" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>{{ clienteForm.tipo === 'PF' ? 'CPF' : 'CNPJ' }} *</label>
+          <input *ngIf="clienteForm.tipo === 'PF'" type="text" [(ngModel)]="clienteForm.cpf"
+            (blur)="checkDocumento()"
+            placeholder="000.000.000-00" />
+          <input *ngIf="clienteForm.tipo === 'PJ'" type="text" [(ngModel)]="clienteForm.cnpj"
+            (blur)="checkDocumento()"
+            placeholder="00.000.000/0000-00" />
+        </div>
+        <div class="form-group flex-1">
+          <label>Telefone</label>
+          <input type="text" [(ngModel)]="clienteForm.telefone" placeholder="(00) 00000-0000" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>E-mail *</label>
+        <input type="email" [(ngModel)]="clienteForm.email" placeholder="usuario@empresa.com.br" />
+      </div>
+
+      <div class="form-group">
+        <label>Endereço</label>
+        <input type="text" [(ngModel)]="clienteForm.endereco" placeholder="Rua, Número, Bairro, Cidade" />
+      </div>
+
+      <div class="form-row mt-4">
+        <div class="form-group flex-1">
+          <div class="toggle-wrapper">
+             <input type="checkbox" [(ngModel)]="clienteForm.ativo" id="chkAtivo" />
+             <label for="chkAtivo">Cliente ativo</label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fecharModal()">Cancelar</button>
+      <button type="button" class="btn-submit" (click)="salvar()">
+        <lucide-icon [img]="icons.checkCircle" size="18"></lucide-icon>
+        {{ isEditing ? 'Salvar' : 'Cadastrar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Sucesso -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="fecharModal()">
+  <div class="modal-content" style="max-width: 380px; padding: 2rem; border-radius: 20px;"
+    (click)="$event.stopPropagation()">
+    <div class="success-view">
+      <div class="icon-halo">
+        <div class="icon-circle">
+          <lucide-icon [img]="icons.check" size="40" strokeWidth="3"></lucide-icon>
+        </div>
+      </div>
+      <h2>Sucesso!</h2>
+      <p>Cliente {{ isEditing ? 'atualizado' : 'cadastrado' }} corretamente.</p>
+      <button class="btn-success-ok" (click)="fecharModal()">OK, Entendi</button>
+    </div>
+  </div>
+</div>

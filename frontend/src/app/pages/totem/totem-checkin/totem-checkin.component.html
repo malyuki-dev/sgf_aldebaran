@@ -1,0 +1,124 @@
+<div class="totem-container">
+  
+  <header>
+    <div class="brand-area">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
+    </div>
+    <div class="lang-switch">
+      <div class="lang-option active">PT</div>
+      <div class="lang-option">EN</div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    
+    <div class="center-wrapper">
+      
+      <div class="heading-group">
+        <h1>Como você deseja realizar o check-in?</h1>
+      </div>
+
+      <div class="split-card">
+        
+        <div class="side-option qr-side">
+          <div class="qr-illustration">
+            <div class="qr-box">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" fill="#0E4F8F" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" fill="#0E4F8F" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" fill="#0E4F8F" rx="1"/>
+                <rect x="15" y="15" width="5" height="5" fill="#0E4F8F" rx="1"/>
+              </svg>
+              <div class="scan-line"></div>
+            </div>
+          </div>
+          <h2>Via Leitor QR Code</h2>
+          <p>Aproxime seu código do leitor físico.</p>
+        </div>
+
+        <div class="divider-vertical">
+          <div class="ou-circle">OU</div>
+        </div>
+
+        <div class="side-option code-side">
+          <div class="text-group">
+            <h2>Via Código de Agendamento</h2>
+            <p>Digite o código recebido por e-mail ou SMS.</p>
+          </div>
+
+          <button class="btn-confirmar" (click)="abrirModalCodigo()">
+            Confirmar Check-in
+          </button>
+
+          <a class="link-ajuda" (click)="abrirAjuda()">
+            Onde encontro meu código?
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="footer-action">
+      <button class="btn-back" routerLink="/totem">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Voltar
+      </button>
+    </div>
+
+  </main>
+
+  <div class="modal-overlay" *ngIf="mostrarModalCodigo" (click)="fecharModalCodigo()">
+    <div class="modal-card code-modal" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h3>Código de Agendamento</h3>
+        <button class="btn-close" (click)="fecharModalCodigo()">✕</button>
+      </div>
+      
+      <p class="modal-desc">Insira o código alfanumérico recebido.</p>
+
+      <input type="text" 
+             class="code-input" 
+             placeholder="#RP-9025-XQ"
+             [(ngModel)]="codigoDigitado" 
+             (keyup.enter)="confirmarCodigo()">
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="fecharModalCodigo()">Cancelar</button>
+        <button class="btn-confirm" (click)="confirmarCodigo()">Confirmar Check-in</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarAjuda" (click)="fecharAjuda()">
+    <div class="modal-card help-modal" (click)="$event.stopPropagation()">
+      
+      <div class="icon-help">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="#0099CC" stroke-width="2.5"/>
+          <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="#0099CC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 17H12.01" stroke="#0099CC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h3>Onde encontrar?</h3>
+      
+      <div class="help-text">
+        <p>Seu código de agendamento foi enviado para:</p>
+        <ul>
+          <li><strong>E-mail:</strong> Verifique sua caixa de entrada ou spam.</li>
+          <li><strong>SMS/WhatsApp:</strong> Verifique as mensagens no seu celular.</li>
+        </ul>
+        <p class="small">O código geralmente possui 6 dígitos.</p>
+      </div>
+
+      <button class="btn-entendi" (click)="fecharAjuda()">Entendi</button>
+
+    </div>
+  </div>
+
+</div>

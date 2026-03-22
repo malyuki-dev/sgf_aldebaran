@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model agendamento {
+  id          Int     @id(map: "PK_a102b15cfec9ce6d8ac6193345f") @default(autoincrement())
+  nomeCliente String  @db.VarChar
+  documento   String? @db.VarChar
+  data        String  @db.VarChar
+  hora        String  @db.VarChar
+  servico_id  Int
+  status      String  @default("PENDENTE") @db.VarChar
+  codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
+  servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
+}
+
+model atendimento {
+  id                Int       @id(map: "PK_ad65f895dac5fe2b905001750c2") @default(autoincrement())
+  guiche            Int
+  guiche_rel        guiche    @relation(fields: [guiche], references: [id])
+  inicioAtendimento DateTime  @default(now()) @db.Timestamp(6)
+  fimAtendimento    DateTime? @db.Timestamp(6)
+  notaAvaliacao     Int?
+  justificativaDemora String? @db.VarChar(500)
+  motivoDemora      String? @db.VarChar(100)
+  senha_id          Int?
+  senha             senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
+}
+// NOTE: legacy model `cliente` removed on 2026-03-04.
+// The application uses `clientes` (plural) for public clients/autocadastro.
+// A DB backup was taken before removal:
+// backend/backup_pre_remove_cliente_20260304111518.dump
+
+model clientes {
+  id        String    @id(map: "PK_d76bf3571d906e4e86470482c08") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome      String    @db.VarChar
+  email     String    @unique(map: "UQ_3cd5652ab34ca1a0a2c7a255313") @db.VarChar
+  senha     String    @db.VarChar
+  telefone  String?   @db.VarChar
+  tipo      String    @default("CLIENT") @db.VarChar
+  cpf       String?   @unique(map: "UQ_fd1214820b9f05720b26a917630") @db.VarChar
+  cnpj      String?   @unique(map: "UQ_bd9bd4df1ccf6f9d83a6f4b26cb") @db.VarChar
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+}
+
+model senha {
+  id            Int           @id(map: "PK_b37a7066eee39372a6563da7e6d") @default(autoincrement())
+  numeroDisplay String        @db.VarChar
+  status        String        @default("AGUARDANDO") @db.VarChar
+  dataCriacao   DateTime      @default(now()) @db.Timestamp(6)
+  servico_id    Int
+  tipo          String?       @db.VarChar // Preferencial / Convencional
+  tipoOrigem    String?       @db.VarChar(20) // TOTEM, AGENDAMENTO
+  prioridade    Int           @default(0)
+  atendimento   atendimento[]
+  servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
+}
+
+model servico {
+  id             Int           @id(map: "PK_289d0aa6d49f9d0fd65aefc6677") @default(autoincrement())
+  nome           String        @db.VarChar
+  sigla          String        @db.VarChar
+  prefixo        String?       @db.VarChar
+  icone          String?       @db.VarChar(50)
+  tipo           String?       @db.VarChar
+  cor            String?       @db.VarChar
+  prioridadePeso Int           @default(1)
+  metaEspera      Int?      @default(20) // em minutos
+  metaAtendimento Int?      @default(15) // em minutos
+  ativo          Boolean       @default(true)
+  deletadoEm     DateTime?     @db.Timestamp(6)
+  agendamento    agendamento[]
+  senha          senha[]
+}
+
+model motorista {
+  id             Int        @id @default(autoincrement())
+  nome           String     @db.VarChar(200)
+  cpf            String     @unique @db.VarChar(14)
+  cnh            String     @unique @db.VarChar(20)
+  email          String     @db.VarChar(100)
+  telefone       String?    @db.VarChar(15)
+  transportadora String?    @db.VarChar(100)
+  ativo          Boolean    @default(true)
+  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime?  @db.Timestamp(6)
+  
+  caminhoes      caminhao[]
+}
+
+model caminhao {
+  id             Int        @id @default(autoincrement())
+  placa          String     @unique @db.VarChar(8)
+  modelo         String     @db.VarChar(100)
+  transportadora String     @db.VarChar(100)
+  capacidade     String     @db.VarChar(20)
+  observacoes    String?    @db.VarChar(300)
+  status         String     @default("ATIVO") @db.VarChar(20) // ATIVO, INATIVO
+  
+  motorista_id   Int?
+  motorista      motorista? @relation(fields: [motorista_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime?  @db.Timestamp(6)
+}
+
+model usuario {
+  id           Int       @id(map: "PK_a56c58e5cabaa04fb2c98d2d7e2") @default(autoincrement())
+  nome         String    @db.VarChar(150)
+  email        String?   @unique @db.VarChar(100)
+  login        String    @unique(map: "UQ_59bc805e13413e4be83be3a7752") @db.VarChar
+  senha        String    @db.VarChar
+  fotoPerfil   String?   @db.VarChar(500)
+  perfil       String    @default("OPERADOR") @db.VarChar(20) // ADMIN, SUPERVISOR, OPERADOR
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+  logs_auditoria log_auditoria[]
+  notificacoes   notificacao[]
+}
+
+model configuracao {
+  id           Int       @id @default(autoincrement())
+  chave        String    @db.VarChar(50) // e.g., 'TOLERANCIA_NOSHOW', 'LIMITE_SENHAS', 'TEMPO_MEDIO'
+  valor        String    @db.Text
+  descricao    String?   @db.VarChar(200)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+
+  filial_id    Int?
+  filial       filial?   @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+
+  @@unique([chave, filial_id])
+}
+
+model log_auditoria {
+  id           Int       @id @default(autoincrement())
+  acao         String    @db.VarChar(100)
+  descricao    String    @db.VarChar(500)
+  entidade     String?   @db.VarChar(100)
+  status       String?   @db.VarChar(50) @default("Sucesso")
+  usuario_id   Int?
+  usuario      usuario?  @relation(fields: [usuario_id], references: [id])
+  filial_id    Int?
+  filial       filial?   @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+}
+
+model notificacao {
+  id           Int       @id @default(autoincrement())
+  titulo       String    @db.VarChar(100)
+  mensagem     String    @db.VarChar(500)
+  lida         Boolean   @default(false)
+  rota         String?   @db.VarChar(200)
+  icon         String?   @db.VarChar(50) @default("bell")
+  iconClass    String?   @db.VarChar(50) @default("blue-icon")
+  usuario_id   Int?
+  usuario      usuario?  @relation(fields: [usuario_id], references: [id])
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+}
+
+model filial {
+  id           Int       @id @default(autoincrement())
+  nome         String    @db.VarChar(150)
+  email        String?   @db.VarChar(100)
+  telefone     String?   @db.VarChar(20)
+  cnpj         String?   @unique @db.VarChar(20)
+  endereco     String?   @db.VarChar(200)
+  cor          String?   @default("#0ea5e9") @db.VarChar(20)
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+
+  guiches      guiche[]
+  configuracoes configuracao[]
+  logs_auditoria log_auditoria[]
+}
+
+model guiche {
+  id           Int       @id @default(autoincrement())
+  numero       String    @db.VarChar(20)
+  nome         String?   @db.VarChar(100)
+  status       String    @default("Offline") @db.VarChar(20)
+  ativo        Boolean   @default(true)
+  filial_id    Int
+  filial       filial    @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+  atendimentos atendimento[]
+}
+
+// --- NOVOS ENUMS PARA O MOTOR DE PRIORIDADE ---
+
+enum Origin {
+  TOTEM
+  SCHEDULED
+}
+
+enum TicketType {
+  PREFERENTIAL
+  CONVENTIONAL
+  NA // Usado para agendamentos onde a lei de prioridade presencial não se aplica
+}
+
+enum Category {
+  CAMINHAO
+  RETIRADA_PESADA
+  RETIRADA_RAPIDA
+  CLIENTE_RAPIDO
+}
+
+enum TicketStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Ticket {
+  id            String       @id @default(uuid()) @db.Uuid
+  origin        Origin
+  type          TicketType
+  category      Category
+  status        TicketStatus @default(PENDING)
+  
+  scheduledTime DateTime?    // Nulo se vier do Totem
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Performance: Índice parcial para otimizar a varredura da fila.
+  // O PostgreSQL usará este índice apenas para tickets ativos, ignorando o histórico (O(1) lookup).
+  @@index([status, createdAt], map: "idx_active_tickets")
+  @@map("aldebaran_tickets")
+}

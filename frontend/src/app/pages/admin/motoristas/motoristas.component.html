@@ -1,0 +1,177 @@
+<div class="crud-page animate-up">
+    <div class="list-card">
+        <div class="list-card-header">
+            <div class="titles">
+                <h2>Caminhoneiros</h2>
+                <p>Gerencie os motoristas cadastrados</p>
+            </div>
+            <button class="btn-primary" (click)="abrirModalNovo()">
+                <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+                Novo Caminhoneiro
+            </button>
+        </div>
+
+        <div class="list-card-search" *ngIf="motoristas.length > 0 || filtro">
+            <div class="search-input-wrapper">
+                <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+                <input type="text" placeholder="Buscar por nome, CPF ou CNH..." [(ngModel)]="filtro"
+                    (keyup.enter)="buscar()">
+            </div>
+        </div>
+
+        <div class="skeleton-loader" *ngIf="loading" style="padding: 2rem;">
+            Aguarde, carregando...
+        </div>
+
+        <div class="table-responsive" *ngIf="!loading && motoristas.length > 0">
+            <table class="list-table">
+                <thead>
+                    <tr>
+                        <th>CPF</th>
+                        <th>CNH</th>
+                        <th>Categoria</th>
+                        <th>Contato</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let m of motoristas">
+                        <td>
+                            <span class="tb-title">{{ m.nome }}</span>
+                            <span class="tb-subtitle">{{ m.cpf }}</span>
+                        </td>
+                        <td>{{ m.cnh }}</td>
+                        <td>
+                            <span class="badge badge-cnh">CNH D</span>
+                        </td>
+                        <td>
+                            <span class="tb-title">{{ m.telefone || '(00) 00000-0000' }}</span>
+                            <span class="tb-subtitle">{{ m.transportadora || 'Autônomo' }}</span>
+                        </td>
+                        <td>
+                            <div class="status-badge" [ngClass]="m.ativo ? 'active' : 'inactive'">
+                                <lucide-icon [img]="m.ativo ? icons.checkCircle : icons.user" size="14"></lucide-icon>
+                                {{ m.ativo ? 'Ativo' : 'Inativo' }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-edit" (click)="abrirModalEditar(m)" title="Editar">
+                                    <lucide-icon [img]="icons.edit2" size="14"></lucide-icon>
+                                </button>
+                                <button class="btn-toggle" [ngClass]="m.ativo ? 'deactivate' : 'activate'" 
+                                    (click)="alternarStatus(m.id)"
+                                    [title]="m.ativo ? 'Inativar' : 'Ativar'">
+                                    <lucide-icon [img]="m.ativo ? icons.trash2 : icons.checkCircle" size="14"></lucide-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && motoristas.length === 0" style="padding: 3rem;">
+            <div class="icon-circle empty">
+                <lucide-icon [img]="icons.users" size="40"></lucide-icon>
+            </div>
+            <h3>Nenhum caminhoneiro encontrado</h3>
+            <p>O banco está vazio ou a busca não retornou resultados.</p>
+        </div>
+
+        <div class="list-card-footer" *ngIf="!loading && motoristas.length > 0">
+            <span>Total de {{ motoristas.length }} caminhoneiro(s)</span>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>
+                    <lucide-icon [img]="icons.truck" size="20"></lucide-icon>
+                    {{ isEditing ? 'Editar Motorista' : 'Novo Caminhoneiro' }}
+                </h2>
+                <button class="close-btn" (click)="fecharModal()">
+                    <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nome Completo *</label>
+                    <input type="text" [(ngModel)]="motoristaForm.nome" placeholder="Ex: José da Silva">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label>CPF *</label>
+                        <input type="text" [(ngModel)]="motoristaForm.cpf" [disabled]="isEditing"
+                            (blur)="checkIdentidade()"
+                            placeholder="000.000.000-00">
+                        <small *ngIf="isEditing"
+                            style="font-size: 0.75rem; color: #64748b; opacity: 0.7; margin-top: 4px; display: block;">ID persistente: {{ motoristaForm.cpf }}</small>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>CNH *</label>
+                        <input type="text" [(ngModel)]="motoristaForm.cnh" (blur)="checkIdentidade()" placeholder="Número da carteira"
+                            maxlength="11">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label>Telefone</label>
+                        <input type="text" [(ngModel)]="motoristaForm.telefone" placeholder="(99) 99999-9999">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>E-mail</label>
+                        <input type="email" [(ngModel)]="motoristaForm.email" placeholder="contato@email.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Transportadora (Opcional)</label>
+                    <input type="text" [(ngModel)]="motoristaForm.transportadora"
+                        placeholder="Nome da transportadora ou Autônomo">
+                </div>
+
+                <div class="form-row mt-4">
+                    <div class="form-group flex-1">
+                        <div class="toggle-wrapper">
+                            <input type="checkbox" [(ngModel)]="motoristaForm.ativo" id="chkMotAtivo" />
+                            <label for="chkMotAtivo">Motorista ativo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+                <button type="button" class="btn-primary" (click)="salvar()">
+                    <lucide-icon [img]="icons.checkCircle" size="18"></lucide-icon>
+                    {{ isEditing ? 'Atualizar' : 'Cadastrar' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div class="modal-overlay" *ngIf="showSuccessModal" (click)="fecharModal()">
+        <div class="modal-content" style="max-width: 380px; padding: 2rem; border-radius: 20px;"
+            (click)="$event.stopPropagation()">
+            <div class="success-view">
+                <div class="icon-halo">
+                    <div class="icon-circle">
+                        <lucide-icon [img]="icons.check" size="40" strokeWidth="3"></lucide-icon>
+                    </div>
+                </div>
+                <h2>Sucesso!</h2>
+                <p>Caminhoneiro {{ isEditing ? 'atualizado' : 'cadastrado' }} corretamente.</p>
+                <button class="btn-success-ok" (click)="fecharModal()">OK, Entendi</button>
+            </div>
+        </div>
+    </div>
+
+</div>

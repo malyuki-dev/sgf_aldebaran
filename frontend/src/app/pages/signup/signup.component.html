@@ -1,0 +1,193 @@
+<div class="signup-page">
+  
+  <div class="brand-section">
+    <div class="brand-content">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo-white animate-up">
+      
+      <h1 class="animate-up delay-1">Crie sua Conta</h1>
+      <p class="subtitle animate-up delay-2">Junte-se a nós para agilizar seu atendimento.</p>
+      
+      <div class="stats-row animate-up delay-3">
+        <div class="stat-item">
+          <span class="stat-val">Rápido</span>
+          <span class="stat-label">Cadastro</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">Seguro</span>
+          <span class="stat-label">Dados</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+          <span class="stat-val">Gratuito</span>
+          <span class="stat-label">Acesso</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-container">
+
+      <div *ngIf="step === 'FORM'" class="fade-in">
+        
+        <div class="header-area">
+          <h2>Nova Conta</h2>
+          <p class="filial-text">Preencha seus dados para começar.</p>
+        </div>
+
+        <div class="type-selector">
+          <button 
+            [class.active]="tipo === 'PF'" 
+            (click)="tipo = 'PF'">
+            <lucide-icon [img]="icons.user" size="16"></lucide-icon> Pessoa Física
+          </button>
+          <button 
+            [class.active]="tipo === 'PJ'" 
+            (click)="tipo = 'PJ'">
+            <lucide-icon [img]="icons.building" size="16"></lucide-icon> Pessoa Jurídica
+          </button>
+        </div>
+
+        <form (ngSubmit)="criar()">
+
+          <!-- Pessoa Física -->
+          <ng-container *ngIf="tipo === 'PF'">
+            <div class="input-group" [class.has-error]="erros['nome']">
+              <label>NOME COMPLETO</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.user" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="João da Silva"
+                  [(ngModel)]="dados.nome" name="nome"
+                  (blur)="validarCampo('nome')">
+              </div>
+              <span class="field-error" *ngIf="erros['nome']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['nome'] }}
+              </span>
+            </div>
+
+            <div class="input-group" [class.has-error]="erros['cpf']">
+              <label>CPF</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="000.000.000-00"
+                  [ngModel]="dados.cpf" name="cpf"
+                  (input)="onCPFInput($event)"
+                  (blur)="validarCampo('cpf')"
+                  maxlength="14">
+              </div>
+              <span class="field-error" *ngIf="erros['cpf']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['cpf'] }}
+              </span>
+            </div>
+          </ng-container>
+
+          <!-- Pessoa Jurídica -->
+          <ng-container *ngIf="tipo === 'PJ'">
+            <div class="input-group" [class.has-error]="erros['razao']">
+              <label>RAZÃO SOCIAL</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.building" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="Empresa LTDA"
+                  [(ngModel)]="dados.razao" name="razao"
+                  (blur)="validarCampo('razao')">
+              </div>
+              <span class="field-error" *ngIf="erros['razao']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['razao'] }}
+              </span>
+            </div>
+
+            <div class="input-group" [class.has-error]="erros['cnpj']">
+              <label>CNPJ</label>
+              <div class="input-wrapper">
+                <lucide-icon [img]="icons.hash" size="20" class="input-icon"></lucide-icon>
+                <input type="text" placeholder="00.000.000/0000-00"
+                  [ngModel]="dados.cnpj" name="cnpj"
+                  (input)="onCNPJInput($event)"
+                  (blur)="validarCampo('cnpj')"
+                  maxlength="18">
+              </div>
+              <span class="field-error" *ngIf="erros['cnpj']">
+                <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['cnpj'] }}
+              </span>
+            </div>
+          </ng-container>
+
+          <!-- Campos comuns -->
+          <div class="input-group" [class.has-error]="erros['email']">
+            <label>E-MAIL</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
+              <input type="email" placeholder="seu@email.com"
+                [(ngModel)]="dados.email" name="email"
+                (blur)="validarCampo('email')">
+            </div>
+            <span class="field-error" *ngIf="erros['email']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['email'] }}
+            </span>
+          </div>
+
+          <div class="input-group" [class.has-error]="erros['telefone']">
+            <label>TELEFONE / CELULAR <span class="optional">(opcional)</span></label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.phone" size="20" class="input-icon"></lucide-icon>
+              <input type="tel" placeholder="(00) 00000-0000"
+                [ngModel]="dados.telefone" name="telefone"
+                (input)="onTelefoneInput($event)"
+                (blur)="validarCampo('telefone')"
+                maxlength="15">
+            </div>
+            <span class="field-error" *ngIf="erros['telefone']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['telefone'] }}
+            </span>
+          </div>
+
+          <div class="input-group" [class.has-error]="erros['senha']">
+            <label>SENHA</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+              <input type="password" placeholder="Mínimo 8 caracteres"
+                [(ngModel)]="dados.senha" name="senha"
+                (blur)="validarCampo('senha')">
+            </div>
+            <span class="field-error" *ngIf="erros['senha']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['senha'] }}
+            </span>
+          </div>
+
+          <div class="input-group" [class.has-error]="erros['confirmarSenha']">
+            <label>CONFIRMAR SENHA</label>
+            <div class="input-wrapper">
+              <lucide-icon [img]="icons.lock" size="20" class="input-icon"></lucide-icon>
+              <input type="password" placeholder="Digite a senha novamente"
+                [(ngModel)]="dados.confirmarSenha" name="confirmar"
+                (blur)="validarCampo('confirmarSenha')">
+            </div>
+            <span class="field-error" *ngIf="erros['confirmarSenha']">
+              <lucide-icon [img]="icons.alert" size="13"></lucide-icon> {{ erros['confirmarSenha'] }}
+            </span>
+          </div>
+
+          <button type="submit" class="btn-gradient" [disabled]="carregando">
+            {{ carregando ? 'Criando Conta...' : 'Cadastrar' }}
+          </button>
+
+        </form>
+
+        <div class="form-footer">
+          <p>Já tem uma conta? <a routerLink="/login">Fazer Login</a></p>
+        </div>
+      </div>
+
+      <div *ngIf="step === 'SUCCESS'" class="success-view fade-in">
+        <div class="icon-circle">
+          <lucide-icon [img]="icons.check" size="60"></lucide-icon>
+        </div>
+        <h2>Conta Criada!</h2>
+        <p>Seu cadastro foi realizado com sucesso.</p>
+        <button class="btn-gradient" routerLink="/login">Ir para Login</button>
+      </div>
+
+    </div>
+  </div>
+</div>

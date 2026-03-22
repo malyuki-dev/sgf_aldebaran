@@ -1,0 +1,151 @@
+<div class="list-card animate-up">
+    <div class="list-card-header">
+        <div class="titles">
+            <h2>Guichês/Baias</h2>
+            <p>Configure os pontos de atendimento físico</p>
+        </div>
+        <button class="btn-primary" (click)="abrirModal()">
+            <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+            Novo Guichê
+        </button>
+    </div>
+
+    <div class="card-content-padding">
+        <div class="loading-overlay" *ngIf="loading && filiaisAgrupadas.length === 0">
+            Aguarde, carregando...
+        </div>
+
+        <div *ngFor="let f of filiaisAgrupadas" class="filial-section mb-8">
+            <div class="section-title">
+                <lucide-icon [img]="icons.building" size="18"></lucide-icon>
+                <h3>{{ f.nome }}</h3>
+            </div>
+            
+            <div class="guiches-grid">
+                <div class="guiche-card fade-in" *ngFor="let g of f.guiches">
+                    <div class="card-inner">
+                        <div class="card-top">
+                            <div class="name-status">
+                                <h3>{{ g.nome }}</h3>
+                                <span class="badge" [class.badge-ativo]="g.ativo" [class.badge-inativo]="!g.ativo">
+                                    {{ g.ativo ? 'Ativo' : 'Inativo' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="guiche-actions">
+                            <button class="btn-edit-fill" (click)="abrirModal(g)" title="Editar">
+                                <lucide-icon [img]="icons.edit" size="16"></lucide-icon>
+                            </button>
+                            <button class="btn-toggle-fill" (click)="toggleStatus(g)" 
+                                [class.btn-activate]="!g.ativo" [class.btn-deactivate]="g.ativo"
+                                [title]="g.ativo ? 'Desativar' : 'Ativar'">
+                                <lucide-icon [img]="icons.power" size="16"></lucide-icon>
+                            </button>
+                            <button class="btn-delete-card" (click)="excluir(g.id)" title="Excluir">
+                                <lucide-icon [img]="icons.trash" size="16"></lucide-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="f.guiches.length === 0" class="empty-section">
+                Nenhum guichê cadastrado nesta filial.
+            </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && filiaisAgrupadas.length === 0">
+            <h3>Nenhuma filial encontrada</h3>
+            <p>Cadastre filiais primeiro para gerenciar guichês.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Novo/Editar Guichê -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+    <div class="modal-content animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>
+                <lucide-icon [img]="icons.layout" size="20"></lucide-icon>
+                {{ editando ? 'Editar Guichê' : 'Novo Guichê' }}
+            </h2>
+            <button class="close-btn" (click)="fecharModal()">
+                <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Nome do Guichê/Baia *</label>
+                <input type="text" [(ngModel)]="form.nome" placeholder="Ex: Guichê 1">
+            </div>
+
+            <div class="form-group">
+                <label>Filial *</label>
+                <select [(ngModel)]="form.filial_id">
+                    <option [ngValue]="null" disabled selected>Selecione a Filial</option>
+                    <option *ngFor="let fil of filiais" [ngValue]="fil.id">{{ fil.nome }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Status *</label>
+                <select [(ngModel)]="form.status">
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+            <button class="btn-primary" (click)="salvar()" [disabled]="loading">
+                <lucide-icon [img]="icons.check" size="18"></lucide-icon>
+                {{ editando ? 'Salvar' : 'Cadastrar' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmação de Exclusão -->
+<div class="modal-overlay" *ngIf="showConfirmDelete" (click)="fecharConfirmacao()">
+    <div class="modal-content animate-pop" style="max-width: 400px;" (click)="$event.stopPropagation()">
+        <div class="modal-header" style="background: #f43f5e;">
+            <h2>
+                <lucide-icon [img]="icons.trash" size="20" color="white"></lucide-icon>
+                Excluir Guichê
+            </h2>
+            <button class="close-btn" (click)="fecharConfirmacao()">
+                <lucide-icon [img]="icons.x" size="20" color="white"></lucide-icon>
+            </button>
+        </div>
+        <div class="modal-body text-center" style="padding: 2rem;">
+            <p style="font-size: 1.1rem; color: var(--text-primary);">
+                Tem certeza que deseja excluir o guichê <strong>{{ guicheParaExcluir?.nome }}</strong>?
+            </p>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Esta ação não pode ser desfeita.</p>
+        </div>
+        <div class="modal-footer" style="background: var(--bg-body);">
+            <button class="btn-outline" (click)="fecharConfirmacao()">Cancelar</button>
+            <button class="btn-primary" style="background: #f43f5e; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);" (click)="confirmarExclur()">
+                Sim, Excluir
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sucesso -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="fecharSucesso()">
+    <div class="modal-content animate-pop" style="max-width: 380px; padding: 2rem; border-radius: 20px;" (click)="$event.stopPropagation()">
+        <div class="success-view">
+            <div class="icon-halo">
+                <div class="icon-circle">
+                    <lucide-icon [img]="icons.check" size="40" strokeWidth="3"></lucide-icon>
+                </div>
+            </div>
+            <h2>Sucesso!</h2>
+            <p>Os dados foram processados corretamente.</p>
+            <button class="btn-success-ok" (click)="fecharSucesso()">OK, Entendi</button>
+        </div>
+    </div>
+</div>
