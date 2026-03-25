@@ -20,9 +20,9 @@ export class ApiService {
   }
 
   get<T>(endpoint: string, params?: any): Observable<T> {
-    return this.http.get<T>(`${this.baseUrl}${endpoint}`, { 
+    return this.http.get<T>(`${this.baseUrl}${endpoint}`, {
       headers: this.getHeaders(),
-      params: params 
+      params: params
     });
   }
 

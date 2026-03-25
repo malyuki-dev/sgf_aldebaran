@@ -336,4 +336,4 @@ export class AgendamentoComponent implements OnInit {
   fecharModal() {
     this.showSuccessModal = false;
   }
-}
+}

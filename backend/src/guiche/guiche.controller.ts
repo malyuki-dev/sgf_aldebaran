@@ -19,7 +19,7 @@ export class GuicheController {
   constructor(
     private readonly guicheService: GuicheService,
     private readonly logService: LogService,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Body() data: any, @Request() req: any) {
@@ -30,7 +30,7 @@ export class GuicheController {
       req.user?.id,
       'Guichê',
       'Sucesso',
-      res.filial_id,
+      res.filial_id ?? undefined,
     );
     return res;
   }
@@ -58,7 +58,7 @@ export class GuicheController {
       req.user?.id,
       'Guichê',
       'Sucesso',
-      res.filial_id,
+      res.filial_id ?? undefined,
     );
     return res;
   }
@@ -73,7 +73,7 @@ export class GuicheController {
       req.user?.id,
       'Guichê',
       'Sucesso',
-      guiche.filial_id,
+      guiche.filial_id ?? undefined,
     );
     return res;
   }

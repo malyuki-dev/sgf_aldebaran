@@ -12,7 +12,7 @@ export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
 
   constructor(app: INestApplicationContext) {
-    super(app);
+    super();
   }
 
   /**
@@ -49,7 +49,7 @@ export class RedisIoAdapter extends IoAdapter {
       },
       transports: ['websocket'], // Força WS para maior performance e segurança
     });
-    
+
     server.adapter(this.adapterConstructor);
     return server;
   }

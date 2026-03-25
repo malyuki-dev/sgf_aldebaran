@@ -41,5 +41,15 @@ export class AuthService {
   // Úteis
   getToken() { return localStorage.getItem('token'); }
   isLoggedIn() { return !!localStorage.getItem('token'); }
-  logout() { localStorage.removeItem('token'); }
+
+  clearSession() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario_nome');
+    localStorage.removeItem('usuario_sgf');
+    localStorage.removeItem('guicheAtual');
+  }
+
+  logout() {
+    this.clearSession();
+  }
 }

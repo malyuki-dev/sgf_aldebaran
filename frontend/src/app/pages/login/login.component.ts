@@ -85,6 +85,7 @@ export class LoginComponent implements OnInit {
             break;
           case 'OPERADOR':
             this.router.navigate(['/operador/painel']);
+            this.router.navigate(['/operador/escolha-guiches']);
             break;
           case 'CLIENTE':
             this.router.navigate(['/client/home']);

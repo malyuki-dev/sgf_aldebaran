@@ -1,0 +1,50 @@
+[1m[33m[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`[39m[22m
+[33m❯[39m Building...
+[32m✔[39m Building...
+Application bundle generation failed. [11.921 seconds] - 2026-02-26T20:55:04.335Z
+
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: RouterLink is not used within the template of SupervisorDashboardComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/supervisor/dashboard/supervisor-dashboard.component.ts:13:26:
+[37m      13 │   imports: [CommonModule, [32mRouterLink[37m, LucideAngularModule],
+         ╵                           [32m~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/pages/admin/caminhoes/caminhoes.component.scss:2:8:
+[37m      2 │ @import [32m[37m'../motoristas/motoristas.component.scss';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'users' does not exist on type '{ dashboard: LucideIconData; ticket: LucideIconData; settings: LucideIconData; monitor: LucideIconData; logout: LucideIconData; menu: LucideIconData; user: LucideIconData; calendar: LucideIconData; }'. Did you mean 'user'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/layouts/admin-layout/admin-layout.component.html:21:34:
+[37m      21 │         <lucide-icon [img]="icons.[32musers[37m"></lucide-icon>
+         ╵                                   [32m~~~~~[0m
+
+  Error occurs in the template of component AdminLayoutComponent.
+
+    src/app/layouts/admin-layout/admin-layout.component.ts:10:15:
+[37m      10 │   templateUrl: [32m'./admin-layout.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'truck' does not exist on type '{ dashboard: LucideIconData; ticket: LucideIconData; settings: LucideIconData; monitor: LucideIconData; logout: LucideIconData; menu: LucideIconData; user: LucideIconData; calendar: LucideIconData; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/layouts/admin-layout/admin-layout.component.html:26:34:
+[37m      26 │         <lucide-icon [img]="icons.[32mtruck[37m"></lucide-icon>
+         ╵                                   [32m~~~~~[0m
+
+  Error occurs in the template of component AdminLayoutComponent.
+
+    src/app/layouts/admin-layout/admin-layout.component.ts:10:15:
+[37m      10 │   templateUrl: [32m'./admin-layout.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

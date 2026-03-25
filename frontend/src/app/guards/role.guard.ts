@@ -36,6 +36,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
       return true;
     }
     router.navigate(['/operador/painel']);
+    router.navigate(['/operador/escolha-guiches']);
     return false;
   }
 
