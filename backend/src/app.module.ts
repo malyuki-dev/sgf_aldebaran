@@ -12,6 +12,7 @@ import { ServicoModule } from './servico/servico.module';
 import { ConfiguracaoModule } from './configuracao/configuracao.module';
 import { LogModule } from './log/log.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { GuicheModule } from './guiche/guiche.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ConfiguracaoModule,
     LogModule,
     DashboardModule,
+    GuicheModule,
   ],
   controllers: [],
   providers: [],

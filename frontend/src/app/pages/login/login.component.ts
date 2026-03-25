@@ -66,7 +66,7 @@ export class LoginComponent {
             this.router.navigate(['/supervisor/dashboard']);
             break;
           case 'OPERADOR':
-            this.router.navigate(['/operador/painel']);
+            this.router.navigate(['/operador/escolha-guiches']);
             break;
           case 'CLIENTE':
             this.router.navigate(['/client/home']);

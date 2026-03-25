@@ -115,6 +115,38 @@ model usuario {
   criadoEm     DateTime  @default(now()) @db.Timestamp(6)
   atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
   deletadoEm   DateTime? @db.Timestamp(6)
+  guicheAtual  guiche?   @relation("OperadorGuicheAtual")
+  sessoesGuiche operador_sessao[]
+}
+
+model guiche {
+  id                   Int              @id @default(autoincrement())
+  numero               Int              @unique
+  descricao            String?          @db.VarChar(120)
+  ativo                Boolean          @default(true)
+  status               String           @default("DISPONIVEL") @db.VarChar(20)
+  operadorAtualId      Int?             @unique
+  loginOperadorEm      DateTime?        @db.Timestamp(6)
+  atendimentoAtualCodigo String?        @db.VarChar(30)
+  criadoEm             DateTime         @default(now()) @db.Timestamp(6)
+  atualizadoEm         DateTime         @default(now()) @db.Timestamp(6)
+  operadorAtual        usuario?         @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sessoes              operador_sessao[]
+}
+
+model operador_sessao {
+  id             Int       @id @default(autoincrement())
+  operador_id    Int
+  guiche_id      Int
+  loginEm        DateTime  @default(now()) @db.Timestamp(6)
+  logoutEm       DateTime? @db.Timestamp(6)
+  ativo          Boolean   @default(true)
+  operador       usuario   @relation(fields: [operador_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  guiche         guiche    @relation(fields: [guiche_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([operador_id], map: "IDX_operador_sessao_operador")
+  @@index([guiche_id], map: "IDX_operador_sessao_guiche")
+  @@index([ativo], map: "IDX_operador_sessao_ativo")
 }
 
 model configuracao {

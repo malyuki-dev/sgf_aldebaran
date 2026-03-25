@@ -35,7 +35,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
     if (url.startsWith('/operador') || url.startsWith('/totem')) {
       return true;
     }
-    router.navigate(['/operador/painel']);
+    router.navigate(['/operador/escolha-guiches']);
     return false;
   }
 

@@ -1,38 +1,96 @@
-<div class="tv-container">
-  <header>
-    <div class="brand">
-      <h1>SGF</h1>
-      <span>ALDEBARAN</span>
-    </div>
-    <div class="time-box">
-      <div class="time">{{ dataAtual | date:'HH:mm' }}</div>
-      <div class="date">{{ dataAtual | date:"EEEE, d 'de' MMMM" }}</div>
+﻿<div class="tv-container">
+  <header class="tv-header">
+    <img src="assets/full_logo 2.png" alt="Aldebaran" class="tv-logo" />
+
+    <div class="tv-header-right">
+      <div class="tv-clock-wrapper">
+        <div class="tv-clock">{{ dataAtual | date:"HH:mm" }}</div>
+        <div class="tv-date">{{ dataAtualTexto }}</div>
+      </div>
+      <div class="tv-language">
+        <span *ngFor="let idioma of idiomas" [class.active]="idioma === 'PT'">{{ idioma }}</span>
+      </div>
     </div>
   </header>
 
-  <main>
-    <section class="left-panel">
-      <h2>SENHA CHAMADA</h2>
-      <div class="big-card">
-        <div class="number">{{ senhaAtual?.numero || '---' }}</div>
-        <div class="footer-info">
-          <span>GUICHÊ {{ senhaAtual?.guiche || '--' }}</span>
+  <main class="tv-main">
+    <section class="tv-left">
+      <div class="tv-current-card">
+        <p class="tv-label-main">Atendendo Agora</p>
+        <p class="tv-label-sub">SENHA</p>
+        <h1 class="tv-ticket">{{ getSenhaNumero(senhaAtual) }}</h1>
+
+        <div class="tv-servico-badge" [ngClass]="getServicoClass(senhaAtual)">
+          {{ getServicoNome(senhaAtual) }}
         </div>
+
+        <div class="tv-arrow">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="tv-guiche-label">GUICHÊ</p>
+
+        <div class="tv-guiche-box">{{ getGuiche(senhaAtual) }}</div>
+        <p class="tv-guiche-help">Dirija-se ao guichê</p>
       </div>
     </section>
 
-    <section class="right-panel">
-      <h2>ÚLTIMAS CHAMADAS</h2>
-      <div class="history-list">
-        <div class="hist-card" *ngFor="let item of ultimasChamadas">
-          <span class="h-num">{{ item.numero }}</span>
-          <span class="h-loc">GUICHÊ {{ item.guiche }}</span>
+    <aside class="tv-right">
+      <div class="tv-panel tv-calls-panel">
+        <h3>Últimas Chamadas:</h3>
+        <div class="tv-call-item" *ngFor="let item of ultimasChamadas">
+          <div class="tv-call-row">
+            <span class="tv-call-ticket">{{ getSenhaNumero(item) }}</span>
+            <span class="tv-call-servico-right" [ngClass]="getServicoClass(item)">{{ getServicoNome(item) }}</span>
+          </div>
         </div>
       </div>
-    </section>
+
+      <div class="tv-panel tv-legend-panel">
+        <h3>Categorias de Serviço</h3>
+        <div class="tv-legend-item">
+          <span class="square servico-caminhao"></span> Caminhão
+        </div>
+        <div class="tv-legend-item">
+          <span class="square servico-retirada"></span> Retirada Pesada
+        </div>
+        <div class="tv-legend-item">
+          <span class="square servico-cliente"></span> Cliente Rápido
+        </div>
+      </div>
+    </aside>
   </main>
 
-  <footer>
-    <p>BEM-VINDO À ALDEBARAN. POR FAVOR, AGUARDE SUA VEZ.</p>
+  <footer class="tv-footer">
+    Obrigado pela paciência - Para assistência, fale com nossa equipe
   </footer>
+
+  <!-- Overlay de Nova Chamada -->
+  <div class="tv-overlay-alert" *ngIf="exibirAlerta">
+    <div class="tv-alert-content pulse-animation">
+      <p class="tv-alert-title">ATENDIMENTO</p>
+
+      <div class="tv-alert-row">
+        <div class="tv-alert-col">
+          <span class="label">SENHA</span>
+          <span class="value ticket">{{ getSenhaNumero(senhaAtual) }}</span>    
+        </div>
+
+        <div class="tv-alert-divider"></div>
+
+        <div class="tv-alert-col">
+          <span class="label">GUICHÊ</span>
+          <span class="value guiche">{{ getGuiche(senhaAtual) }}</span>
+        </div>
+      </div>
+
+      <div class="tv-alert-footer">
+        <span class="tv-servico-badge" [ngClass]="getServicoClass(senhaAtual)"> 
+          {{ getServicoNome(senhaAtual) }}
+        </span>
+        <span class="tv-alert-help">Dirija-se ao guichê imediatamente</span>   
+      </div>
+    </div>
+  </div>
 </div>

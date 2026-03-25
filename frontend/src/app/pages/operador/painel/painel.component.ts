@@ -1,77 +1,394 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
     LucideAngularModule, User, Phone, Briefcase, Hash,
-    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users
+    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut
 } from 'lucide-angular';
+import { GuicheService, GuicheOperador } from '../../../services/guiche.service';
+import { AuthService } from '../../../services/auth.service';
+import { finalize, switchMap, takeUntil, catchError } from 'rxjs/operators';
+import { Subject, of, interval } from 'rxjs';
 
 @Component({
     selector: 'app-painel-operador',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule],
+    imports: [CommonModule, FormsModule, LucideAngularModule],
     templateUrl: './painel.component.html',
-    styleUrls: ['./painel.component.scss']
+    styleUrls: ['./painel.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PainelOperadorComponent implements OnInit {
+export class PainelOperadorComponent implements OnInit, OnDestroy {
     nomeOperador = 'Operador (Carregando...)';
     numeroGuiche = 0;
+    idiomaAtivo = 'PT';
+    filialSelecionada = '';
 
     // Ícones do sistema
     icons = {
         user: User, phone: Phone, briefcase: Briefcase, hash: Hash,
         play: Play, check: CheckCircle, close: XCircle, recall: RotateCcw,
-        alert: AlertTriangle, users: Users
+        alert: AlertTriangle, users: Users, clock: Clock,
+        search: Search, truck: Truck, creditCard: CreditCard,
+        calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone
     };
 
     // Status de fila
     filaAguardando = 12;
     tempoMedio = '14 min';
 
-    // Ticket Atual
-    ticketAtual: any = null; // null significa que o guichê está livre
+    // Lista de próximas senhas
+    filaProximas = [
+        { codigo: 'RP042', tempo: '8 min', servico: 'Retirada Pesada', posicao: 27 },
+        { codigo: 'RP043', tempo: '8 min', servico: 'Retirada Pesada', posicao: 50 },
+        { codigo: 'CR-A044', tempo: '12 min', servico: 'Cliente Rápido', posicao: 12 },
+        { codigo: 'C043', tempo: '15 min', servico: 'Caminhão', posicao: 22 },
+        { codigo: 'RP044', tempo: '18 min', servico: 'Retirada Pesada', posicao: 35 }
+    ];
 
-    constructor(private router: Router) { }
+    // Ticket Atual
+    ticketAtual: any = null;
+    modalAberto: string | null = null;
+    mostrarToastRechamar: boolean = false;
+    mostrarToastTimeout: any;
+    guicheTransferenciaSelecionado: string | null = null;
+    guicheTransferenciaDestino: { guiche: string; nome: string } | null = null;
+    quantidadeGarrafoes = 27;
+    tempoAtendimento = '00:00';
+    atendimentoIniciadoEm: number | null = null;
+    atendimentoTimer: any;
+
+    termoBuscaCliente = '';
+    mostrarSugestoesCliente = false;
+    clientesFiltrados: Array<{ nome: string; documento: string }> = [];
+    readonly clientesBase = [
+        { nome: 'João Silva', documento: '123.456.789-00' },
+        { nome: 'José Oliveira', documento: '456.789.123-00' },
+        { nome: 'Maria Santos', documento: '987.654.321-00' },
+    ];
+
+    classificacaoSelecionada = '';
+    readonly classificacoesAtendimento = [
+        'Compra',
+        'Carga',
+        'Descarga',
+        'Devolução',
+        'Documentação',
+        'Pagamento',
+        'Problema Operacional',
+        'Dúvida / Orientação',
+    ];
+
+    tipoClienteCadastro: 'PF' | 'PJ' = 'PF';
+    formCaminhao = {
+        placa: '',
+        modelo: '',
+        transportadora: '',
+        capacidade: '',
+        observacoes: '',
+    };
+    formCliente = {
+        nomeEmpresa: '',
+        nome: '',
+        documento: '',
+        telefone: '',
+        email: '',
+    };
+    formPagamento = {
+        valor: '',
+        formaPagamento: '',
+        motivo: '',
+        documento: '',
+        observacoes: '',
+    };
+
+    guichesLista = [
+        { id: "1", nome: "João Santos", guiche: "01", status: "OCUPADO", atendimento: "C039" },
+        { id: "2", nome: "Ana Costa", guiche: "02", status: "OCUPADO", atendimento: "RP041" },
+        { id: "4", nome: "Pedro Lima", guiche: "04", status: "DISPONÍVEL", atendimento: "" },
+        { id: "5", nome: "Gustavo C.", guiche: "05", status: "DISPONÍVEL", atendimento: "" },
+        { id: "6", nome: "", guiche: "06", status: "FECHADO", atendimento: "" }
+    ];
+
+    // Polling de sincronização
+    private destroy$ = new Subject<void>();
+
+    constructor(
+        private router: Router,
+        private guicheService: GuicheService,
+        private authService: AuthService,
+        private cdr: ChangeDetectorRef,
+    ) { }
 
     ngOnInit() {
         this.nomeOperador = localStorage.getItem('usuario_nome') || 'Atendente Padrão';
-        const guicheStr = localStorage.getItem('guicheAtual');
-        if (!guicheStr) {
-            // Se não escolheu o guichê na tela anterior, força a escolha
-            this.router.navigate(['/operador/escolha-guiches']);
-            return;
-        }
-        this.numeroGuiche = parseInt(guicheStr, 10);
+        this.guicheService.getCurrentOperatorGuiche()
+            .pipe(
+                finalize(() => {
+                    this.cdr.markForCheck();
+                })
+            )
+            .subscribe({
+                next: (guicheAtual) => {
+                    if (!guicheAtual) {
+                        this.router.navigate(['/operador/escolha-guiches']);
+                        return;
+                    }
+
+                    localStorage.setItem('guicheAtual', guicheAtual.numero);
+                    this.numeroGuiche = parseInt(guicheAtual.numero, 10);
+                    this.cdr.markForCheck();
+
+                    // Inicia polling para detectar perda de guichê
+                    this.iniciarPollingGuiche();
+                },
+                error: () => {
+                    this.authService.clearSession();
+                    this.router.navigate(['/login']);
+                }
+            });
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+        this.pararCronometroAtendimento();
+    }
+
+    private iniciarPollingGuiche() {
+        interval(3000) // Verifica a cada 3 segundos
+            .pipe(
+                switchMap(() => this.guicheService.getCurrentOperatorGuiche()),
+                takeUntil(this.destroy$),
+                catchError(() => of(null))
+            )
+            .subscribe({
+                next: (guicheSelecionado: GuicheOperador | null) => {
+                    // Se não tem mais guichê, volta pra seleção
+                    if (!guicheSelecionado) {
+                        this.router.navigate(['/operador/escolha-guiches']);
+                        return;
+                    }
+                    this.cdr.markForCheck();
+                },
+            });
+    }
+
+    sair() {
+        this.destroy$.next(); // Para o polling imediatamente
+        this.guicheService.releaseCurrentGuiche()
+            .pipe(
+                finalize(() => {
+                    this.cdr.markForCheck();
+                })
+            )
+            .subscribe({
+                next: () => {
+                    this.authService.logout();
+                    this.router.navigate(['/login']);
+                },
+                error: () => {
+                    this.authService.logout();
+                    this.router.navigate(['/login']);
+                }
+            });
     }
 
     chamarProximo() {
+        if (!this.numeroGuiche) {
+            this.router.navigate(['/operador/escolha-guiches']);
+            return;
+        }
+
         this.ticketAtual = {
-            senha: 'RP-042',
-            cliente: 'João Alberto Soares',
+            senha: 'RP042',
+            cliente: '',
             documento: '043.***.***-45',
             servico: 'Retirada Pesada (Caminhão)',
-            status: 'CHAMADO'
+            status: 'CHAMADO',
+            clienteSelecionado: false,
         };
+        this.classificacaoSelecionada = '';
+        this.quantidadeGarrafoes = 27;
+        this.termoBuscaCliente = '';
+        this.clientesFiltrados = [];
+        this.mostrarSugestoesCliente = false;
+        this.tempoAtendimento = '00:00';
+        this.pararCronometroAtendimento();
         this.filaAguardando = Math.max(0, this.filaAguardando - 1);
     }
 
     iniciarAtendimento() {
         if (this.ticketAtual) {
             this.ticketAtual.status = 'EM_ATENDIMENTO';
+            this.iniciarCronometroAtendimento();
         }
     }
 
     finalizarAtendimento() {
         this.ticketAtual = null; // Libera o guichê
+        this.pararCronometroAtendimento();
+        this.tempoAtendimento = '00:00';
+        this.termoBuscaCliente = '';
+        this.mostrarSugestoesCliente = false;
+    }
+
+
+
+    trocarIdioma(idioma: string) {
+        this.idiomaAtivo = idioma;
+        console.log('Idioma alterado para:', idioma);
+    }
+
+    abrirModalTransferir() {
+        if (!this.ticketAtual) return;
+        this.guicheTransferenciaSelecionado = null;
+        this.guicheTransferenciaDestino = null;
+        this.modalAberto = "transferir";
+    }
+
+    fecharModal() {
+        this.modalAberto = null;
+    }
+
+    confirmarNaoCompareceu() {
+        if (!this.ticketAtual) {
+            this.modalAberto = null;
+            return;
+        }
+        this.ticketAtual = null;
+        this.pararCronometroAtendimento();
+        this.tempoAtendimento = '00:00';
+        this.modalAberto = null;
     }
 
     naoCompareceu() {
-        if (confirm('Marcar o cliente (No-Show) como Ausente? A senha será descartada.')) {
-            this.ticketAtual = null; // Libera o guichê para chamar o próximo
-        }
+        if (!this.ticketAtual) return;
+        this.modalAberto = "nao-compareceu";
     }
 
     rechamar() {
-        console.log('Rechamando senha atual no painel e no áudio...');
+        if (!this.ticketAtual) return;
+        console.log("Rechamando senha atual no painel e no áudio...");
+        this.mostrarToastRechamar = true;
+        if (this.mostrarToastTimeout) clearTimeout(this.mostrarToastTimeout);
+        this.mostrarToastTimeout = setTimeout(() => {
+            this.mostrarToastRechamar = false;
+            this.cdr.detectChanges();
+        }, 3000);
+    }
+
+    selecionarGuicheTransferencia(id: string) {
+        this.guicheTransferenciaSelecionado = id;
+    }
+
+    confirmarTransferencia() {
+        if (!this.guicheTransferenciaSelecionado) return;
+        const destino = this.guichesLista.find((g: any) => g.id === this.guicheTransferenciaSelecionado);
+        if (destino) {
+            this.guicheTransferenciaDestino = { guiche: destino.guiche, nome: destino.nome };
+        }
+        this.modalAberto = "transferir-sucesso";
+    }
+
+    encerrarTransferencia() {
+        this.ticketAtual = null; // Libera o guichê atual
+        this.pararCronometroAtendimento();
+        this.tempoAtendimento = '00:00';
+        this.guicheTransferenciaSelecionado = null;
+        this.guicheTransferenciaDestino = null;
+        this.modalAberto = null;
+    }
+
+    incrementarGarrafoes() {
+        this.quantidadeGarrafoes += 1;
+    }
+
+    decrementarGarrafoes() {
+        this.quantidadeGarrafoes = Math.max(0, this.quantidadeGarrafoes - 1);
+    }
+
+    atualizarBuscaCliente() {
+        const termo = this.termoBuscaCliente.trim().toLowerCase();
+        if (!termo || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
+            this.clientesFiltrados = [];
+            this.mostrarSugestoesCliente = false;
+            return;
+        }
+
+        this.clientesFiltrados = this.clientesBase.filter((cliente) => {
+            return cliente.nome.toLowerCase().includes(termo) || cliente.documento.toLowerCase().includes(termo);
+        });
+        this.mostrarSugestoesCliente = this.clientesFiltrados.length > 0;
+    }
+
+    selecionarCliente(cliente: { nome: string; documento: string }) {
+        if (!this.ticketAtual) return;
+        this.ticketAtual.cliente = cliente.nome;
+        this.ticketAtual.documento = cliente.documento;
+        this.ticketAtual.clienteSelecionado = true;
+        this.termoBuscaCliente = cliente.nome;
+        this.mostrarSugestoesCliente = false;
+        this.cdr.markForCheck();
+    }
+
+    private iniciarCronometroAtendimento() {
+        this.pararCronometroAtendimento();
+        this.atendimentoIniciadoEm = Date.now();
+        this.atualizarTempoAtendimento();
+        this.atendimentoTimer = setInterval(() => {
+            this.atualizarTempoAtendimento();
+            this.cdr.markForCheck();
+        }, 1000);
+    }
+
+    private pararCronometroAtendimento() {
+        if (this.atendimentoTimer) {
+            clearInterval(this.atendimentoTimer);
+            this.atendimentoTimer = null;
+        }
+        this.atendimentoIniciadoEm = null;
+    }
+
+    private atualizarTempoAtendimento() {
+        if (!this.atendimentoIniciadoEm) {
+            this.tempoAtendimento = '00:00';
+            return;
+        }
+        const segundos = Math.floor((Date.now() - this.atendimentoIniciadoEm) / 1000);
+        const mm = String(Math.floor(segundos / 60)).padStart(2, '0');
+        const ss = String(segundos % 60).padStart(2, '0');
+        this.tempoAtendimento = `${mm}:${ss}`;
+    }
+
+    abrirModalCadastro(tipo: 'caminhao' | 'cliente' | 'pagamento') {
+        if (tipo === 'caminhao') {
+            this.modalAberto = 'cadastro-caminhao';
+            return;
+        }
+        if (tipo === 'cliente') {
+            this.modalAberto = 'cadastro-cliente';
+            return;
+        }
+        this.modalAberto = 'cadastro-pagamento';
+    }
+
+    salvarCadastroCaminhao() {
+        this.modalAberto = null;
+    }
+
+    salvarCadastroCliente() {
+        this.modalAberto = null;
+    }
+
+    salvarPagamento() {
+        this.modalAberto = null;
+    }
+
+    navegarPara(secao: string) {
+        console.log('Navegando para:', secao);
+        // TODO: Implementar navegação para diferentes seções
+        // this.router.navigate(['/operador/...' + secao]);
     }
 }
