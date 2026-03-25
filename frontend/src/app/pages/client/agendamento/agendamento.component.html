@@ -20,105 +20,122 @@
   </header>
 
   <main class="form-container animate-up">
-    
-    <div class="input-group">
-      <label>Filial</label>
-      <div class="select-wrapper">
-        <select [(ngModel)]="form.filial">
-          <option *ngFor="let f of filiais" [value]="f">{{ f }}</option>
-        </select>
-      </div>
-    </div>
 
-    <div class="input-group">
-      <label>Categoria</label>
-      <div class="select-wrapper">
-        <select [(ngModel)]="form.categoria">
-          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
-        </select>
-      </div>
-    </div>
+    <div *ngIf="carregando">Carregando...</div>
 
-    <div class="input-group">
-      <label>Quantidade</label>
-      <div class="counter-box">
-        <div class="counter-label">
-          <span>Garrafão 20 L</span>
-          <lucide-icon [img]="icons.box" size="20" class="blue-icon"></lucide-icon>
+    <ng-container *ngIf="!carregando">
+
+      <div class="input-group">
+        <label>Filial</label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="form.filial_id" (change)="onDataOuFiltroChange()">
+            <option [ngValue]="null">Selecione</option>
+            <option *ngFor="let f of filiais" [ngValue]="f.id">
+              {{ f.nome }}
+            </option>
+          </select>
         </div>
-        
-        <div class="counter-controls">
-          <button (click)="dec()" class="round-btn minus">
-            <lucide-icon [img]="icons.minus" size="18"></lucide-icon>
+      </div>
+
+      <div class="input-group">
+        <label>Categoria</label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="form.servico_id" (change)="onDataOuFiltroChange()">
+            <option [ngValue]="null">Selecione</option>
+            <option *ngFor="let c of categorias" [ngValue]="c.id">
+              {{ c.nome }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Quantidade</label>
+        <div class="counter-box">
+          <div class="counter-label">
+            <span>Garrafão 20 L</span>
+            <lucide-icon [img]="icons.box" size="20" class="blue-icon"></lucide-icon>
+          </div>
+
+          <div class="counter-controls">
+            <button (click)="dec()" class="round-btn minus" type="button">
+              <lucide-icon [img]="icons.minus" size="18"></lucide-icon>
+            </button>
+            <span class="count-val">{{ form.quantidade }}</span>
+            <button (click)="inc()" class="round-btn plus" type="button">
+              <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-section">
+        <div class="cal-header">
+          <h3>{{ tituloMesAno }}</h3>
+          <div class="nav-arrows">
+            <button type="button" class="icon-btn" (click)="mesAnterior()">
+              <lucide-icon [img]="icons.left" size="20"></lucide-icon>
+            </button>
+            <button type="button" class="icon-btn" (click)="proximoMes()">
+              <lucide-icon [img]="icons.right" size="20"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="cal-grid">
+          <span class="week-day">D</span><span class="week-day">S</span>
+          <span class="week-day">T</span><span class="week-day">Q</span>
+          <span class="week-day">Q</span><span class="week-day">S</span>
+          <span class="week-day">S</span>
+
+          <button
+            *ngFor="let dia of diasCalendario"
+            class="day-btn"
+            [class.selected]="dia.dataCompleta === form.data"
+            [class.empty]="!dia.numero"
+            [disabled]="!dia.numero"
+            (click)="selecionarDia(dia)">
+            {{ dia.numero }}
           </button>
-          <span class="count-val">{{ form.quantidade }}</span>
-          <button (click)="inc()" class="round-btn plus">
-            <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+        </div>
+
+        <div class="date-feedback" *ngIf="form.data">
+          Data selecionada: {{ dataSelecionadaLabel }}
+        </div>
+      </div>
+
+      <div class="time-section">
+        <h3>Horários</h3>
+        <div class="time-grid">
+          <button
+            *ngFor="let h of horarios"
+            class="time-btn"
+            [class.active]="h.hora === form.hora"
+            [class.indisponivel]="!h.disponivel"
+            [disabled]="!h.disponivel"
+            (click)="selecionarHora(h.hora, h.disponivel)">
+            {{ h.hora }}
           </button>
         </div>
       </div>
-    </div>
 
-    <div class="calendar-section">
-      <div class="cal-header">
-        <h3>Janeiro 2025</h3>
-        <div class="nav-arrows">
-          <lucide-icon [img]="icons.left" size="20"></lucide-icon>
-          <lucide-icon [img]="icons.right" size="20"></lucide-icon>
-        </div>
+      <div class="input-group">
+        <label>Observações</label>
+        <textarea
+          placeholder="Digite se precisar de acessibilidade..."
+          [(ngModel)]="form.obs"
+          rows="3"></textarea>
       </div>
 
-      <div class="cal-grid">
-        <span class="week-day">D</span><span class="week-day">S</span>
-        <span class="week-day">T</span><span class="week-day">Q</span>
-        <span class="week-day">Q</span><span class="week-day">S</span>
-        <span class="week-day">S</span>
-
-        <button 
-          *ngFor="let dia of diasCalendario" 
-          class="day-btn" 
-          [class.selected]="dia === form.data"
-          [class.empty]="!dia"
-          [disabled]="!dia"
-          (click)="selecionarDia(dia)">
-          {{ dia }}
-        </button>
-      </div>
-
-      <div class="date-feedback" *ngIf="form.data">
-        Data selecionada: {{ form.data }} de Janeiro, 2025
-      </div>
-    </div>
-
-    <div class="time-section">
-      <h3>Horários</h3>
-      <div class="time-grid">
-        <button 
-          *ngFor="let h of horarios" 
-          class="time-btn" 
-          [class.active]="h === form.hora"
-          (click)="selecionarHora(h)">
-          {{ h }}
-        </button>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label>Observações</label>
-      <textarea 
-        placeholder="Digite se precisar de acessibilidade..." 
-        [(ngModel)]="form.obs" 
-        rows="3"></textarea>
-    </div>
-
-    <div style="height: 100px;"></div>
+      <div style="height: 100px;"></div>
+    </ng-container>
 
   </main>
 
   <footer class="bottom-bar animate-up delay-1">
-    <button class="btn-confirm" (click)="confirmar()">
+    <button class="btn-confirm" (click)="confirmar()" [disabled]="salvando">
       <lucide-icon [img]="icons.check" size="20"></lucide-icon>
-      Confirmar Agendamento
+      {{ salvando ? 'Salvando...' : 'Confirmar Agendamento' }}
     </button>
   </footer>
 

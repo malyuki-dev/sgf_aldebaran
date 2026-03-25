@@ -7,15 +7,20 @@ datasource db {
 }
 
 model agendamento {
-  id          Int     @id(map: "PK_a102b15cfec9ce6d8ac6193345f") @default(autoincrement())
-  nomeCliente String  @db.VarChar
-  documento   String? @db.VarChar
-  data        String  @db.VarChar
-  hora        String  @db.VarChar
+  id          Int       @id(map: "PK_a102b15cfec9ce6d8ac6193345f") @default(autoincrement())
+  nomeCliente String    @db.VarChar
+  documento   String?   @db.VarChar
+  data        String    @db.VarChar
+  hora        String    @db.VarChar
   servico_id  Int
-  status      String  @default("PENDENTE") @db.VarChar
-  codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
-  servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
+  filial_id   Int
+  observacao  String?   @db.VarChar(300)
+  status      String    @default("PENDENTE") @db.VarChar
+  codigo      String?   @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
+  criadoEm    DateTime  @default(now()) @db.Timestamp(6)
+
+  servico     servico   @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
+  filial      filial    @relation(fields: [filial_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model atendimento {
@@ -139,4 +144,6 @@ model filial {
   criadoEm     DateTime  @default(now()) @db.Timestamp(6)
   atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
   deletadoEm   DateTime? @db.Timestamp(6)
+
+  agendamentos agendamento[]  
 }

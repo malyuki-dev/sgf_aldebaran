@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+
+
 @Injectable()
 export class FilaService {
   constructor(private prisma: PrismaService) {}
@@ -113,33 +115,42 @@ export class FilaService {
   }
 
   // --- AGENDAMENTOS ---
-  async horariosDisponiveis(data: string) {
-    const grade = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
-    
-    const agendados = await this.prisma.agendamento.findMany({ where: { data } });
-    const horariosOcupados = agendados.map(a => a.hora);
-    
-    return grade.map(hora => ({ hora, disponivel: !horariosOcupados.includes(hora) }));
-  }
+  async horariosDisponiveis(data: string, servicoId: number, filialId: number) {
+    if (!data) {
+      throw new BadRequestException('Data é obrigatória.');
+    }
 
-  async criarAgendamento(dados: any) {
-    // Verifica disponibilidade
-    const ocupado = await this.prisma.agendamento.findFirst({
-      where: { data: dados.data, hora: dados.hora }
-    });
-    if (ocupado) throw new BadRequestException("Horário ocupado.");
+    if (!servicoId) {
+      throw new BadRequestException('Serviço é obrigatório.');
+    }
 
-    return await this.prisma.agendamento.create({
-      data: {
-        nomeCliente: dados.nome,
-        documento: dados.documento,
-        data: dados.data,
-        hora: dados.hora,
-        status: 'CONFIRMADO',
-        codigo: dados.codigo,
-        servico: { connect: { id: Number(dados.servico_id) } }
-      }
+    if (!filialId) {
+      throw new BadRequestException('Filial é obrigatória.');
+    }
+
+    const agendados = await this.prisma.agendamento.findMany({
+      where: {
+        data,
+        servico_id: servicoId,
+        filial_id: filialId,
+        status: { not: 'CANCELADO' }
+      },
+      select: { hora: true }
     });
+
+    const grade = [
+      '08:00', '08:30', '09:00', '09:30',
+      '10:00', '10:30', '11:00', '11:30',
+      '13:00', '13:30', '14:00', '14:30',
+      '15:00', '15:30', '16:00', '16:30', '17:00'
+    ];
+
+    const ocupados = new Set(agendados.map(a => a.hora));
+
+    return grade.map(hora => ({
+      hora,
+      disponivel: !ocupados.has(hora)
+    }));
   }
 
   async listarAgendamentos() {
@@ -156,6 +167,13 @@ export class FilaService {
     });
     if (!agendamento) throw new NotFoundException();
     return agendamento;
+  }
+
+  async listarFiliais() {
+    return this.prisma.filial.findMany({
+      where: { ativo: true, deletadoEm: null },
+      orderBy: { nome: 'asc' }
+    });
   }
 
   // --- FILA / PAINEL ---
@@ -246,4 +264,39 @@ export class FilaService {
 
     return { fila, atendidos, tempo: 12, graficoFluxo: [] };
   }
+
+  async criarAgendamento(dados: any) {
+  const ocupado = await this.prisma.agendamento.findFirst({
+    where: {
+      data: dados.data,
+      hora: dados.hora,
+      servico_id: Number(dados.servico_id),
+      filial_id: Number(dados.filial_id),
+      status: { not: 'CANCELADO' }
+    }
+  });
+
+  if (ocupado) {
+    throw new BadRequestException('Horário ocupado.');
+  }
+
+  return await this.prisma.agendamento.create({
+    data: {
+      nomeCliente: dados.nome,
+      documento: dados.documento || null,
+      data: dados.data,
+      hora: dados.hora,
+      observacao: dados.observacao || null,
+      status: 'CONFIRMADO',
+      codigo: dados.codigo || `AG-${Date.now()}`,
+      servico_id: Number(dados.servico_id),
+      filial_id: Number(dados.filial_id)
+    },
+    include: {
+      servico: true,
+      filial: true
+    }
+  });
 }
+}
+
