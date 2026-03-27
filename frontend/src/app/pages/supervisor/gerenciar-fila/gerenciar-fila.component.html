@@ -29,9 +29,15 @@
       </div>
       <div 
         class="tab" 
+        [class.active]="currentTab === 'guiche'" 
+        (click)="currentTab = 'guiche'">
+        Status dos Guichês <span class="badge blue-bg">{{ guichesAtivos }}</span>
+      </div>
+      <div 
+        class="tab" 
         [class.active]="currentTab === 'baia'" 
         (click)="currentTab = 'baia'">
-        Status das Baias <span class="badge blue-bg">{{ baias.length }}</span>
+        Status das Baias <span class="badge blue-bg">{{ baiasAtivas }}</span>
       </div>
       <div 
         class="tab" 
@@ -126,11 +132,11 @@
           </div>
 
           <div class="card-actions">
-            <button class="btn-action btn-chamar-proximo" (click)="chamarProximo(baia)" *ngIf="baia.status === 'livre'">
+            <button class="btn-action-primary" (click)="chamarProximo(baia)" *ngIf="baia.status === 'livre'">
               <lucide-icon [img]="icons.up" size="16"></lucide-icon>
               Chamar Próximo
             </button>
-            <button class="btn-action btn-encerrar" (click)="encerrar(baia)" *ngIf="baia.status === 'ocupada'">
+            <button class="btn-action-secondary" (click)="encerrar(baia)" *ngIf="baia.status === 'ocupada'">
               <lucide-icon [img]="icons.check" size="16"></lucide-icon>
               Encerrar Atendimento
             </button>
@@ -140,7 +146,106 @@
       </div>
     </div>
 
-    <!-- Configurações da Fila -->
+    <!-- Status dos Guichês -->
+    <div class="tab-body" *ngIf="currentTab === 'guiche'">
+      <div class="guiches-grid">
+        <div class="guiche-card" *ngFor="let guiche of guiches" [ngClass]="guiche.status">
+          <div class="card-header">
+            <h3>Guichê {{ guiche.numero }}</h3>
+            <div class="header-right">
+              <span class="status-pill">{{ guiche.statusLabel }}</span>
+              <div class="context-menu-wrapper" (click)="$event.stopPropagation()">
+                <button
+                  class="context-menu-btn"
+                  type="button"
+                  aria-label="Ações"
+                  (click)="toggleContextMenu(guiche, $event)">
+                  <lucide-icon [img]="icons.moreVertical" size="18"></lucide-icon>
+                </button>
+
+                <div class="context-menu-dropdown" *ngIf="contextMenuGuicheNumero === guiche.numero">
+                  <ng-container *ngIf="guiche.status === 'disponivel'">
+                    <button class="context-menu-item"
+                      type="button"
+                      (click)="openRemoveOperatorConfirmation(guiche, $event)">
+                      Remover Operador
+                    </button>
+                  </ng-container>
+
+                  <ng-container *ngIf="guiche.status === 'ocupado'">
+                    <button class="context-menu-item disabled" type="button" disabled title="Encerre o atendimento primeiro">
+                      Remover Operador
+                    </button>
+                  </ng-container>
+
+                  <ng-container *ngIf="guiche.status === 'vazio' || guiche.status === 'manutencao'">
+                    <div class="no-options">Nenhuma ação disponível</div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado VAZIO -->
+          <div class="card-content empty-state" *ngIf="guiche.status === 'vazio'">
+            <div class="icon-circle gray-circle">
+              <lucide-icon [img]="icons.users" size="24"></lucide-icon>
+            </div>
+            <h4>Sem Operador</h4>
+          </div>
+
+          <!-- Estado DISPONÍVEL -->
+          <div class="card-content" *ngIf="guiche.status === 'disponivel'">
+            <div class="operator-section">
+              <div class="icon-circle green-circle">
+                <lucide-icon [img]="icons.check" size="24"></lucide-icon>
+              </div>
+              <h4>Pronta para Uso</h4>
+              <span class="op-name">Operador: {{ guiche.operador }}</span>
+            </div>
+          </div>
+
+          <!-- Estado OCUPADO -->
+          <div class="card-content" *ngIf="guiche.status === 'ocupado'">
+            <div class="data-row">
+              <span class="label">Operador:</span>
+              <span class="value">{{ guiche.operador }}</span>
+            </div>
+            <div class="data-row">
+              <span class="label">Atendendo:</span>
+              <span class="value font-bold">{{ guiche.ticket }}</span>
+            </div>
+            <div class="data-row">
+              <span class="label">Veículo:</span>
+              <span class="value">{{ guiche.placa }}</span>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-track">
+                <div class="progress-fill" [style.width]="guiche.progresso + '%'"></div>
+              </div>
+              <span class="time-left">{{ guiche.tempoOcupado }} min</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-action-add" (click)="abrirModalAdicionarOperador(guiche)" *ngIf="guiche.status === 'vazio'">
+              <lucide-icon [img]="icons.plus" size="16"></lucide-icon>
+              Adicionar Operador
+            </button>
+            <button class="btn-action-primary" (click)="chamarProximoGuiche(guiche)" *ngIf="guiche.status === 'disponivel'">
+              <lucide-icon [img]="icons.up" size="16"></lucide-icon>
+              Chamar Próximo
+            </button>
+            <button class="btn-action-secondary" (click)="encerrarAtendimentoGuiche(guiche)" *ngIf="guiche.status === 'ocupado'">
+              <lucide-icon [img]="icons.check" size="16"></lucide-icon>
+              Encerrar Atendimento
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
     <div class="tab-body" *ngIf="currentTab === 'config'">
       <form [formGroup]="configForm" class="config-form-container">
         <div class="header-section">
@@ -199,6 +304,88 @@
 
   </div>
 
+  <!-- Modal: Seleção de Operador para Guichê -->
+  <div class="modal-overlay" *ngIf="showOperadorModal" (click)="fecharModalOperador()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+          Selecionar Operador para Guichê {{ guicheAtual?.numero }}
+        </h2>
+        <button class="close-btn" (click)="fecharModalOperador()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Loading State -->
+        <div class="operadores-list" *ngIf="operadorLoading">
+          <div class="loading-state" style="text-align: center; padding: 2rem;">
+            <p>Carregando operadores...</p>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="operadores-list" *ngIf="!operadorLoading && operadorError">
+          <div class="error-state" style="text-align: center; padding: 2rem; color: #dc2626;">
+            <lucide-icon [img]="icons.alert" size="24" style="margin-bottom: 0.5rem;"></lucide-icon>
+            <p>{{ operadorError }}</p>
+          </div>
+        </div>
+
+        <!-- Operadores List -->
+        <div class="operadores-list" *ngIf="!operadorLoading && !operadorError && operadoresDisponiveis.length > 0">
+          <div class="operador-item" *ngFor="let op of operadoresDisponiveis">
+            <div class="operador-info">
+              <div class="avatar-initials">
+                {{ op.nome.substring(0, 2).toUpperCase() }}
+              </div>
+              <div class="info-text">
+                <h4>{{ op.nome }}</h4>
+                <p>
+                  <lucide-icon [img]="icons.mail" size="14"></lucide-icon>
+                  {{ op.email }}
+                </p>
+              </div>
+            </div>
+            <button class="btn-select" (click)="selecionarOperador(op)">
+              Selecionar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-footer-text" (click)="irParaCadastroOperador()">
+          <lucide-icon [img]="icons.plus" size="16"></lucide-icon>
+          Cadastrar Novo Operador
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmação de Remover Operador -->
+  <div class="modal-overlay" *ngIf="showRemoveOperatorConfirmModal" (click)="cancelarRemocaoOperador()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Confirmar remoção de operador</h2>
+        <button class="close-btn" (click)="cancelarRemocaoOperador()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Deseja remover {{ guicheSelecionadoParaRemocao?.operador }} do Guichê
+          {{ guicheSelecionadoParaRemocao?.numero }}?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-solid-gray" (click)="cancelarRemocaoOperador()">Cancelar</button>
+        <button class="btn-solid-red" (click)="confirmarRemocaoOperador()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Sucesso -->
   <div class="modal-backdrop" *ngIf="showSuccessModal">
     <div class="modal-c success-modal">
@@ -208,6 +395,59 @@
       <h2>Sucesso!</h2>
       <p>Regras da fila atualizadas com sucesso.</p>
       <button class="btn-solid-teal w-full" (click)="fecharSuccessModal()">OK, Entendi</button>
+    </div>
+  </div>
+
+  <!-- Modal: Cadastrar Novo Operador -->
+  <div class="modal-overlay" *ngIf="showCriarOperadorModal" (click)="fecharCriarOperadorModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+          Cadastrar Operador
+        </h2>
+        <button class="close-btn" (click)="fecharCriarOperadorModal()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body" style="text-align: left; padding: 24px;">
+        <form [formGroup]="operadorForm" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Nome Completo <span style="color: red;">*</span></label>
+            <input type="text" formControlName="nome" placeholder="Ex: João Silva" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Nome de Usuário <span style="color: red;">*</span></label>
+            <input type="text" formControlName="nomeUsuario" placeholder="Ex: joao.silva" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Senha <span style="color: red;">*</span></label>
+            <input type="password" formControlName="senha" placeholder="********" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Confirmar Senha <span style="color: red;">*</span></label>
+            <input type="password" formControlName="confirmarSenha" placeholder="********" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Filial <span style="color: red;">*</span></label>
+            <input type="text" formControlName="filial" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Telefone</label>
+            <input type="text" formControlName="telefone" placeholder="(00) 00000-0000" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-size: 0.9rem; font-weight: 600;">E-mail <span style="color: red;">*</span></label>
+            <input type="email" formControlName="email" placeholder="exemplo@email.com" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer" style="justify-content: flex-end; gap: 12px;">
+        <button class="btn-solid-gray" (click)="fecharCriarOperadorModal()" style="padding: 10px 16px; border: none; background: #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancelar</button>
+        <button class="btn-solid-blue" (click)="salvarNovoOperador()" style="padding: 10px 16px; border: none; background: #06b6d4; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">Cadastrar</button>
+      </div>
     </div>
   </div>
 </div>

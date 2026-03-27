@@ -35,7 +35,7 @@
       <div class="avatar">{{ userInitials }}</div>
       <div class="text">
         <div class="name">{{ usuario?.nome || userName }}</div>
-        <div class="role">Administrador</div>
+        <div class="role">{{ userRole }}</div>
       </div>
       <button class="chevron-icon" title="Abrir menu">
         <lucide-icon [img]="showProfileMenu ? icons['chevronUp'] : icons['chevronDown']" size="18"></lucide-icon>

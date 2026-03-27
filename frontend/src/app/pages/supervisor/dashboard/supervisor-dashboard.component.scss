@@ -161,17 +161,21 @@ $red-indicator: #ef4444;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   position: relative;
   overflow: hidden;
+  min-height: 180px; /* uniformiza altura dos cards */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   /* Variações de Status baseadas na imagem 1 */
   &.atendendo { 
-    border-color: $green-main; 
-    background: #f0fdf4;
-    .status-badge { background: $green-main; color: white; } 
-  }
-  &.disponivel { 
     border-color: #60a5fa; 
     background: #eff6ff;
     .status-badge { background: $blue-main; color: white; } 
+  }
+  &.disponivel { 
+    border-color: $green-main; 
+    background: #f0fdf4;
+    .status-badge { background: $green-main; color: white; } 
   }
   &.fechado { 
     border-color: $border-light; 
@@ -292,7 +296,7 @@ $red-indicator: #ef4444;
 .redesign-modal {
   background: white; 
   border-radius: 16px; 
-  width: 90%; max-width: 500px; /* Modal mais estreito como na imagem */
+  width: 90%; max-width: 800px; /* Modal mais largo para melhor aproveitamento de tela */
   overflow: hidden; 
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);

@@ -15,6 +15,7 @@ export class AdminLayoutComponent implements OnInit {
   usuario: any = null;
   userInitials: string = 'CA';
   userName: string = 'Carlos Admin';
+  userRole: string = 'Administrador';
 
   showProfileMenu = false;
   showSupervisorProfileMenu = false;
@@ -97,8 +98,10 @@ export class AdminLayoutComponent implements OnInit {
 
       if (this.usuario.perfil === 'SUPERVISOR' || this.usuario.tipo === 'SUPERVISOR') {
         this.menuGroups = this.supervisorMenuGroups;
+        this.userRole = 'Supervisor';
       } else {
         this.menuGroups = this.adminMenuGroups;
+        this.userRole = 'Administrador';
       }
     }
 
