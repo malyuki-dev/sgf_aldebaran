@@ -613,6 +613,7 @@ $cyan-dark: #0891b2;
   h2 { font-size: 1.25rem; color: $text-main; margin-bottom: 8px; }
   p { color: $text-sec; margin-bottom: 24px; }
   .btn-outline-blue { background: transparent; border: 2px solid $blue-main; color: $blue-main; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.2s; &:hover { background: $blue-light; } }
+  .btn-outline-red { background: transparent; border: 2px solid #ef4444; color: #ef4444; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.2s; &:hover { background: #fef2f2; } }
 }
 
 /* CONFIG FORM STYLES (imported from configuracoes) */
@@ -809,3 +810,6 @@ $cyan-dark: #0891b2;
     }
   }
 }
+
+.bg-red-500 { background-color: #ef4444 !important; }
+.text-red-500 { color: #dc2626 !important; }

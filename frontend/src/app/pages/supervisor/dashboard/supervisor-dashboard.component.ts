@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -79,7 +79,7 @@ export class SupervisorDashboardComponent implements OnInit {
   operadorForm: FormGroup;
   clienteForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute, private guicheService: GuicheService, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute, private guicheService: GuicheService, private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.justificativaForm = this.fb.group({
       motivo: ['', Validators.required],
       observacoes: ['']
@@ -125,6 +125,7 @@ export class SupervisorDashboardComponent implements OnInit {
     // Inscrever aos dados de guichês do serviço
     this.guicheService.guiches$.subscribe(guiches => {
       this.guiches = guiches;
+      this.cdr.detectChanges();
     });
   }
 
@@ -232,20 +233,19 @@ export class SupervisorDashboardComponent implements OnInit {
     return { valor: `${ativos}/${total}`, percentual: `${percentual}%` };
   }
 
-  // Mapear dados do guiche service para o formato do dashboard
   getGuichesFormatted(): any[] {
     return this.guiches.map(guiche => {
       let status = 'FECHADO';
-      let tempo = '0:00';
+      let tempo = '00:00';
 
       if (guiche.status === 'vazio') {
         status = 'FECHADO';
       } else if (guiche.status === 'disponivel') {
         status = 'DISPONIVEL';
-        tempo = '0:10';
+        tempo = '00:00';
       } else if (guiche.status === 'ocupado') {
         status = 'ATENDENDO';
-        tempo = guiche.tempoOcupado ? `${guiche.tempoOcupado}:00` : '0:00';
+        tempo = guiche.tempoOcupadoFormatado || '00:00';
       }
 
       return {
@@ -253,9 +253,13 @@ export class SupervisorDashboardComponent implements OnInit {
         operador: guiche.operador || '',
         status: status,
         ticket: guiche.ticket || '',
-        tempo: tempo
+        tempo: tempo,
+        atrasado: guiche.atrasado || false
       };
     });
   }
 
+  get tempoMedio(): string {
+    return this.guicheService.tempoMedioGlobalFormatado;
+  }
 }

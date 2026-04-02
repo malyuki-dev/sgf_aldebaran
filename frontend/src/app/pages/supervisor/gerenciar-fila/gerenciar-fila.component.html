@@ -9,7 +9,8 @@
       </div>
       <h1>Gerenciamento de Fila e Fluxo</h1>
       <div class="statistics-bar">
-        <span class="stat-pill"><lucide-icon [img]="icons.users" size="14"></lucide-icon> {{ filaEspera.length }} na fila</span>
+        <span class="stat-pill"><lucide-icon [img]="icons.users" size="14"></lucide-icon> {{ filaEspera.length }} na
+          fila</span>
         <span class="stat-pill"><lucide-icon [img]="icons.clock" size="14"></lucide-icon> 22 min média</span>
       </div>
     </div>
@@ -21,28 +22,16 @@
 
   <div class="page-content">
     <div class="custom-tabs">
-      <div 
-        class="tab" 
-        [class.active]="currentTab === 'espera'" 
-        (click)="currentTab = 'espera'">
+      <div class="tab" [class.active]="currentTab === 'espera'" (click)="currentTab = 'espera'">
         Fila de Espera <span class="badge">{{ filaEspera.length }}</span>
       </div>
-      <div 
-        class="tab" 
-        [class.active]="currentTab === 'guiche'" 
-        (click)="currentTab = 'guiche'">
+      <div class="tab" [class.active]="currentTab === 'guiche'" (click)="currentTab = 'guiche'">
         Status dos Guichês <span class="badge blue-bg">{{ guichesAtivos }}</span>
       </div>
-      <div 
-        class="tab" 
-        [class.active]="currentTab === 'baia'" 
-        (click)="currentTab = 'baia'">
+      <div class="tab" [class.active]="currentTab === 'baia'" (click)="currentTab = 'baia'">
         Status das Baias <span class="badge blue-bg">{{ baiasAtivas }}</span>
       </div>
-      <div 
-        class="tab" 
-        [class.active]="currentTab === 'config'" 
-        (click)="currentTab = 'config'">
+      <div class="tab" [class.active]="currentTab === 'config'" (click)="currentTab = 'config'">
         Configurações
       </div>
     </div>
@@ -51,7 +40,7 @@
     <div class="tab-body" *ngIf="currentTab === 'espera'">
       <div class="queue-list">
         <div class="queue-card" *ngFor="let item of filaEspera" [ngClass]="item.prioridade">
-          
+
           <div class="ticket-col">
             <span class="ticket-number">{{ item.ticket }}</span>
             <span class="priority-label" [ngClass]="item.prioridade">{{ item.prioridadeLabel }}</span>
@@ -110,9 +99,11 @@
 
             <div class="progress-section">
               <div class="progress-track">
-                <div class="progress-fill" [style.width]="baia.progresso + '%'"></div>
+                <div class="progress-fill" [style.width]="baia.progresso + '%'" [class.bg-red-500]="baia.atrasado">
+                </div>
               </div>
-              <span class="time-left">{{ baia.tempoOcupado }} min</span>
+              <span class="time-left" [class.text-red-500]="baia.atrasado">{{ baia.tempoOcupadoFormatado || '00:00' }}
+                min</span>
             </div>
           </div>
 
@@ -155,25 +146,22 @@
             <div class="header-right">
               <span class="status-pill">{{ guiche.statusLabel }}</span>
               <div class="context-menu-wrapper" (click)="$event.stopPropagation()">
-                <button
-                  class="context-menu-btn"
-                  type="button"
-                  aria-label="Ações"
+                <button class="context-menu-btn" type="button" aria-label="Ações"
                   (click)="toggleContextMenu(guiche, $event)">
                   <lucide-icon [img]="icons.moreVertical" size="18"></lucide-icon>
                 </button>
 
                 <div class="context-menu-dropdown" *ngIf="contextMenuGuicheNumero === guiche.numero">
                   <ng-container *ngIf="guiche.status === 'disponivel'">
-                    <button class="context-menu-item"
-                      type="button"
+                    <button class="context-menu-item" type="button"
                       (click)="openRemoveOperatorConfirmation(guiche, $event)">
                       Remover Operador
                     </button>
                   </ng-container>
 
                   <ng-container *ngIf="guiche.status === 'ocupado'">
-                    <button class="context-menu-item disabled" type="button" disabled title="Encerre o atendimento primeiro">
+                    <button class="context-menu-item disabled" type="button" disabled
+                      title="Encerre o atendimento primeiro">
                       Remover Operador
                     </button>
                   </ng-container>
@@ -222,22 +210,27 @@
 
             <div class="progress-section">
               <div class="progress-track">
-                <div class="progress-fill" [style.width]="guiche.progresso + '%'"></div>
+                <div class="progress-fill" [style.width]="guiche.progresso + '%'" [class.bg-red-500]="guiche.atrasado">
+                </div>
               </div>
-              <span class="time-left">{{ guiche.tempoOcupado }} min</span>
+              <span class="time-left" [class.text-red-500]="guiche.atrasado">{{ guiche.tempoOcupadoFormatado || '00:00'
+                }} min</span>
             </div>
           </div>
 
           <div class="card-actions">
-            <button class="btn-action-add" (click)="abrirModalAdicionarOperador(guiche)" *ngIf="guiche.status === 'vazio'">
+            <button class="btn-action-add" (click)="abrirModalAdicionarOperador(guiche)"
+              *ngIf="guiche.status === 'vazio'">
               <lucide-icon [img]="icons.plus" size="16"></lucide-icon>
               Adicionar Operador
             </button>
-            <button class="btn-action-primary" (click)="chamarProximoGuiche(guiche)" *ngIf="guiche.status === 'disponivel'">
+            <button class="btn-action-primary" (click)="chamarProximoGuiche(guiche)"
+              *ngIf="guiche.status === 'disponivel'">
               <lucide-icon [img]="icons.up" size="16"></lucide-icon>
               Chamar Próximo
             </button>
-            <button class="btn-action-secondary" (click)="encerrarAtendimentoGuiche(guiche)" *ngIf="guiche.status === 'ocupado'">
+            <button class="btn-action-secondary" (click)="encerrarAtendimentoGuiche(guiche)"
+              *ngIf="guiche.status === 'ocupado'">
               <lucide-icon [img]="icons.check" size="16"></lucide-icon>
               Encerrar Atendimento
             </button>
@@ -253,21 +246,31 @@
           <p>Defina limites de tempo e prioridades de atendimento.</p>
         </div>
         <hr class="divider">
-        
+
         <div class="settings-group">
           <h3>Tempos e Limites</h3>
           <div class="form-row">
             <div class="form-field mix-width">
               <label>Tempo de Tolerância (Atrasos)</label>
               <div class="input-with-suffix">
-                 <input type="number" formControlName="tempoTolerancia">
-                 <span class="suffix">minutos</span>
+                <input type="number" formControlName="tempoTolerancia">
+                <span class="suffix">minutos</span>
               </div>
             </div>
             <div class="form-field mix-width">
               <label>Limite Atendimentos/Dia</label>
               <input type="number" formControlName="limiteAtendimentos">
             </div>
+          </div>
+          <hr class="light-divider">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>Visor de Tempo Médio</h4>
+              <p>Zerar o histórico do cálculo exibido no dashboard.</p>
+            </div>
+            <button type="button" class="btn-outline-red" (click)="resetarTempoMedio()">
+              Resetar Visor
+            </button>
           </div>
         </div>
 
@@ -295,9 +298,9 @@
             </label>
           </div>
         </div>
-        
+
         <div class="form-actions mt-32">
-           <button type="button" class="btn-solid-blue" (click)="salvarConfiguracoes()">Salvar Regras</button>
+          <button type="button" class="btn-solid-blue" (click)="salvarConfiguracoes()">Salvar Regras</button>
         </div>
       </form>
     </div>
@@ -415,38 +418,49 @@
         <form [formGroup]="operadorForm" style="display: flex; flex-direction: column; gap: 1rem;">
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-size: 0.9rem; font-weight: 600;">Nome Completo <span style="color: red;">*</span></label>
-            <input type="text" formControlName="nome" placeholder="Ex: João Silva" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <input type="text" formControlName="nome" placeholder="Ex: João Silva"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label style="font-size: 0.9rem; font-weight: 600;">Nome de Usuário <span style="color: red;">*</span></label>
-            <input type="text" formControlName="nomeUsuario" placeholder="Ex: joao.silva" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Nome de Usuário <span
+                style="color: red;">*</span></label>
+            <input type="text" formControlName="nomeUsuario" placeholder="Ex: joao.silva"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-size: 0.9rem; font-weight: 600;">Senha <span style="color: red;">*</span></label>
-            <input type="password" formControlName="senha" placeholder="********" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <input type="password" formControlName="senha" placeholder="********"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label style="font-size: 0.9rem; font-weight: 600;">Confirmar Senha <span style="color: red;">*</span></label>
-            <input type="password" formControlName="confirmarSenha" placeholder="********" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <label style="font-size: 0.9rem; font-weight: 600;">Confirmar Senha <span
+                style="color: red;">*</span></label>
+            <input type="password" formControlName="confirmarSenha" placeholder="********"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-size: 0.9rem; font-weight: 600;">Filial <span style="color: red;">*</span></label>
-            <input type="text" formControlName="filial" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <input type="text" formControlName="filial"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-size: 0.9rem; font-weight: 600;">Telefone</label>
-            <input type="text" formControlName="telefone" placeholder="(00) 00000-0000" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <input type="text" formControlName="telefone" placeholder="(00) 00000-0000"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-size: 0.9rem; font-weight: 600;">E-mail <span style="color: red;">*</span></label>
-            <input type="email" formControlName="email" placeholder="exemplo@email.com" style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
+            <input type="email" formControlName="email" placeholder="exemplo@email.com"
+              style="padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px;">
           </div>
         </form>
       </div>
 
       <div class="modal-footer" style="justify-content: flex-end; gap: 12px;">
-        <button class="btn-solid-gray" (click)="fecharCriarOperadorModal()" style="padding: 10px 16px; border: none; background: #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancelar</button>
-        <button class="btn-solid-blue" (click)="salvarNovoOperador()" style="padding: 10px 16px; border: none; background: #06b6d4; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">Cadastrar</button>
+        <button class="btn-solid-gray" (click)="fecharCriarOperadorModal()"
+          style="padding: 10px 16px; border: none; background: #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancelar</button>
+        <button class="btn-solid-blue" (click)="salvarNovoOperador()"
+          style="padding: 10px 16px; border: none; background: #06b6d4; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">Cadastrar</button>
       </div>
     </div>
   </div>

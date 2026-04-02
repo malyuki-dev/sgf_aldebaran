@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { LucideAngularModule, Search, Clock, User, AlertCircle, ArrowUpCircle, CheckCircle, Users, ArrowLeft, Plus, X, Mail, MoreVertical } from 'lucide-angular';
@@ -35,13 +35,14 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
   ];
 
   baias = [
-    { numero: 1, status: 'ocupada', statusLabel: 'Ocupada', operador: 'João Santos', ticket: 'RP044', placa: 'GHI-9012', progresso: 65, tempoOcupado: 12 },
+    { numero: 1, status: 'ocupada', statusLabel: 'Ocupada', operador: 'João Santos', ticket: 'RP044', placa: 'GHI-9012', progresso: 65, tempoOcupado: 12, tempoOcupadoFormatado: '12:00', atrasado: false, startTime: new Date().getTime() - 12 * 60 * 1000 },
     { numero: 2, status: 'livre', statusLabel: 'Livre', operador: 'Ana Costa' },
-    { numero: 3, status: 'ocupada', statusLabel: 'Ocupada', operador: 'Maria Silva', ticket: 'C041', placa: 'JKL-3456', progresso: 20, tempoOcupado: 4 },
+    { numero: 3, status: 'ocupada', statusLabel: 'Ocupada', operador: 'Maria Silva', ticket: 'C041', placa: 'JKL-3456', progresso: 20, tempoOcupado: 4, tempoOcupadoFormatado: '04:00', atrasado: false, startTime: new Date().getTime() - 4 * 60 * 1000 },
     { numero: 4, status: 'manutencao', statusLabel: 'Manutenção' },
   ];
 
   guiches: any[] = [];
+  private baiasTimer: any;
 
   // Modal state para guichês
   showOperadorModal = false;
@@ -51,11 +52,11 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
   operadorError: string | null = null;
   private apiUrl = 'http://localhost:3000';
 
-  constructor(private guicheService: GuicheService, private http: HttpClient, private fb: FormBuilder) { }
+  constructor(private guicheService: GuicheService, private http: HttpClient, private fb: FormBuilder, private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.configForm = new FormGroup({
-      tempoTolerancia: new FormControl(15),
+      tempoTolerancia: new FormControl(this.guicheService.tempoTolerancia),
       limiteAtendimentos: new FormControl(200),
       prioridadePcdIdoso: new FormControl(true),
       redirecionarAusentes: new FormControl(false)
@@ -75,7 +76,29 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
     // Inscrever aos dados de guichês do serviço
     this.guicheService.guiches$.subscribe(guiches => {
       this.guiches = guiches;
+      this.cdr.detectChanges();
     });
+
+    // Simulando o cronômetro localmente para as baias
+    this.baiasTimer = setInterval(() => {
+      this.baias.forEach(baia => {
+        if (baia.status === 'ocupada' && baia.startTime) {
+          const now = new Date().getTime();
+          const decorridoSegundos = Math.floor((now - baia.startTime) / 1000);
+
+          const minutos = Math.floor(decorridoSegundos / 60);
+          const segundos = decorridoSegundos % 60;
+          baia.tempoOcupadoFormatado = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+          baia.tempoOcupado = minutos;
+
+          const propTolerancia = this.guicheService.tempoTolerancia * 60;
+          const progBruto = (decorridoSegundos / propTolerancia) * 100;
+          baia.atrasado = progBruto >= 100;
+          baia.progresso = Math.min(progBruto, 100);
+        }
+      });
+      this.cdr.detectChanges();
+    }, 1000);
   }
 
   chamar(item: any) {
@@ -96,7 +119,16 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
   }
 
   salvarConfiguracoes() {
+    if (this.configForm.valid) {
+      this.guicheService.tempoTolerancia = this.configForm.value.tempoTolerancia;
+    }
     this.showSuccessModal = true;
+  }
+
+  resetarTempoMedio() {
+    if (confirm('Tem certeza que deseja zerar o histórico de tempo médio? O dashboard recomeçará o cálculo do zero.')) {
+      this.guicheService.resetarHistoricoTempoMedio();
+    }
   }
 
   fecharSuccessModal() {

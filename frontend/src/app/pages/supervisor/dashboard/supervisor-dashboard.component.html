@@ -41,7 +41,7 @@
             </div>
             <div class="kpi-info-flex">
               <span class="kpi-label">Tempo Médio</span>
-              <strong class="kpi-value">8 min</strong>
+              <strong class="kpi-value">{{ tempoMedio }}</strong>
             </div>
           </div>
         </div>
@@ -108,7 +108,7 @@
                   <span class="detail-label text-xs">Atendendo</span>
                   <strong class="ticket-number text-lg">{{ guiche.ticket }}</strong>
                 </div>
-                <div class="time-pill inline-time">
+                <div class="time-pill inline-time" [class.time-danger]="guiche.atrasado">
                   <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
                   {{ guiche.tempo }}
                 </div>
