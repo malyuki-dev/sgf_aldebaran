@@ -1,13 +1,15 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   LucideAngularModule, AlertTriangle, ChevronRight, TrendingUp,
   Clock, Activity, Users, Truck, UserPlus, User, Settings, BarChart2,
   Bell, History, Calendar, X, CheckCircle, FileText, ChevronDown, LogOut,
   Hash, Building, Package, Key, Lock, Phone, Mail, Eye, AlertCircle
 } from 'lucide-angular';
+import { GuicheService } from '../../../services/guiche.service';
 
 @Component({
   selector: 'app-supervisor-dashboard',
@@ -33,19 +35,11 @@ export class SupervisorDashboardComponent implements OnInit {
   visaoGeral = [
     { titulo: 'Total Hoje', valor: '147', info: '+12%', corInfo: 'green', icon: this.icons.trendingUp, bgIcon: '#e0f2fe', colorIcon: '#0284c7' },
     { titulo: 'Tempo Médio', valor: '8 min', info: '+3 min', corInfo: 'red', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
-    { titulo: 'Guichês Ativos', valor: '5/6', info: '75%', corInfo: 'green', icon: this.icons.activity, bgIcon: '#f0fdf4', colorIcon: '#16a34a' },
     { titulo: 'Fila Atual', valor: '12', info: 'Normal', corInfo: 'gray', icon: this.icons.users, bgIcon: '#f3e8ff', colorIcon: '#9333ea' }
   ];
 
-  // Status dos Guichês
-  guiches = [
-    { numero: 1, operador: 'João Santos', status: 'ATENDENDO', ticket: 'RP043', tempo: '12:30' },
-    { numero: 2, operador: 'Ana Costa', status: 'ATENDENDO', ticket: 'C041', tempo: '14:30' },
-    { numero: 3, operador: 'Maria Silva', status: 'DISPONIVEL', tempo: '0:10' },
-    { numero: 4, operador: 'Pedro Lima', status: 'ATENDENDO', ticket: 'CR038', tempo: '5:00' },
-    { numero: 5, operador: 'Gustavo Campos', status: 'ATENDENDO', ticket: 'C042', tempo: '17:15' },
-    { numero: 6, operador: '', status: 'FECHADO' }
-  ];
+  // Status dos Guichês - carregar do serviço
+  guiches: any[] = [];
 
   // Senhas Agendadas (Mock para Modal de Agendamentos)
   agendamentos = [
@@ -85,7 +79,7 @@ export class SupervisorDashboardComponent implements OnInit {
   operadorForm: FormGroup;
   clienteForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute) {
+  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute, private guicheService: GuicheService, private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.justificativaForm = this.fb.group({
       motivo: ['', Validators.required],
       observacoes: ['']
@@ -105,7 +99,7 @@ export class SupervisorDashboardComponent implements OnInit {
       senha: ['', [Validators.required, Validators.minLength(8)]],
       confirmarSenha: ['', Validators.required],
       filial: ['', Validators.required],
-      telefone: ['', Validators.required],
+      telefone: [''],
       email: ['', [Validators.required, Validators.email]],
       funcao: ['Operador']
     });
@@ -127,6 +121,12 @@ export class SupervisorDashboardComponent implements OnInit {
         this.router.navigate([], { queryParams: {}, replaceUrl: true });
       }
     });
+
+    // Inscrever aos dados de guichês do serviço
+    this.guicheService.guiches$.subscribe(guiches => {
+      this.guiches = guiches;
+      this.cdr.detectChanges();
+    });
   }
 
   abrirModal(id: string) {
@@ -146,9 +146,45 @@ export class SupervisorDashboardComponent implements OnInit {
       alert('Preencha os campos obrigatórios corretamente.');
       return;
     }
-    if (this.activeModal === 'operator' && this.operadorForm.invalid) {
-      alert('Preencha os campos obrigatórios corretamente.');
-      return;
+    if (this.activeModal === 'operator') {
+      if (this.operadorForm.invalid) {
+        alert('Preencha os campos obrigatórios corretamente.');
+        return;
+      }
+      const formValue = this.operadorForm.value;
+      if (formValue.senha !== formValue.confirmarSenha) {
+        alert('As senhas não conferem.');
+        return;
+      }
+
+      const payload = {
+        nome: formValue.nome,
+        email: formValue.email,
+        login: formValue.nomeUsuario,
+        senha: formValue.senha,
+        perfil: 'OPERADOR'
+      };
+
+      const token = localStorage.getItem('token') || '';
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      this.http.post('http://localhost:3000/usuarios', payload, { headers }).subscribe({
+        next: () => {
+          this.activeModal = null;
+          this.successModal = 'operator';
+          
+          setTimeout(() => {
+            if (this.successModal === 'operator') {
+              this.fecharModal();
+            }
+          }, 5000);
+        },
+        error: (err) => {
+          alert('Erro ao cadastrar operador: ' + (err.error?.message || 'Erro desconhecido'));
+        }
+      });
+      
+      return; // Exit here since it's async
     }
     if (this.activeModal === 'client' && this.clienteForm.invalid) {
       alert('Preencha os campos obrigatórios corretamente.');
@@ -160,7 +196,9 @@ export class SupervisorDashboardComponent implements OnInit {
     this.successModal = tipo;
 
     setTimeout(() => {
-      this.fecharModal();
+      if (this.successModal === tipo) {
+        this.fecharModal();
+      }
     }, 5000); // 5 segundos auto-return
   }
 
@@ -185,4 +223,43 @@ export class SupervisorDashboardComponent implements OnInit {
     this.justificativaForm.reset();
   }
 
+  getGuichesAtivosInfo() {
+    if (!this.guiches || this.guiches.length === 0) {
+      return { valor: '0/6', percentual: '0%' };
+    }
+    const ativos = this.guiches.filter(g => g.status !== 'vazio').length;
+    const total = this.guiches.length;
+    const percentual = Math.round((ativos / total) * 100);
+    return { valor: `${ativos}/${total}`, percentual: `${percentual}%` };
+  }
+
+  getGuichesFormatted(): any[] {
+    return this.guiches.map(guiche => {
+      let status = 'FECHADO';
+      let tempo = '00:00';
+
+      if (guiche.status === 'vazio') {
+        status = 'FECHADO';
+      } else if (guiche.status === 'disponivel') {
+        status = 'DISPONIVEL';
+        tempo = '00:00';
+      } else if (guiche.status === 'ocupado') {
+        status = 'ATENDENDO';
+        tempo = guiche.tempoOcupadoFormatado || '00:00';
+      }
+
+      return {
+        numero: guiche.numero,
+        operador: guiche.operador || '',
+        status: status,
+        ticket: guiche.ticket || '',
+        tempo: tempo,
+        atrasado: guiche.atrasado || false
+      };
+    });
+  }
+
+  get tempoMedio(): string {
+    return this.guicheService.tempoMedioGlobalFormatado;
+  }
 }

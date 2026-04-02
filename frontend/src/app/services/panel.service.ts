@@ -41,7 +41,7 @@ export class PanelService {
       this.fetchReconciliationState(panelType, token);
     });
 
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', (reason: any) => {
       console.warn(`[WSS] Desconectado: ${reason}`);
       this.isOnline.set(false);
     });

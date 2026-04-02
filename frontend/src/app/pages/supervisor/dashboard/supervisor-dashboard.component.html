@@ -41,21 +41,21 @@
             </div>
             <div class="kpi-info-flex">
               <span class="kpi-label">Tempo Médio</span>
-              <strong class="kpi-value">8 min</strong>
+              <strong class="kpi-value">{{ tempoMedio }}</strong>
             </div>
           </div>
         </div>
 
         <!-- Guichês Ativos -->
         <div class="kpi-card">
-          <span class="trend-indicator trend-up absolute-top-right">75%</span>
+          <span class="trend-indicator trend-up absolute-top-right">{{ getGuichesAtivosInfo().percentual }}</span>
           <div class="kpi-content">
             <div class="icon-box bg-green-light text-green">
               <lucide-icon [img]="icons.activity" size="24"></lucide-icon>
             </div>
             <div class="kpi-info-flex">
               <span class="kpi-label">Guichês Ativos</span>
-              <strong class="kpi-value">5/6</strong>
+              <strong class="kpi-value">{{ getGuichesAtivosInfo().valor }}</strong>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@
       <h2 class="section-title">Status dos Guichês</h2>
       <div class="desk-grid">
         
-        <div class="desk-card" *ngFor="let guiche of guiches" [ngClass]="guiche.status.toLowerCase()">
+        <div class="desk-card" *ngFor="let guiche of getGuichesFormatted()" [ngClass]="guiche.status.toLowerCase()">
           
           <div class="desk-header">
             <div class="desk-info-left">
@@ -108,7 +108,7 @@
                   <span class="detail-label text-xs">Atendendo</span>
                   <strong class="ticket-number text-lg">{{ guiche.ticket }}</strong>
                 </div>
-                <div class="time-pill inline-time">
+                <div class="time-pill inline-time" [class.time-danger]="guiche.atrasado">
                   <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
                   {{ guiche.tempo }}
                 </div>
@@ -172,19 +172,19 @@
           <span>Relatórios Gerenciais</span>
         </button>
 
-        <button class="action-card" (click)="abrirModal('atendimentos')">
+        <!-- <button class="action-card" (click)="abrirModal('atendimentos')">
           <div class="action-icon bg-purple-light text-purple">
             <lucide-icon [img]="icons.history" size="24"></lucide-icon>
           </div>
           <span>Atendimentos</span>
-        </button>
+        </button> -->
 
-        <button class="action-card" (click)="abrirModal('agendamentos')">
+        <!-- <button class="action-card" (click)="abrirModal('agendamentos')">
           <div class="action-icon bg-teal-light text-teal">
             <lucide-icon [img]="icons.calendar" size="24"></lucide-icon>
           </div>
           <span>Agendamentos</span>
-        </button>
+        </button> -->
 
       </div>
     </section>
