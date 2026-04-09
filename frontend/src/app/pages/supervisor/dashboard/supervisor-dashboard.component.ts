@@ -122,6 +122,9 @@ export class SupervisorDashboardComponent implements OnInit {
       }
     });
 
+    // Carregar dados reais da API
+    this.guicheService.carregarGuichesDaApi();
+
     // Inscrever aos dados de guichês do serviço
     this.guicheService.guiches$.subscribe(guiches => {
       this.guiches = guiches;

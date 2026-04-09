@@ -12,9 +12,9 @@
     </div>
     <div class="header-right">
       <div class="date-pills">
-        <button class="active">Hoje</button>
-        <button>Semana</button>
-        <button>Mês</button>
+        <button [class.active]="periodoAtivo === 'hoje'" (click)="selecionarPeriodo('hoje')">Hoje</button>
+        <button [class.active]="periodoAtivo === 'semana'" (click)="selecionarPeriodo('semana')">Semana</button>
+        <button [class.active]="periodoAtivo === 'mes'" (click)="selecionarPeriodo('mes')">Mês</button>
       </div>
       <button class="btn-solid-teal">
         <lucide-icon [img]="icons.download" size="16"></lucide-icon>
@@ -35,26 +35,23 @@
           <lucide-icon [img]="icons.user" size="24" class="text-blue"></lucide-icon>
         </div>
         <div class="kpi-info">
-           <strong class="kpi-value">147</strong>
+           <strong class="kpi-value">{{ totalAtendidos }}</strong>
            <span class="kpi-label">Total Atendidos</span>
         </div>
-        <div class="trend text-green">+8%</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-indicator bg-red-light"></div>
         <div class="kpi-info">
-           <strong class="kpi-value">8 min</strong>
+           <strong class="kpi-value">{{ tempoMedioEsperaGeral }} min</strong>
            <span class="kpi-label">Tempo Médio de Espera</span>
         </div>
-        <div class="trend text-red">+15%</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-indicator bg-green-light"></div>
         <div class="kpi-info">
-           <strong class="kpi-value">9 min</strong>
+           <strong class="kpi-value">{{ tempoMedioAtendimentoStr }}</strong>
            <span class="kpi-label">Tempo Médio Atendimento</span>
         </div>
-        <div class="trend text-green">-3%</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-indicator bg-purple-light"></div>
@@ -68,49 +65,34 @@
     <!-- Middle Grid -->
     <div class="charts-grid mt-24">
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Histórico da Fila (por Hora)</h3>
+         <h3 class="chart-title">Histórico da Fila (Qtd)</h3>
          <div class="bar-chart teal-bars">
-             <div class="bar" style="height: 30%"></div>
-             <div class="bar" style="height: 60%"></div>
-             <div class="bar" style="height: 80%"></div>
-             <div class="bar" style="height: 100%"></div>
-             <div class="bar" style="height: 65%"></div>
-             <div class="bar" style="height: 20%"></div>
-             <div class="bar" style="height: 40%"></div>
-             <div class="bar" style="height: 90%"></div>
-             <div class="bar" style="height: 50%"></div>
+             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.historicoFila, maxHistoricoFila)" [title]="g.historicoFila + ' atendimentos às ' + g.horaLabel"></div>
          </div>
-         <div class="x-axis"><span>08:00</span><span>15:00</span></div>
+         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
+            <span>{{graficosPorHora[0].horaLabel}}</span>
+            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
+         </div>
       </div>
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Tempo de Espera (por Hora)</h3>
+         <h3 class="chart-title">Tempo Médio de Espera (min)</h3>
          <div class="bar-chart orange-bars">
-             <div class="bar" style="height: 40%"></div>
-             <div class="bar" style="height: 50%"></div>
-             <div class="bar" style="height: 60%"></div>
-             <div class="bar" style="height: 30%"></div>
-             <div class="bar" style="height: 40%"></div>
-             <div class="bar" style="height: 80%"></div>
-             <div class="bar" style="height: 90%"></div>
-             <div class="bar" style="height: 50%"></div>
-             <div class="bar" style="height: 60%"></div>
+             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.tempoEsperaMedio, maxTempoEspera)" [title]="g.tempoEsperaMedio + ' min às ' + g.horaLabel"></div>
          </div>
-         <div class="x-axis"><span>08:00</span><span>15:00</span></div>
+         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
+            <span>{{graficosPorHora[0].horaLabel}}</span>
+            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
+         </div>
       </div>
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Tempo de Atendimento (por Hora)</h3>
+         <h3 class="chart-title">Tempo Médio Atend. (min)</h3>
          <div class="bar-chart green-bars">
-             <div class="bar" style="height: 20%"></div>
-             <div class="bar" style="height: 40%"></div>
-             <div class="bar" style="height: 50%"></div>
-             <div class="bar" style="height: 50%"></div>
-             <div class="bar" style="height: 30%"></div>
-             <div class="bar" style="height: 80%"></div>
-             <div class="bar" style="height: 70%"></div>
-             <div class="bar" style="height: 40%"></div>
-             <div class="bar" style="height: 30%"></div>
+             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.tempoAtendimentoMedio, maxTempoAtendimento)" [title]="g.tempoAtendimentoMedio + ' min às ' + g.horaLabel"></div>
          </div>
-         <div class="x-axis" style="visibility:hidden"><span>08:00</span><span>15:00</span></div>
+         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
+            <span>{{graficosPorHora[0].horaLabel}}</span>
+            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
+         </div>
       </div>
       <div class="chart-card performance-card w-2col">
          <h3 class="chart-title">Desempenho por Categoria</h3>

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,6 +8,7 @@ import {
   X, ChevronDown, Calendar, FileText, Eye, CheckCircle, Clock, Star,
   ArrowLeft, Download, AlertTriangle, User, TrendingUp, TrendingDown
 } from 'lucide-angular';
+import { GuicheService } from '../../../services/guiche.service';
 
 @Component({
   selector: 'app-supervisor-relatorios',
@@ -15,8 +17,8 @@ import {
   templateUrl: './relatorios.component.html',
   styleUrls: ['./relatorios.component.scss']
 })
-export class SupervisorRelatoriosComponent implements OnInit {
-  
+export class SupervisorRelatoriosComponent implements OnInit, OnDestroy {
+
   icons = {
     x: X,
     chevronDown: ChevronDown,
@@ -34,12 +36,35 @@ export class SupervisorRelatoriosComponent implements OnInit {
     trendingDown: TrendingDown
   };
 
-  activeModal: string | null = null; // 'detalhes', 'justificativa'
+  activeModal: string | null = null;
   successModal: boolean = false;
   justificativaForm: FormGroup;
   selectedTicket: any = null;
 
-  constructor(private fb: FormBuilder) {
+  graficosPorHora: any[] = [];
+  maxHistoricoFila = 0;
+  maxTempoEspera = 0;
+  maxTempoAtendimento = 0;
+
+  // Dashboard KPIs
+  totalAtendidos = 0;
+  tempoMedioEsperaGeral = 0;
+
+  // Período ativo para os filtros
+  periodoAtivo: 'hoje' | 'semana' | 'mes' = 'hoje';
+
+  // Tempo médio calculado a partir do backend (snapshots + ao vivo)
+  tempoMedioAtendimentoStr = '0 min';
+
+  private updateTimer: any;
+  private readonly apiUrl = 'http://localhost:3000/dashboard';
+
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private guicheService: GuicheService
+  ) {
     this.justificativaForm = this.fb.group({
       motivo: ['', Validators.required],
       observacoes: ['']
@@ -80,7 +105,83 @@ export class SupervisorRelatoriosComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Inicialização do mockup pixel-perfect
+    this.carregarDadosApi();
+    this.carregarTempoMedio();
+
+    // Atualização a cada 10 segundos
+    this.updateTimer = setInterval(() => {
+      this.carregarDadosApi();
+      this.carregarTempoMedio();
+    }, 10000);
+  }
+
+  ngOnDestroy() {
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+    }
+  }
+
+  selecionarPeriodo(periodo: 'hoje' | 'semana' | 'mes') {
+    this.periodoAtivo = periodo;
+
+    // Mapa para o campo "periodo" da API de gráficos (usa nomenclatura diferente)
+    const periodoApiMap: Record<string, string> = { hoje: 'dia', semana: 'semana', mes: 'mes' };
+    this.carregarDadosApi(periodoApiMap[periodo]);
+    this.carregarTempoMedio();
+  }
+
+  /**
+   * Busca o tempo médio no backend passando os dados ao vivo da sessão corrente.
+   * O backend agrega snapshots persistidos + dados ao vivo (apenas para "hoje").
+   */
+  carregarTempoMedio() {
+    const somaVivo = this.guicheService.somaSegundosVivo;
+    const qtdVivo = this.guicheService.qtdVivo;
+
+    const params = new URLSearchParams({
+      periodo: this.periodoAtivo,
+      somaVivo: String(somaVivo),
+      qtdVivo: String(qtdVivo)
+    });
+
+    const token = localStorage.getItem('token') || '';
+    this.http.get<any>(`${this.apiUrl}/snapshots?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (res) => {
+        this.tempoMedioAtendimentoStr = res.tempoFormatado || '0 min';
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erro ao carregar tempo médio:', err)
+    });
+  }
+
+  carregarDadosApi(periodo = 'dia') {
+    const token = localStorage.getItem('token') || '';
+    this.http.get<any>(`${this.apiUrl}/relatorios?periodo=${periodo}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (dados) => {
+        if (dados.graficosPorHora) {
+          this.graficosPorHora = dados.graficosPorHora;
+          this.totalAtendidos = dados.totalAtendimentos || 0;
+          this.tempoMedioEsperaGeral = dados.tempoMedioEspera || 0;
+
+          this.maxHistoricoFila = Math.max(...this.graficosPorHora.map(g => g.historicoFila), 1);
+          this.maxTempoEspera = Math.max(...this.graficosPorHora.map(g => g.tempoEsperaMedio), 1);
+          this.maxTempoAtendimento = Math.max(...this.graficosPorHora.map(g => g.tempoAtendimentoMedio), 1);
+
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Erro ao carregar relatórios', err)
+    });
+  }
+
+  getAlturaBarra(valor: number, max: number): string {
+    if (!max || max === 0) return '0%';
+    const percent = Math.floor((valor / max) * 100);
+    return `${percent}%`;
   }
 
   abrirModal(tipo: string, ticket?: any) {
@@ -107,5 +208,4 @@ export class SupervisorRelatoriosComponent implements OnInit {
       this.fecharModal();
     }, 5000);
   }
-
 }

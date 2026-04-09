@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { LucideAngularModule, Search, Clock, User, AlertCircle, ArrowUpCircle, CheckCircle, Users, ArrowLeft, Plus, X, Mail, MoreVertical } from 'lucide-angular';
@@ -13,12 +13,13 @@ import { GuicheService } from '../../../services/guiche.service';
   templateUrl: './gerenciar-fila.component.html',
   styleUrls: ['./gerenciar-fila.component.scss']
 })
-export class SupervisorGerenciarFilaComponent implements OnInit {
+export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   icons = { search: Search, clock: Clock, user: User, alert: AlertCircle, up: ArrowUpCircle, check: CheckCircle, users: Users, arrowLeft: ArrowLeft, plus: Plus, x: X, mail: Mail, moreVertical: MoreVertical };
   currentTab = 'espera';
 
   configForm!: FormGroup;
   showSuccessModal = false;
+  tempoMedioAtendimentoGeral = 0;
 
   contextMenuGuicheNumero: number | null = null;
   showRemoveOperatorConfirmModal = false;
@@ -51,6 +52,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
   operadorLoading = false;
   operadorError: string | null = null;
   private apiUrl = 'http://localhost:3000';
+  private relatoriosTimer: any;
 
   constructor(private guicheService: GuicheService, private http: HttpClient, private fb: FormBuilder, private cdr: ChangeDetectorRef) { }
 
@@ -72,6 +74,15 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       funcao: ['Operador']
     });
+
+    // Carregar dados reais da API
+    this.guicheService.carregarGuichesDaApi();
+    
+    // Buscar estatística de tempo médio do dia e atualizar constantemente
+    this.carregarDadosTempoMedio();
+    this.relatoriosTimer = setInterval(() => {
+      this.carregarDadosTempoMedio();
+    }, 10000);
 
     // Inscrever aos dados de guichês do serviço
     this.guicheService.guiches$.subscribe(guiches => {
@@ -99,6 +110,23 @@ export class SupervisorGerenciarFilaComponent implements OnInit {
       });
       this.cdr.detectChanges();
     }, 1000);
+  }
+
+  ngOnDestroy() {
+    if (this.baiasTimer) clearInterval(this.baiasTimer);
+    if (this.relatoriosTimer) clearInterval(this.relatoriosTimer);
+  }
+
+  carregarDadosTempoMedio() {
+    const token = localStorage.getItem('token') || '';
+    this.http.get<any>('http://localhost:3000/dashboard/relatorios?periodo=dia', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (dados) => {
+        this.tempoMedioAtendimentoGeral = dados.tempoMedioAtendimento || 0;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   chamar(item: any) {

@@ -17,8 +17,10 @@ export interface GuicheOperador {
 })
 export class GuicheService {
   private readonly apiUrl = 'http://localhost:3000/guiches';
+  private readonly dashboardApiUrl = 'http://localhost:3000/dashboard';
 
   constructor(private http: HttpClient) {
+    this.carregarGuichesDaApi();
     this.iniciarTimer();
   }
 
@@ -55,22 +57,54 @@ export class GuicheService {
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
-  private guichesSubject = new BehaviorSubject<any[]>([
-    { numero: 1, status: 'vazio', statusLabel: 'Vazio' },
-    { numero: 2, status: 'vazio', statusLabel: 'Vazio' },
-    { numero: 3, status: 'vazio', statusLabel: 'Vazio' },
-    { numero: 4, status: 'vazio', statusLabel: 'Vazio' },
-    { numero: 5, status: 'vazio', statusLabel: 'Vazio' },
-    { numero: 6, status: 'vazio', statusLabel: 'Vazio' }
-  ]);
+  private guichesSubject = new BehaviorSubject<any[]>([]);
 
   guiches$ = this.guichesSubject.asObservable();
+
+  carregarGuichesDaApi() {
+    this.http.get<any[]>('http://localhost:3000/guiches', { headers: this.authHeaders() }).subscribe({
+      next: (guichesDb) => {
+        const ativos = guichesDb.filter(g => g.ativo);
+        const correntes = this.guichesSubject.value;
+
+        const mapped = ativos.map(g => {
+          const m = correntes.find(c => c.numero == (g.numero || g.nome) || c.id === g.id);
+          if (m) {
+            return { ...m, numero: g.numero || g.nome, nome: g.nome, id: g.id };
+          }
+          return {
+            id: g.id,
+            numero: g.numero || g.nome,
+            nome: g.nome,
+            status: 'vazio',
+            statusLabel: 'Vazio',
+            operador: null,
+            ticket: null,
+            placa: null,
+            progresso: 0,
+            tempoOcupado: 0,
+            tempoOcupadoFormatado: '00:00',
+            tempoOcupadoSegundos: 0,
+            atrasado: false,
+            startTime: null
+          };
+        });
+
+        mapped.sort((a, b) => {
+          const numA = (typeof a.numero === 'number' ? a.numero : parseInt(a.numero, 10)) || 0;
+          const numB = (typeof b.numero === 'number' ? b.numero : parseInt(b.numero, 10)) || 0;
+          return numA - numB;
+        });
+
+        this.guichesSubject.next(mapped);
+      },
+      error: (err) => console.error('Erro ao carregar guichês:', err)
+    });
+  }
 
   private historicoTemposSegundos: number[] = [];
   private _tempoTolerancia: number = 15; // in minutos
   private timer: any;
-
-
 
   get tempoTolerancia(): number {
     return this._tempoTolerancia;
@@ -102,7 +136,7 @@ export class GuicheService {
           }
           return {
             ...g,
-            tempoOcupado: minutos, // Compatibilidade com outras telas que usavam minutos
+            tempoOcupado: minutos,
             tempoOcupadoSegundos: tempoDecorridoSegundos,
             tempoOcupadoFormatado,
             progresso,
@@ -191,20 +225,37 @@ export class GuicheService {
     return this.guichesSubject.value.filter(g => g.status !== 'vazio' && g.status !== 'manutencao').length;
   }
 
-  get tempoMedioGlobalFormatado(): string {
+  // ─── Tempo Médio (fonte única para Dashboard e Relatórios) ───────────────────
+
+  /**
+   * Retorna a soma total de segundos da sessão atual (histórico + guichês ocupados).
+   * Usado para enviar ao backend como "dados ao vivo" no filtro "Hoje".
+   */
+  get somaSegundosVivo(): number {
     const ocupados = this.getGuiches().filter(g => g.status === 'ocupado' && g.tempoOcupadoSegundos !== undefined);
+    let soma = this.historicoTemposSegundos.reduce((a, b) => a + b, 0);
+    ocupados.forEach(g => { soma += g.tempoOcupadoSegundos; });
+    return soma;
+  }
 
-    let somaSegundos = this.historicoTemposSegundos.reduce((a, b) => a + b, 0);
-    let qtd = this.historicoTemposSegundos.length;
+  /**
+   * Retorna a quantidade de atendimentos da sessão atual (histórico + guichês ocupados).
+   */
+  get qtdVivo(): number {
+    const ocupados = this.getGuiches().filter(g => g.status === 'ocupado' && g.tempoOcupadoSegundos !== undefined);
+    return this.historicoTemposSegundos.length + ocupados.length;
+  }
 
-    ocupados.forEach(g => {
-      somaSegundos += g.tempoOcupadoSegundos;
-      qtd++;
-    });
+  /**
+   * Tempo médio formatado em tempo real — fonte do card no Dashboard.
+   */
+  get tempoMedioGlobalFormatado(): string {
+    const somaTotal = this.somaSegundosVivo;
+    const qtd = this.qtdVivo;
 
     if (qtd === 0) return '0 min';
 
-    const mediaSegundos = Math.floor(somaSegundos / qtd);
+    const mediaSegundos = Math.floor(somaTotal / qtd);
     const mediaMinutos = Math.floor(mediaSegundos / 60);
     const restoSegundos = mediaSegundos % 60;
 
@@ -214,7 +265,26 @@ export class GuicheService {
     return `${mediaMinutos}m ${restoSegundos}s`;
   }
 
-  resetarHistoricoTempoMedio() {
+  /**
+   * Salva snapshot no banco de dados e zera o histórico local.
+   * Chamado ao pressionar "Resetar Visor".
+   */
+  resetarHistoricoTempoMedio(filialId?: number): void {
+    const soma = this.historicoTemposSegundos.reduce((a, b) => a + b, 0);
+    const qtd = this.historicoTemposSegundos.length;
+
+    if (qtd > 0) {
+      // Persiste snapshot no banco antes de limpar
+      this.http.post(
+        `${this.dashboardApiUrl}/snapshots`,
+        { somaTotalSegundos: soma, quantidade: qtd, filialId },
+        { headers: this.authHeaders() }
+      ).subscribe({
+        next: () => console.log('[GuicheService] Snapshot de tempo médio salvo no banco.'),
+        error: (err) => console.error('[GuicheService] Erro ao salvar snapshot:', err)
+      });
+    }
+
     this.historicoTemposSegundos = [];
   }
 }
