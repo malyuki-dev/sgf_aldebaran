@@ -8,20 +8,35 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ServicoService } from './servico.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LogService } from '../log/log.service';
 
-@Controller('servicos') // plural to match the frontend expectations
-@UseGuards(JwtAuthGuard)
+@Controller('servicos')
 export class ServicoController {
   constructor(
     private readonly servicoService: ServicoService,
     private readonly logService: LogService,
   ) {}
 
+  @Get('public/list')
+  findAllPublic(
+    @Query('filialId') filialId?: string,
+    @Query('tipo') tipo?: string,
+  ) {
+    return this.servicoService.findAll(
+      filialId ? +filialId : undefined,
+      tipo,
+    );
+  }
+
+
+  @UseGuards(JwtAuthGuard)
   @Post()
+
+
   async create(@Body() createServicoDto: any, @Request() req: any) {
     const res = await this.servicoService.create(createServicoDto);
     await this.logService.logAction(
@@ -34,8 +49,15 @@ export class ServicoController {
   }
 
   @Get()
-  findAll() {
-    return this.servicoService.findAll();
+  findAll(
+    @Query('filialId') filialId?: string,
+    @Query('includeInactive') includeInactive?: string,
+  ) {
+    return this.servicoService.findAll(
+      filialId ? +filialId : undefined,
+      undefined,
+      includeInactive === 'true',
+    );
   }
 
   @Get(':id')

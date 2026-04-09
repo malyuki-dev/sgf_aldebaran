@@ -20,6 +20,7 @@ export class ServicoService {
         tipo: createServicoDto.tipo,
         cor: createServicoDto.cor,
         prioridadePeso: createServicoDto.prioridadePeso || 1,
+        filial_id: createServicoDto.filial_id ? +createServicoDto.filial_id : null,
         ativo:
           createServicoDto.ativo !== undefined ? createServicoDto.ativo : true,
       },
@@ -36,12 +37,54 @@ export class ServicoService {
     return servico;
   }
 
-  findAll() {
+  findAll(filialId?: number, tipo?: string, includeInactive: boolean = false) {
+    const where: any = {
+      deletadoEm: null,
+    };
+
+    if (!includeInactive) {
+      where.ativo = true;
+    }
+
+    // Filtro de Filial: Própria ou Global
+    if (filialId) {
+      where.OR = [
+        { filial_id: filialId },
+        { filial_id: null }
+      ];
+    }
+
+    // Filtro de Tipo: Se informado, traz o tipo específico OU os sem tipo (Geral)
+    if (tipo) {
+      const tipoFilter = {
+        OR: [
+          { tipo: { equals: tipo, mode: 'insensitive' } },
+          { tipo: '' },
+          { tipo: null }
+        ]
+      };
+
+      // Se já houver um OR (da filial), precisamos combinar usando AND
+      if (where.OR) {
+        const branchOR = where.OR;
+        delete where.OR;
+        where.AND = [
+          { OR: branchOR },
+          tipoFilter
+        ];
+      } else {
+        where.OR = tipoFilter.OR;
+      }
+    }
+
     return this.prisma.servico.findMany({
-      where: { deletadoEm: null },
+      where,
       orderBy: { id: 'asc' },
     });
   }
+
+
+
 
   async findOne(id: number) {
     const s = await this.prisma.servico.findUnique({ where: { id } });
@@ -61,9 +104,15 @@ export class ServicoService {
       ...cleanData
     } = updateServicoDto;
 
+    const dataToUpdate: any = { ...cleanData };
+
+    if (cleanData.filial_id !== undefined) {
+      dataToUpdate.filial_id = cleanData.filial_id ? +cleanData.filial_id : null;
+    }
+
     const servico = await this.prisma.servico.update({
       where: { id },
-      data: cleanData,
+      data: dataToUpdate,
     });
 
     // Notificação de atualização

@@ -24,6 +24,7 @@ import { DashboardComponent } from './pages/admin/dashboard/dashboard.component'
 import { AgendamentosComponent } from './pages/admin/agendamentos/agendamentos.component';
 import { AtendimentoComponent } from './pages/admin/atendimento/atendimento.component';
 import { ClientesComponent } from './pages/admin/clientes/clientes.component';
+import { QuadroStatusComponent } from './pages/admin/quadro-status/quadro-status.component';
 import { SupervisorDashboardComponent } from './pages/supervisor/dashboard/supervisor-dashboard.component';
 
 // Totem
@@ -74,6 +75,7 @@ export const routes: Routes = [
       { path: 'meu-perfil', loadComponent: () => import('./pages/admin/meu-perfil/meu-perfil').then(m => m.MeuPerfil) },
       { path: 'atendimento', component: AtendimentoComponent },
       { path: 'agendamentos', component: AgendamentosComponent },
+      { path: 'quadro-tarefas', component: QuadroStatusComponent },
       {
         path: 'servicos',
         loadComponent: () => import('./pages/admin/estrutura-filiais/estrutura-filiais.component').then(m => m.EstruturaFiliaisComponent),
@@ -123,7 +125,10 @@ export const routes: Routes = [
     path: 'totem',
     component: TotemLayoutComponent,
     children: [
-      { path: '', component: TotemInicialComponent },
+      { path: '', redirectTo: 'inicial', pathMatch: 'full' },
+      { path: 'setup', loadComponent: () => import('./pages/totem/totem-setup/totem-setup.component').then(m => m.TotemSetupComponent) },
+      { path: 'configtot', loadComponent: () => import('./pages/totem/totem-login/totem-login.component').then(m => m.TotemLoginComponent) },
+      { path: 'inicial', component: TotemInicialComponent },
       { path: 'categoria', component: TotemCategoriaComponent },
       { path: 'tipo-atendimento', component: TotemTipoAtendimentoComponent },
       { path: 'checkin', component: TotemCheckinComponent },

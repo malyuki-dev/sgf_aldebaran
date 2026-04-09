@@ -28,18 +28,19 @@ $orange-alert-text: #ea580c;
 $red-indicator: #ef4444;
 
 .supervisor-page {
-  background-color: $bg-app;
-  min-height: 100vh;
+  padding: 24px;
+  background-color: var(--bg-body, $bg-app);
+  min-height: calc(100vh - 90px);
   font-family: 'Inter', sans-serif;
-  color: $text-main;
+  color: var(--text-primary, $text-main);
 }
-
-
 
 /* ALERTA */
 .alert-banner {
   background: $orange-alert-bg; 
   border-bottom: 1px solid #fed7aa;
+  border-radius: 12px;
+  margin-bottom: 24px; /* Space between alert and grid */
   padding: 12px 24px; 
   display: flex; 
   justify-content: space-between; 
@@ -58,9 +59,8 @@ $red-indicator: #ef4444;
 }
 
 .dashboard-content { 
-  padding: 32px 40px; 
-  max-width: 1400px; 
-  margin: 0 auto; 
+  /* max-width and internal padding removed to match admin style */
+  width: 100%;
 }
 
 .section { 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { TotemConfigService } from './totem-config.service';
 
 export interface Ticket {
   id?: number;
@@ -22,7 +23,11 @@ export class TotemService {
   // MUDANÇA: Agora guardamos o TIPO, não a categoria
   private tipoSelecionado: string = ''; 
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient, 
+    private router: Router,
+    private configService: TotemConfigService
+  ) {}
 
   // PASSO 1: Guarda o TIPO (Preferencial/Convencional) e vai para Categorias
   escolherTipo(tipo: string) {
@@ -41,25 +46,15 @@ export class TotemService {
 
     const payload = {
       tipo: this.tipoSelecionado, 
-      categoria: categoria 
+      categoria: categoria,
+      filialId: this.configService.getFilialId()
     };
 
     console.log('2. Enviando para o Backend:', payload);
 
     this.http.post<any>(`${this.apiUrl}/totem/senha`, payload).subscribe({
       next: (resposta) => {
-        const ticketFormatado: Ticket = {
-          id: resposta.id,
-          numeroDisplay: resposta.numeroDisplay,
-          tipo: resposta.tipo,
-          dataCriacao: resposta.dataCriacao,
-          senha: resposta.numeroDisplay,
-          categoria: resposta.servico?.nome || categoria,
-          dataHora: resposta.dataCriacao
-        };
-
-        sessionStorage.setItem('senhaGerada', JSON.stringify(ticketFormatado));
-        this.router.navigate(['/totem/senha']);
+        this.finalizarProcesso(resposta, categoria);
       },
       error: (erro) => {
         console.error('Erro:', erro);
@@ -68,8 +63,48 @@ export class TotemService {
     });
   }
 
+  validarCheckin(codigo: string) {
+    const payload = {
+      codigo: codigo,
+      filialId: this.configService.getFilialId()
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/checkin/validar`, payload).subscribe({
+      next: (resposta) => {
+        if (resposta.valido) {
+          this.finalizarProcesso(resposta.ticket, 'Agendamento');
+        } else {
+          alert(resposta.mensagem || 'Código inválido.');
+        }
+      },
+      error: (erro) => {
+        console.error('Erro Checkin:', erro);
+        alert('Erro ao validar código.');
+      }
+    });
+  }
+
+  private finalizarProcesso(resposta: any, categoriaFallback: string) {
+    const ticketFormatado: Ticket = {
+      id: resposta.id,
+      numeroDisplay: resposta.numeroDisplay,
+      tipo: resposta.tipo,
+      dataCriacao: resposta.dataCriacao,
+      senha: resposta.numeroDisplay,
+      categoria: resposta.servico?.nome || categoriaFallback,
+      dataHora: resposta.dataCriacao
+    };
+
+    sessionStorage.setItem('senhaGerada', JSON.stringify(ticketFormatado));
+    this.router.navigate(['/totem/senha']);
+  }
+
   getSenhaGerada(): Ticket | null {
     const dados = sessionStorage.getItem('senhaGerada');
     return dados ? JSON.parse(dados) : null;
+  }
+
+  getTipoSelecionado(): string {
+    return this.tipoSelecionado;
   }
 }

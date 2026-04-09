@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterLink, RouterOutlet } from '@angular/router';
-import { LucideAngularModule, Building2, Layers, Layout, Settings } from 'lucide-angular';
+import { LucideAngularModule, Building2, Layers, Layout, Settings, ChevronDown } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 
@@ -22,8 +22,13 @@ export class EstruturaFiliaisComponent implements OnInit {
     building: Building2, 
     layers: Layers, 
     layout: Layout, 
-    settings: Settings 
+    settings: Settings,
+    chevronDown: ChevronDown
   };
+
+  get selectedFilialName(): string | undefined {
+    return this.filiais.find(f => f.id === this.selectedFilialId)?.nome;
+  }
 
   tabs = [
     { id: 'filiais', label: 'Filiais', icon: this.icons.building, route: '/admin/servicos/filiais' },

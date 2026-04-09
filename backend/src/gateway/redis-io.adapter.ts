@@ -27,13 +27,17 @@ export class RedisIoAdapter extends IoAdapter {
       // Timeout de conexão para não travar o boot do app
       await Promise.race([
         Promise.all([pubClient.connect(), subClient.connect()]),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis connection timeout')), 5000))
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis connection timeout')), 5000),
+        ),
       ]);
 
       this.adapterConstructor = createAdapter(pubClient, subClient);
       return true;
     } catch (error) {
-      console.warn('⚠️ [RedisIoAdapter] Falha ao conectar ao Redis. Usando adaptador local (sem escalabilidade horizontal).');
+      console.warn(
+        '⚠️ [RedisIoAdapter] Falha ao conectar ao Redis. Usando adaptador local (sem escalabilidade horizontal).',
+      );
       console.warn('Erro:', error.message);
       return false;
     }

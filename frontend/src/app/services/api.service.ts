@@ -19,9 +19,15 @@ export class ApiService {
     return headers;
   }
 
-  get<T>(endpoint: string, params?: any): Observable<T> {
+  get<T>(endpoint: string, params?: any, customHeaders?: Record<string, string>): Observable<T> {
+    let headers = this.getHeaders();
+    if (customHeaders) {
+      Object.keys(customHeaders).forEach(key => {
+        headers = headers.set(key, customHeaders[key]);
+      });
+    }
     return this.http.get<T>(`${this.baseUrl}${endpoint}`, {
-      headers: this.getHeaders(),
+      headers: headers,
       params: params
     });
   }

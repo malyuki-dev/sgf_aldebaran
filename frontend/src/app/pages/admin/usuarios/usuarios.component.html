@@ -78,6 +78,9 @@
                                     [title]="u.ativo ? 'Inativar' : 'Ativar'">
                                     <lucide-icon [img]="u.ativo ? icons.userX : icons.checkCircle" size="14"></lucide-icon>
                                 </button>
+                                <button class="btn-delete" (click)="excluirUsuario(u.id, u.nome)" title="Excluir Permanentemente">
+                                    <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -139,6 +142,15 @@
                         <option value="OPERADOR">OPERADOR - Acesso apenas ao painel de atendimento</option>
                         <option value="SUPERVISOR">SUPERVISOR - Acesso ao dashboard e monitoramento</option>
                         <option value="ADMIN">ADMINISTRADOR - Acesso total ao sistema e cadastros</option>
+                    </select>
+                </div>
+
+                <!-- Filial Selection (Mandatory) -->
+                <div class="form-group">
+                    <label>Filial de Atuação *</label>
+                    <select [(ngModel)]="usuarioForm.filial_id" [disabled]="!!selectedFilialId && !isEditing">
+                        <option [ngValue]="null">Geral (Todas as Unidades / Sem Filial)</option>
+                        <option *ngFor="let fil of filiais" [ngValue]="fil.id">{{ fil.nome }}</option>
                     </select>
                 </div>
             </div>

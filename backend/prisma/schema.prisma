@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model agendamento {
@@ -16,6 +17,11 @@ model agendamento {
   status      String  @default("PENDENTE") @db.VarChar
   codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
   servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
+  
+  filial_id   Int?
+  filial      filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  
+  senha       senha[]
 }
 
 model atendimento {
@@ -45,6 +51,9 @@ model clientes {
   createdAt DateTime  @default(now()) @db.Timestamp(6)
   updatedAt DateTime  @default(now()) @db.Timestamp(6)
   deletedAt DateTime? @db.Timestamp(6)
+
+  filial_id Int?
+  filial    filial?   @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model senha {
@@ -58,6 +67,12 @@ model senha {
   prioridade    Int           @default(0)
   atendimento   atendimento[]
   servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
+  
+  filial_id     Int?
+  filial        filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+
+  agendamento_id Int?
+  agendamento    agendamento? @relation(fields: [agendamento_id], references: [id], onDelete: SetNull)
 }
 
 model servico {
@@ -75,6 +90,9 @@ model servico {
   deletadoEm     DateTime?     @db.Timestamp(6)
   agendamento    agendamento[]
   senha          senha[]
+
+  filial_id      Int?
+  filial         filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model motorista {
@@ -91,6 +109,8 @@ model motorista {
   deletadoEm     DateTime?  @db.Timestamp(6)
   
   caminhoes      caminhao[]
+  filial_id      Int?
+  filial         filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model caminhao {
@@ -108,6 +128,9 @@ model caminhao {
   criadoEm       DateTime   @default(now()) @db.Timestamp(6)
   atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
   deletadoEm     DateTime?  @db.Timestamp(6)
+
+  filial_id      Int?
+  filial         filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model usuario {
@@ -128,6 +151,12 @@ model usuario {
   
   guicheAtual    guiche?   @relation("OperadorGuicheAtual")
   sessoesGuiche  operador_sessao[]
+  
+  tasksCriadas    TaskItem[] @relation("TaskCriador")
+  tasksAtribuidas TaskItem[] @relation("TaskResponsavel")
+
+  filial_id      Int?
+  filial         filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model configuracao {
@@ -189,6 +218,15 @@ model filial {
   guiches       guiche[]
   configuracoes configuracao[]
   logs_auditoria log_auditoria[]
+  
+  // Relações adicionadas
+  usuarios      usuario[]
+  servicos      servico[]
+  senhas        senha[]
+  agendamentos  agendamento[]
+  clientes      clientes[]
+  motoristas    motorista[]
+  caminhoes     caminhao[]
 }
 
 model guiche {
@@ -271,4 +309,47 @@ model Ticket {
 
   @@index([status, createdAt], map: "idx_active_tickets")
   @@map("aldebaran_tickets")
+}
+
+// --- NOVOS MODELOS PARA O SISTEMA DE TAREFAS (TODO/KANBAN) ---
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+model StatusItem {
+  id        Int        @id @default(autoincrement())
+  nome      String     @db.VarChar(50)
+  cor       String?    @db.VarChar(20)
+  icon      String?    @db.VarChar(50)
+  ordem     Int        @default(0)
+  ativo     Boolean    @default(true)
+  criadoEm  DateTime   @default(now()) @db.Timestamp(6)
+  tasks     TaskItem[]
+
+  @@map("status_items")
+}
+
+model TaskItem {
+  id            Int        @id @default(autoincrement())
+  titulo        String     @db.VarChar(200)
+  descricao     String?    @db.VarChar(1000)
+  prioridade    Priority   @default(MEDIA)
+  
+  status_id     Int
+  status        StatusItem @relation(fields: [status_id], references: [id])
+  
+  criadoPor_id  Int
+  criadoPor     usuario    @relation("TaskCriador", fields: [criadoPor_id], references: [id])
+  
+  responsavel_id Int?
+  responsavel    usuario?   @relation("TaskResponsavel", fields: [responsavel_id], references: [id])
+  
+  dataEntrega   DateTime?  @db.Timestamp(6)
+  ordem         Int        @default(0)
+  criadoEm      DateTime   @default(now()) @db.Timestamp(6)
+
+  @@map("task_items")
 }

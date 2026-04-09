@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificacaoService } from '../notificacao/notificacao.service';
+import { CreateFilialDto } from './dto/create-filial.dto';
+import { UpdateFilialDto } from './dto/update-filial.dto';
 
 @Injectable()
 export class FilialService {
@@ -9,7 +11,7 @@ export class FilialService {
     private notificacaoService: NotificacaoService,
   ) {}
 
-  async create(data: any) {
+  async create(data: CreateFilialDto) {
     const filial = await this.prisma.filial.create({
       data: {
         nome: data.nome,
@@ -22,7 +24,6 @@ export class FilialService {
       },
     });
 
-    // Notificação de nova filial
     await this.notificacaoService.criar({
       titulo: 'Nova Filial',
       mensagem: `Filial ${filial.nome} cadastrada no sistema.`,
@@ -55,27 +56,18 @@ export class FilialService {
     return f;
   }
 
-  async update(id: number, data: any) {
-    const {
-      id: _,
-      guiches,
-      _count,
-      criadoEm,
-      deletadoEm,
-      ...updateData
-    } = data;
+  async update(id: number, data: UpdateFilialDto) {
+    const { ativo, ...updateData } = data;
 
     let filial;
-    // Se a filial está sendo inativada, inativamos também seus guichês
-    if (updateData.ativo === false) {
+
+    if (ativo === false) {
       filial = await this.prisma.$transaction(async (tx) => {
-        // 1. Atualiza a filial
         const f = await tx.filial.update({
           where: { id },
-          data: { ...updateData, atualizadoEm: new Date() },
+          data: { ...updateData, ativo, atualizadoEm: new Date() },
         });
 
-        // 2. Inativa todos os guichês dessa filial
         await tx.guiche.updateMany({
           where: { filial_id: id },
           data: { ativo: false, atualizadoEm: new Date() },
@@ -87,13 +79,12 @@ export class FilialService {
       filial = await this.prisma.filial.update({
         where: { id },
         data: {
-          ...updateData,
+          ...data,
           atualizadoEm: new Date(),
         },
       });
     }
 
-    // Notificação de alteração
     await this.notificacaoService.criar({
       titulo: 'Filial Atualizada',
       mensagem: `Dados da filial ${filial.nome} foram alterados.`,
@@ -119,4 +110,20 @@ export class FilialService {
       },
     });
   }
+
+  async findAllPublic() {
+    return this.prisma.filial.findMany({
+      where: {
+        ativo: true,
+        deletadoEm: null,
+      },
+      select: {
+        id: true,
+        nome: true,
+        endereco: true,
+      },
+      orderBy: { nome: 'asc' },
+    });
+  }
 }
+

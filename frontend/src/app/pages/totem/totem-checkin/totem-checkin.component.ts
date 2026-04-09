@@ -1,7 +1,8 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Necessário para o [(ngModel)]
+import { FormsModule } from '@angular/forms'; 
+import { TotemService } from '../../../services/totem.service';
 
 @Component({
   selector: 'app-totem-checkin',
@@ -19,7 +20,10 @@ export class TotemCheckinComponent {
   // Armazena o código digitado no input
   codigoDigitado: string = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private totemService: TotemService
+  ) {}
 
   // --- MODAL DE CÓDIGO ---
   
@@ -37,10 +41,7 @@ export class TotemCheckinComponent {
   confirmarCodigo() {
     if (this.codigoDigitado.trim().length > 0) {
       console.log('Código confirmado:', this.codigoDigitado);
-      
-      // Simulação de sucesso
-      // this.router.navigate(['/totem/confirmacao-agendamento']);
-      
+      this.totemService.validarCheckin(this.codigoDigitado);
       this.fecharModalCodigo();
     }
   }

@@ -5,6 +5,7 @@ import { LucideAngularModule, Search, Clock, User, AlertCircle, ArrowUpCircle, C
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 import { GuicheService } from '../../../services/guiche.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-supervisor-gerenciar-fila',
@@ -51,7 +52,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   operadoresDisponiveis: any[] = [];
   operadorLoading = false;
   operadorError: string | null = null;
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
   private relatoriosTimer: any;
 
   constructor(private guicheService: GuicheService, private http: HttpClient, private fb: FormBuilder, private cdr: ChangeDetectorRef) { }
@@ -119,7 +120,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
 
   carregarDadosTempoMedio() {
     const token = localStorage.getItem('token') || '';
-    this.http.get<any>('http://localhost:3000/dashboard/relatorios?periodo=dia', {
+    this.http.get<any>(`${this.apiUrl}/dashboard/relatorios?periodo=dia`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (dados) => {
@@ -267,7 +268,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('token') || '';
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    this.http.post('http://localhost:3000/usuarios', payload, { headers }).subscribe({
+    this.http.post(`${this.apiUrl}/usuarios`, payload, { headers }).subscribe({
       next: () => {
         this.operadorForm.reset({ funcao: 'Operador' });
         this.showCriarOperadorModal = false;

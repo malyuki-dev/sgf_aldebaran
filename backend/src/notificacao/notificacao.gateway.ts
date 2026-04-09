@@ -31,7 +31,7 @@ export class NotificacaoGateway
    */
   handleConnection(client: Socket) {
     const token = client.handshake.auth?.token;
-    
+
     // Simulação de segurança (No fluxo real, validar JWT)
     if (token && token !== process.env.WS_SECRET_TOKEN) {
       console.warn(`[Security] WS: Token inválido de ${client.id}`);
@@ -50,7 +50,9 @@ export class NotificacaoGateway
       client.join('room_general');
     }
 
-    console.log(`[WS] Terminal conectado: ${client.id} -> Sala: ${panelType || 'GERAL'}`);
+    console.log(
+      `[WS] Terminal conectado: ${client.id} -> Sala: ${panelType || 'GERAL'}`,
+    );
   }
 
   handleDisconnect(client: Socket) {
@@ -62,8 +64,10 @@ export class NotificacaoGateway
    * Dispara apenas para os painéis interessados na categoria.
    */
   public broadcastTicket(payload: TicketCallPayload) {
-    const isHeavyLoad = ['CAMINHAO', 'RETIRADA_PESADA'].includes(payload.category);
-    
+    const isHeavyLoad = ['CAMINHAO', 'RETIRADA_PESADA'].includes(
+      payload.category,
+    );
+
     // Roteamento condicional
     const targetRoom = isHeavyLoad ? 'room_docas' : 'room_saguao';
 

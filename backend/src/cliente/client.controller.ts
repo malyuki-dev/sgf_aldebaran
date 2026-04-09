@@ -33,8 +33,8 @@ export class ClienteController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.clienteService.findAll();
+  findAll(@Query('filialId') filialId?: string) {
+    return this.clienteService.findAll(filialId ? +filialId : undefined);
   }
 
   @UseGuards(JwtAuthGuard)

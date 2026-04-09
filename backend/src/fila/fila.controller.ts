@@ -7,8 +7,11 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { FilaService } from './fila.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('fila')
 export class FilaController {
@@ -16,13 +19,13 @@ export class FilaController {
 
   // Totem e Check-in
   @Post('totem/senha')
-  solicitarSenhaTotem(@Body() body: { tipo: string; categoria: string }) {
-    return this.filaService.solicitarSenhaTotem(body.tipo, body.categoria);
+  solicitarSenhaTotem(@Body() body: { tipo: string; categoria: string; filialId?: number }) {
+    return this.filaService.solicitarSenhaTotem(body.tipo, body.categoria, body.filialId);
   }
 
   @Post('checkin/validar')
-  validarCheckin(@Body() body: { codigo: string }) {
-    return this.filaService.validarCheckin(body.codigo);
+  validarCheckin(@Body() body: { codigo: string; filialId?: number }) {
+    return this.filaService.validarCheckin(body.codigo, body.filialId);
   }
 
   // Dashboard
@@ -33,8 +36,14 @@ export class FilaController {
 
   // Agendamento
   @Get('agendamento/horarios')
-  getHorarios(@Query('data') data: string, @Query('filialId') filialId?: string) {
-    return this.filaService.horariosDisponiveis(data, filialId ? +filialId : undefined);
+  getHorarios(
+    @Query('data') data: string,
+    @Query('filialId') filialId?: string,
+  ) {
+    return this.filaService.horariosDisponiveis(
+      data,
+      filialId ? +filialId : undefined,
+    );
   }
 
   @Post('agendamento')
@@ -43,8 +52,8 @@ export class FilaController {
   }
 
   @Get('agendamento')
-  listarAgendamentos() {
-    return this.filaService.listarAgendamentos();
+  listarAgendamentos(@Query('filialId') filialId?: string) {
+    return this.filaService.listarAgendamentos(filialId ? +filialId : undefined);
   }
 
   @Get('agendamento/:id')
@@ -87,6 +96,30 @@ export class FilaController {
   @Post('chamar_proximo')
   chamarProximo(@Body() body: { guiche: number }) {
     return this.filaService.chamarProximo(body.guiche);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('operador/proximas')
+  async listarProximas(@Request() req: any) {
+    // Busca os guiches do operador para saber a filial
+    const guicheId = Number(req.headers['x-guiche-id']);
+    if (!guicheId) return [];
+    return this.filaService.listarProximas(guicheId);
+  }
+
+  @Post('iniciar_atendimento')
+  iniciarAtendimento(@Body() body: { senhaId: number }) {
+    return this.filaService.iniciarAtendimento(body.senhaId);
+  }
+
+  @Post('finalizar_atendimento')
+  finalizarAtendimento(@Body() body: { senhaId: number }) {
+    return this.filaService.finalizarAtendimento(body.senhaId);
+  }
+
+  @Post('nao_compareceu')
+  naoCompareceu(@Body() body: { senhaId: number }) {
+    return this.filaService.naoCompareceu(body.senhaId);
   }
 
   @Get('painel')

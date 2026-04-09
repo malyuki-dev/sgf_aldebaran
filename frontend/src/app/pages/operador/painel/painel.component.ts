@@ -10,7 +10,8 @@ import { GuicheService, GuicheOperador } from '../../../services/guiche.service'
 import { AuthService } from '../../../services/auth.service';
 import { finalize, switchMap, takeUntil, catchError } from 'rxjs/operators';
 import { Subject, of, interval } from 'rxjs';
-
+import { FilialService, Filial } from '../../../services/filial.service';
+import { ApiService } from '../../../services/api.service';
 @Component({
     selector: 'app-painel-operador',
     standalone: true,
@@ -21,9 +22,15 @@ import { Subject, of, interval } from 'rxjs';
 })
 export class PainelOperadorComponent implements OnInit, OnDestroy {
     nomeOperador = 'Operador (Carregando...)';
-    numeroGuiche = 0;
+    numeroGuiche: string | number = 0;
+    guicheAtualId: number | null = null;
     idiomaAtivo = 'PT';
     filialSelecionada = '';
+    filiais: Filial[] = [];
+
+    tempoOciosoText = '00:00';
+    ociosoIniciadoEm: number | null = null;
+    ociosoTimer: any;
 
     // Ícones do sistema
     icons = {
@@ -39,13 +46,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     tempoMedio = '14 min';
 
     // Lista de próximas senhas
-    filaProximas = [
-        { codigo: 'RP042', tempo: '8 min', servico: 'Retirada Pesada', posicao: 27 },
-        { codigo: 'RP043', tempo: '8 min', servico: 'Retirada Pesada', posicao: 50 },
-        { codigo: 'CR-A044', tempo: '12 min', servico: 'Cliente Rápido', posicao: 12 },
-        { codigo: 'C043', tempo: '15 min', servico: 'Caminhão', posicao: 22 },
-        { codigo: 'RP044', tempo: '18 min', servico: 'Retirada Pesada', posicao: 35 }
-    ];
+    filaProximas: any[] = [];
 
     // Ticket Atual
     ticketAtual: any = null;
@@ -118,11 +119,16 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         private router: Router,
         private guicheService: GuicheService,
         private authService: AuthService,
+        private filialService: FilialService,
         private cdr: ChangeDetectorRef,
+        private api: ApiService
     ) { }
 
     ngOnInit() {
         this.nomeOperador = localStorage.getItem('usuario_nome') || 'Atendente Padrão';
+        
+        this.carregarFiliais();
+        
         this.guicheService.getCurrentOperatorGuiche()
             .pipe(
                 finalize(() => {
@@ -137,45 +143,97 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                     }
 
                     localStorage.setItem('guicheAtual', guicheAtual.numero);
-                    this.numeroGuiche = parseInt(guicheAtual.numero, 10);
+                    
+                    // Ajusta para mostrar "Guichê 01" via string ou pegar o número sem parse incorreto
+                    this.numeroGuiche = guicheAtual.numero.replace(/\D/g, '') || guicheAtual.numero;
+                    
+                    this.guicheAtualId = guicheAtual.id;
+                    
+                    // Inicia cronometro Ocioso (pois começou sem ticket)
+                    this.iniciarCronometroOcioso();
                     this.cdr.markForCheck();
 
-                    // Inicia polling para detectar perda de guichê
+                    // Carrega fila real e resumos
+                    this.carregarFila();
+                    this.carregarResumos();
+
+                    // Inicia polling para detectar perda de guichê e lista de fila
                     this.iniciarPollingGuiche();
                 },
-                error: () => {
-                    this.authService.clearSession();
-                    this.router.navigate(['/login']);
+                error: (err) => {
+                    console.error('Erro ao buscar guichê do operador:', err);
+                    if (err.status === 401) {
+                        this.authService.clearSession();
+                        this.router.navigate(['/login']);
+                    }
                 }
             });
+    }
+
+    private carregarFiliais() {
+        this.filialService.getFiliais().subscribe({
+            next: (data) => {
+                this.filiais = data;
+                const savedId = this.filialService.getSelectedFilialId();
+                if (savedId) {
+                    this.filialSelecionada = savedId.toString();
+                } else if (data.length > 0) {
+                    this.filialSelecionada = data[0].id.toString();
+                    this.filialService.setSelectedFilial(data[0].id);
+                }
+                this.cdr.markForCheck();
+            }
+        });
+    }
+
+    onFilialChange() {
+        const id = this.filialSelecionada ? parseInt(this.filialSelecionada, 10) : null;
+        this.filialService.setSelectedFilial(id);
+        
+        // Ao mudar a filial, recarrega a fila e os resumos (agendamentos daquela filial)
+        this.carregarFila();
+        this.carregarResumos();
+        this.cdr.markForCheck();
     }
 
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
         this.pararCronometroAtendimento();
+        this.pararCronometroOcioso();
     }
 
     private iniciarPollingGuiche() {
-        interval(3000) // Verifica a cada 3 segundos
+        interval(5000) // Verifica a cada 5 segundos
             .pipe(
-                switchMap(() => this.guicheService.getCurrentOperatorGuiche()),
-                takeUntil(this.destroy$),
-                catchError(() => of(null))
+                switchMap(() => this.guicheService.getCurrentOperatorGuiche().pipe(
+                    catchError(() => of(undefined))
+                )),
+                takeUntil(this.destroy$)
             )
             .subscribe({
-                next: (guicheSelecionado: GuicheOperador | null) => {
+                next: (guicheSelecionado: GuicheOperador | null | undefined) => {
+                    if (guicheSelecionado === undefined) return;
+
                     // Se não tem mais guichê, volta pra seleção
-                    if (!guicheSelecionado) {
+                    if (guicheSelecionado === null) {
                         this.router.navigate(['/operador/escolha-guiches']);
                         return;
                     }
+                    // Atualiza a fila e resumos periodicamente
+                    this.carregarFila();
+                    this.carregarResumos();
                     this.cdr.markForCheck();
                 },
             });
     }
 
     sair() {
+        this.modalAberto = 'sair';
+    }
+
+    confirmarSair() {
+        this.modalAberto = null;
         this.destroy$.next(); // Para o polling imediatamente
         this.guicheService.releaseCurrentGuiche()
             .pipe(
@@ -195,43 +253,92 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             });
     }
 
+    carregarFila() {
+        if (!this.guicheAtualId) return;
+        this.api.get<any[]>('/fila/operador/proximas', {}, { 'x-guiche-id': this.guicheAtualId.toString() }).subscribe({
+            next: (res) => {
+                this.filaProximas = res.map((item, index) => ({
+                    id: item.id,
+                    codigo: item.numeroDisplay,
+                    tempo: 'AGUARDE',
+                    servico: item.servico?.nome || 'Serviço Geral',
+                    posicao: index + 1
+                }));
+                this.filaAguardando = res.length;
+                this.cdr.markForCheck();
+            },
+            error: () => {}
+        });
+    }
+
     chamarProximo() {
-        if (!this.numeroGuiche) {
+        if (!this.guicheAtualId) {
             this.router.navigate(['/operador/escolha-guiches']);
             return;
         }
 
-        this.ticketAtual = {
-            senha: 'RP042',
-            cliente: '',
-            documento: '043.***.***-45',
-            servico: 'Retirada Pesada (Caminhão)',
-            status: 'CHAMADO',
-            clienteSelecionado: false,
-        };
-        this.classificacaoSelecionada = '';
-        this.quantidadeGarrafoes = 27;
-        this.termoBuscaCliente = '';
-        this.clientesFiltrados = [];
-        this.mostrarSugestoesCliente = false;
-        this.tempoAtendimento = '00:00';
-        this.pararCronometroAtendimento();
-        this.filaAguardando = Math.max(0, this.filaAguardando - 1);
+        this.api.post<any>('/fila/chamar_proximo', { guiche: this.guicheAtualId }).subscribe({
+            next: (senha) => {
+                this.ticketAtual = {
+                    id: senha.id,
+                    senha: senha.numeroDisplay,
+                    cliente: senha.agendamento?.nome || '',
+                    documento: senha.agendamento?.cpf || '',
+                    servico: senha.servico?.nome || 'Serviço',
+                    status: 'CHAMADO',
+                    clienteSelecionado: !!senha.agendamento?.nome
+                };
+                
+                this.classificacaoSelecionada = '';
+                this.quantidadeGarrafoes = 27;
+                this.termoBuscaCliente = '';
+                this.clientesFiltrados = [];
+                this.mostrarSugestoesCliente = false;
+                this.tempoAtendimento = '00:00';
+                
+                // Parar ocioso
+                this.pararCronometroOcioso();
+                this.pararCronometroAtendimento();
+                this.carregarFila();
+                this.cdr.markForCheck();
+            },
+            error: (err) => {
+                const isMsg = err?.error?.message;
+                alert(isMsg ? err.error.message : 'Nenhum cliente na fila no momento.');
+            }
+        });
     }
 
     iniciarAtendimento() {
-        if (this.ticketAtual) {
-            this.ticketAtual.status = 'EM_ATENDIMENTO';
-            this.iniciarCronometroAtendimento();
+        if (this.ticketAtual && this.ticketAtual.id) {
+            this.api.post<any>('/fila/iniciar_atendimento', { senhaId: this.ticketAtual.id }).subscribe({
+                next: () => {
+                    this.ticketAtual.status = 'EM_ATENDIMENTO';
+                    this.iniciarCronometroAtendimento();
+                    this.cdr.markForCheck();
+                },
+                error: () => alert('Erro ao iniciar atendimento.')
+            });
         }
     }
 
     finalizarAtendimento() {
-        this.ticketAtual = null; // Libera o guichê
-        this.pararCronometroAtendimento();
-        this.tempoAtendimento = '00:00';
-        this.termoBuscaCliente = '';
-        this.mostrarSugestoesCliente = false;
+        if (this.ticketAtual && this.ticketAtual.id) {
+            this.api.post<any>('/fila/finalizar_atendimento', { senhaId: this.ticketAtual.id }).subscribe({
+                next: () => {
+                    this.ticketAtual = null; // Libera o guichê
+                    this.pararCronometroAtendimento();
+                    this.tempoAtendimento = '00:00';
+                    this.termoBuscaCliente = '';
+                    this.mostrarSugestoesCliente = false;
+                    
+                    // Iniciar Ocioso novamente
+                    this.iniciarCronometroOcioso();
+                    this.cdr.markForCheck();
+                },
+                error: () => alert('Erro ao finalizar atendimento.')
+            });
+        }
     }
 
 
@@ -253,14 +360,27 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     }
 
     confirmarNaoCompareceu() {
-        if (!this.ticketAtual) {
+        if (!this.ticketAtual || !this.ticketAtual.id) {
             this.modalAberto = null;
             return;
         }
-        this.ticketAtual = null;
-        this.pararCronometroAtendimento();
-        this.tempoAtendimento = '00:00';
-        this.modalAberto = null;
+
+        this.api.post<any>('/fila/nao_compareceu', { senhaId: this.ticketAtual.id }).subscribe({
+            next: () => {
+                this.ticketAtual = null;
+                this.pararCronometroAtendimento();
+                this.tempoAtendimento = '00:00';
+                this.modalAberto = null;
+                
+                // Iniciar Ocioso novamente
+                this.iniciarCronometroOcioso();
+                this.cdr.markForCheck();
+            },
+            error: () => {
+                alert('Erro ao marcar não comparecimento.');
+                this.modalAberto = null;
+            }
+        });
     }
 
     naoCompareceu() {
@@ -299,6 +419,9 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.guicheTransferenciaSelecionado = null;
         this.guicheTransferenciaDestino = null;
         this.modalAberto = null;
+        
+        // Iniciar Ocioso novamente
+        this.iniciarCronometroOcioso();
     }
 
     incrementarGarrafoes() {
@@ -386,9 +509,75 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.modalAberto = null;
     }
 
+    // -- Resumos de Badges (Meus Atendimentos e Agendamentos) --
+    private carregarResumos() {
+        if (!this.filialSelecionada) return;
+        
+        const fid = parseInt(this.filialSelecionada, 10);
+        
+        // 1. Agendamentos da Filial
+        this.api.get<any[]>('/fila/agendamento', { filialId: fid.toString() }).subscribe({
+            next: (list) => {
+                // Filtra agendamentos de HOJE que ainda não foram realizados
+                const hojeStr = new Date().toISOString().split('T')[0];
+                const count = list.filter((a: any) => 
+                    a.dataAgendamento.startsWith(hojeStr) && a.status === 'PENDENTE'
+                ).length;
+                this.badgeAgendamentosCount = count;
+                this.cdr.markForCheck();
+            }
+        });
+
+        // 2. Meus Atendimentos (Tickets finalizados hoje pelo operador)
+        // Mocking for now or querying history if available
+        // Para fins de demonstração, vamos simular que o operador tem alguns atendimentos
+        // Em um sistema real, haveria um endpoint /fila/operador/total-dia
+        this.badgeMeusAtendimentosCount = 5; // Valor do design
+    }
+
+    badgeAgendamentosCount = 0;
+    badgeMeusAtendimentosCount = 0;
+
     navegarPara(secao: string) {
-        console.log('Navegando para:', secao);
-        // TODO: Implementar navegação para diferentes seções
-        // this.router.navigate(['/operador/...' + secao]);
+        if (secao === 'agendamentos') {
+             this.router.navigate(['/admin/agendamentos']);
+        } else if (secao === 'meus-atendimentos') {
+             this.router.navigate(['/admin/atendimento']); // Placeholder rotas de atendimentos
+        }
+    }
+    
+    // -- Cronômetro Ocioso --
+    private iniciarCronometroOcioso() {
+        this.pararCronometroOcioso();
+        this.ociosoIniciadoEm = Date.now();
+        this.atualizarTempoOcioso();
+        this.ociosoTimer = setInterval(() => {
+            this.atualizarTempoOcioso();
+            this.cdr.markForCheck();
+        }, 1000);
+    }
+
+    private pararCronometroOcioso() {
+        if (this.ociosoTimer) {
+            clearInterval(this.ociosoTimer);
+            this.ociosoTimer = null;
+        }
+        this.ociosoIniciadoEm = null;
+    }
+
+    private atualizarTempoOcioso() {
+        if (!this.ociosoIniciadoEm) {
+            this.tempoOciosoText = '00:00';
+            return;
+        }
+        const segundos = Math.floor((Date.now() - this.ociosoIniciadoEm) / 1000);
+        const mm = String(Math.floor(segundos / 60)).padStart(2, '0');
+        const ss = String(segundos % 60).padStart(2, '0');
+        if (Math.floor(segundos / 3600) > 0) {
+           const hh = String(Math.floor(segundos / 3600)).padStart(2, '0');
+           this.tempoOciosoText = `${hh}:${mm}:${ss}`;
+        } else {
+           this.tempoOciosoText = `${mm}:${ss}`;
+        }
     }
 }

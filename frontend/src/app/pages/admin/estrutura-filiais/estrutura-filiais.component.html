@@ -1,20 +1,37 @@
 <div class="page-container">
-    <!-- Seletor de Filial (Global) -->
-    <div class="section-header-top">
+    <!-- Seletor de Filial (Glassmorphism) -->
+    <div class="filial-selector-wrapper">
         <div class="filial-selector-glass">
-            <lucide-icon [img]="icons.building" size="18" class="text-blue"></lucide-icon>
-            <label>Filial atual:</label>
-            <select [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select-modern">
-                <option [ngValue]="null">Configurações Gerais (Global)</option>
-                <option *ngFor="let f of filiais" [ngValue]="f.id">{{ f.nome }}</option>
-            </select>
-            <div class="loading-dot" *ngIf="loading"></div>
+            <div class="selector-content">
+                <div class="selector-info">
+                    <div class="selector-text">
+                        <span class="selector-label">Filial atual</span>
+                        <span class="selector-value">{{ selectedFilialName || 'Todas as Unidades' }}</span>
+                    </div>
+                </div>
+                <div class="selector-action">
+                    <select [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select-modern">
+                        <option [ngValue]="null">🌍 Todas as Unidades (Global)</option>
+                        <option *ngFor="let f of filiais" [ngValue]="f.id">
+                            🏢 {{ f.nome }}
+                        </option>
+                    </select>
+                    <div class="select-arrow">
+                        <lucide-icon [img]="icons.chevronDown" size="16"></lucide-icon>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="tabs-container">
         <div class="tabs-header">
-            <a *ngFor="let tab of tabs" [routerLink]="tab.route" class="tab-btn" [class.active]="currentTab === tab.id">
+            <a *ngFor="let tab of tabs" 
+               [routerLink]="tab.route" 
+               [queryParams]="{ filialId: selectedFilialId }"
+               queryParamsHandling="preserve"
+               class="tab-btn" 
+               [class.active]="currentTab === tab.id">
                 <lucide-icon [img]="tab.icon" size="18"></lucide-icon>
                 {{ tab.label }}
             </a>

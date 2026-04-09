@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface GuicheOperador {
   id: number;
@@ -16,16 +17,17 @@ export interface GuicheOperador {
   providedIn: 'root',
 })
 export class GuicheService {
-  private readonly apiUrl = 'http://localhost:3000/guiches';
-  private readonly dashboardApiUrl = 'http://localhost:3000/dashboard';
+  private readonly apiUrl = `${environment.apiUrl}/guiches`;
+  private readonly dashboardApiUrl = `${environment.apiUrl}/dashboard`;
 
   constructor(private http: HttpClient) {
-    this.carregarGuichesDaApi();
+    this.refreshGuiches();
     this.iniciarTimer();
   }
 
-  listOperatorGuiches(): Observable<GuicheOperador[]> {
-    return this.http.get<GuicheOperador[]>(`${this.apiUrl}/operador`, {
+  listOperatorGuiches(filialId?: number): Observable<GuicheOperador[]> {
+    const params = filialId ? `?filialId=${filialId}` : '';
+    return this.http.get<GuicheOperador[]>(`${this.apiUrl}/operador${params}`, {
       headers: this.authHeaders(),
     });
   }
@@ -60,9 +62,10 @@ export class GuicheService {
   private guichesSubject = new BehaviorSubject<any[]>([]);
 
   guiches$ = this.guichesSubject.asObservable();
+  private lastFilialId?: number;
 
   carregarGuichesDaApi() {
-    this.http.get<any[]>('http://localhost:3000/guiches', { headers: this.authHeaders() }).subscribe({
+    this.http.get<any[]>(this.apiUrl, { headers: this.authHeaders() }).subscribe({
       next: (guichesDb) => {
         const ativos = guichesDb.filter(g => g.ativo);
         const correntes = this.guichesSubject.value;
@@ -106,6 +109,25 @@ export class GuicheService {
   private _tempoTolerancia: number = 15; // in minutos
   private timer: any;
 
+  refreshGuiches(filialId?: number) {
+    this.lastFilialId = filialId;
+    const params = filialId ? `?filialId=${filialId}` : '';
+    this.http.get<any[]>(`${this.apiUrl}${params}`, { headers: this.authHeaders() }).subscribe({
+      next: (data) => {
+        const mapped = data.map(g => ({
+          id: g.id,
+          numero: parseInt(g.numero, 10) || g.id,
+          status: (g.status.toLowerCase() === 'online' || g.status.toLowerCase() === 'ativo') ? 'disponivel' : (g.status.toLowerCase() === 'ocupado' ? 'ocupado' : 'vazio'),
+          statusLabel: g.status,
+          operador: g.operadorAtual?.nome || null,
+          ticket: g.atendimentoAtualCodigo || null,
+          startTime: g.loginOperadorEm ? new Date(g.loginOperadorEm).getTime() : null
+        }));
+        this.guichesSubject.next(mapped);
+      },
+      error: (err) => console.error('Erro ao buscar guichês:', err)
+    });
+  }
   get tempoTolerancia(): number {
     return this._tempoTolerancia;
   }
@@ -116,6 +138,12 @@ export class GuicheService {
 
   private iniciarTimer() {
     this.timer = setInterval(() => {
+      // 1. Sincroniza com o servidor a cada 10 segundos para status geral
+      if (Math.floor(Date.now() / 1000) % 10 === 0) {
+        this.refreshGuiches(this.lastFilialId);
+      }
+
+      // 2. Atualiza timers locais para suavidade na interface (a cada 1s)
       let needsUpdate = false;
       const guiches = this.guichesSubject.value.map(g => {
         if (g.status === 'ocupado' && g.startTime) {

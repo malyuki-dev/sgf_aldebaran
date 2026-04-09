@@ -15,8 +15,8 @@ export class MotoristaService {
   ) {}
 
   async create(data: Prisma.motoristaCreateInput) {
-    // Sanitize incoming data to remove id if present
     const { id, ...createData } = data as any;
+    if (createData.filial_id) createData.filial_id = Number(createData.filial_id);
 
     const existingCpf = await this.prisma.motorista.findUnique({
       where: { cpf: createData.cpf },
@@ -47,23 +47,22 @@ export class MotoristaService {
     return motorista;
   }
 
-  async findAll(query?: string) {
+  async findAll(query?: string, filialId?: number) {
+    const where: Prisma.motoristaWhereInput = {
+      deletadoEm: null,
+      filial_id: filialId ? filialId : undefined,
+    };
+
     if (query) {
-      return this.prisma.motorista.findMany({
-        where: {
-          deletadoEm: null,
-          OR: [
-            { nome: { contains: query, mode: 'insensitive' } },
-            { cpf: { contains: query, mode: 'insensitive' } },
-            { transportadora: { contains: query, mode: 'insensitive' } },
-          ],
-        },
-        orderBy: { nome: 'asc' },
-      });
+      where.OR = [
+        { nome: { contains: query, mode: 'insensitive' } },
+        { cpf: { contains: query, mode: 'insensitive' } },
+        { transportadora: { contains: query, mode: 'insensitive' } },
+      ];
     }
 
     return this.prisma.motorista.findMany({
-      where: { deletadoEm: null },
+      where,
       orderBy: { nome: 'asc' },
     });
   }
@@ -89,6 +88,7 @@ export class MotoristaService {
       deletadoEm,
       ...updateData
     } = data as any;
+    if (updateData.filial_id) updateData.filial_id = Number(updateData.filial_id);
 
     // RN03: Imutabilidade de chave. Ensure CPF isn't being modified
     if (updateData.cpf) {
@@ -115,14 +115,15 @@ export class MotoristaService {
   }
 
   async checkExists(cpf: string, cnh: string) {
-    const existingCpf = await this.prisma.motorista.findUnique({
+    const existingCpf = cpf ? await this.prisma.motorista.findUnique({
       where: { cpf },
-    });
-    const existingCnh = await this.prisma.motorista.findUnique({
+    }) : null;
+    const existingCnh = cnh ? await this.prisma.motorista.findUnique({
       where: { cnh },
-    });
+    }) : null;
 
     return {
+      exists: !!existingCpf || !!existingCnh,
       cpfExists: !!existingCpf,
       cnhExists: !!existingCnh,
     };

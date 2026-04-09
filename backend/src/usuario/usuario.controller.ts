@@ -6,10 +6,12 @@ import {
   Put,
   Patch,
   Param,
+  Delete,
   UseGuards,
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -35,8 +37,8 @@ export class UsuarioController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.usuarioService.findAll();
+  findAll(@Query('filialId') filialId?: string) {
+    return this.usuarioService.findAll(filialId ? +filialId : undefined);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -87,5 +89,11 @@ export class UsuarioController {
   ) {
     const fotoUrl = `/uploads/perfil/${file.filename}`;
     return this.usuarioService.updateFoto(id, fotoUrl);
+  }
+  
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.softDelete(id);
   }
 }

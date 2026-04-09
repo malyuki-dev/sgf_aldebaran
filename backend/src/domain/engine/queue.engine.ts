@@ -14,7 +14,10 @@ export class AldebaranQueueEngine {
    * 3. Categoria Rápida (Eficiência de Fluxo)
    * 4. Aging (Evita Inanição de cargas pesadas)
    */
-  public calculateScore(ticket: Ticket, currentTimeMs: number = Date.now()): number {
+  public calculateScore(
+    ticket: Ticket,
+    currentTimeMs: number = Date.now(),
+  ): number {
     let score = 0;
     const createdAtMs = ticket.createdAt.getTime();
     const minutesWaiting = Math.floor((currentTimeMs - createdAtMs) / 60000);
@@ -22,8 +25,10 @@ export class AldebaranQueueEngine {
     // 1. Regra de Agendamento (SLA)
     if (ticket.origin === 'SCHEDULED' && ticket.scheduledTime) {
       const scheduledMs = ticket.scheduledTime.getTime();
-      const minutesToSchedule = Math.floor((scheduledMs - currentTimeMs) / 60000);
-      
+      const minutesToSchedule = Math.floor(
+        (scheduledMs - currentTimeMs) / 60000,
+      );
+
       if (minutesToSchedule <= 5) {
         score += this.WEIGHT_SCHEDULE_CRITICAL;
       }
@@ -35,12 +40,15 @@ export class AldebaranQueueEngine {
     }
 
     // 3. Otimização de Vazão (Shortest Job First)
-    if (ticket.category === 'CLIENTE_RAPIDO' || ticket.category === 'RETIRADA_RAPIDA') {
+    if (
+      ticket.category === 'CLIENTE_RAPIDO' ||
+      ticket.category === 'RETIRADA_RAPIDA'
+    ) {
       score += this.WEIGHT_FAST_TRACK;
     }
 
     // 4. Anti-Starvation (Aging)
-    score += (minutesWaiting * this.AGING_FACTOR_PER_MINUTE);
+    score += minutesWaiting * this.AGING_FACTOR_PER_MINUTE;
 
     return score;
   }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GuicheOperador, GuicheService } from '../../../services/guiche.service';
 import { AuthService } from '../../../services/auth.service';
+import { FilialService, Filial } from '../../../services/filial.service';
 import { finalize, takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { Subject, of, interval } from 'rxjs';
 
@@ -28,6 +29,7 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
   selecaoEmAndamentoId: number | null = null;
 
   guiches: GuicheOperador[] = [];
+  filiais: Filial[] = [];
 
   // Polling de sincronização
   private destroy$ = new Subject<void>();
@@ -37,12 +39,14 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
     private router: Router,
     private guicheService: GuicheService,
     private authService: AuthService,
+    private filialService: FilialService,
     private cdr: ChangeDetectorRef,
   ) {
     this.carregarOperador();
   }
 
   ngOnInit() {
+    this.carregarFiliais();
     this.verificarGuicheAtual();
   }
 
@@ -63,7 +67,10 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
   private atualizarGuichesEmTempoReal() {
     interval(2000) // Atualiza a cada 2 segundos
       .pipe(
-        switchMap(() => this.guicheService.listOperatorGuiches()),
+        switchMap(() => {
+          const fid = this.filialSelecionada ? parseInt(this.filialSelecionada, 10) : undefined;
+          return this.guicheService.listOperatorGuiches(fid);
+        }),
         takeUntil(this.destroy$),
         catchError(() => of(this.guiches)) // Mantém lista antiga em caso de erro
       )
@@ -127,12 +134,42 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
       });
   }
 
+  private carregarFiliais() {
+    this.filialService.getFiliais().subscribe({
+      next: (data) => {
+        this.filiais = data;
+        
+        // Inicializa com a filial salva se existir
+        const savedId = this.filialService.getSelectedFilialId();
+        if (savedId) {
+          this.filialSelecionada = savedId.toString();
+        }
+        
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Erro ao listar filiais no operador:', err);
+      }
+    });
+  }
+
+  onFilialChange() {
+    if (this.filialSelecionada) {
+      this.filialService.setSelectedFilial(parseInt(this.filialSelecionada, 10));
+    } else {
+      this.filialService.setSelectedFilial(null);
+    }
+    this.carregarGuiches(); // Recarrega guichês da nova filial
+  }
+
   private carregarGuiches() {
     this.carregando = true;
     this.mensagemErro = '';
     this.cdr.markForCheck();
 
-    this.guicheService.listOperatorGuiches()
+    const fid = this.filialSelecionada ? parseInt(this.filialSelecionada, 10) : undefined;
+
+    this.guicheService.listOperatorGuiches(fid)
       .pipe(
         finalize(() => {
           this.carregando = false;
@@ -192,7 +229,8 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
   }
 
   private atualizarListaGuichesAgora() {
-    this.guicheService.listOperatorGuiches()
+    const fid = this.filialSelecionada ? parseInt(this.filialSelecionada, 10) : undefined;
+    this.guicheService.listOperatorGuiches(fid)
       .pipe(
         catchError(() => of(this.guiches))
       )

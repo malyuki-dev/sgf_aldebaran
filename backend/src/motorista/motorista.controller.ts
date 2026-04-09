@@ -35,8 +35,8 @@ export class MotoristaController {
   }
 
   @Get()
-  findAll(@Query('q') q?: string) {
-    return this.motoristaService.findAll(q);
+  findAll(@Query('q') q?: string, @Query('filialId') filialId?: string) {
+    return this.motoristaService.findAll(q, filialId ? +filialId : undefined);
   }
 
   @Get('check')

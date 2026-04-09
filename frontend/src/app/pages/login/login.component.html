@@ -40,12 +40,12 @@
       <form (ngSubmit)="fazerLogin()">
         
         <div class="input-group">
-          <label>E-MAIL </label>
+          <label>E-MAIL OU USUÁRIO</label>
           <div class="input-wrapper">
             <lucide-icon [img]="icons.mail" size="20" class="input-icon"></lucide-icon>
             <input 
-              type="email" 
-              placeholder="ex: usuario@aldebaran.com" 
+              type="text" 
+              placeholder="ex: joao.silva ou joao@empresa.com" 
               [(ngModel)]="credenciais.email" 
               name="email"
               required>

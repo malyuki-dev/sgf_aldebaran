@@ -61,6 +61,10 @@
             &.deactivate:hover { background: #fff1f2; color: #e11d48; }
             &.activate:hover { background: #ecfdf5; color: #059669; }
         }
+
+        &.btn-delete {
+            &:hover { background: #fff1f2; color: #e11d48; }
+        }
     }
 }
 

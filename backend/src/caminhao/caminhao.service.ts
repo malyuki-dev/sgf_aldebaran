@@ -15,8 +15,9 @@ export class CaminhaoService {
   ) {}
 
   async create(data: Prisma.caminhaoCreateInput) {
-    // Sanitize incoming data to remove id if present (fixes "Unknown argument id")
     const { id, ...createData } = data as any;
+    if (createData.filial_id) createData.filial_id = Number(createData.filial_id);
+    if (createData.motorista_id) createData.motorista_id = Number(createData.motorista_id);
 
     const existingPlaca = await this.prisma.caminhao.findUnique({
       where: { placa: createData.placa },
@@ -41,24 +42,22 @@ export class CaminhaoService {
     return caminhao;
   }
 
-  async findAll(query?: string) {
+  async findAll(query?: string, filialId?: number) {
+    const where: Prisma.caminhaoWhereInput = {
+      deletadoEm: null,
+      filial_id: filialId ? filialId : undefined,
+    };
+
     if (query) {
-      return this.prisma.caminhao.findMany({
-        where: {
-          deletadoEm: null,
-          OR: [
-            { placa: { contains: query, mode: 'insensitive' } },
-            { modelo: { contains: query, mode: 'insensitive' } },
-            { transportadora: { contains: query, mode: 'insensitive' } },
-          ],
-        },
-        include: { motorista: true },
-        orderBy: { placa: 'asc' },
-      });
+      where.OR = [
+        { placa: { contains: query, mode: 'insensitive' } },
+        { modelo: { contains: query, mode: 'insensitive' } },
+        { transportadora: { contains: query, mode: 'insensitive' } },
+      ];
     }
 
     return this.prisma.caminhao.findMany({
-      where: { deletadoEm: null },
+      where,
       include: { motorista: true },
       orderBy: { placa: 'asc' },
     });
@@ -86,6 +85,8 @@ export class CaminhaoService {
       deletadoEm,
       ...updateData
     } = data as any;
+    if (updateData.filial_id) updateData.filial_id = Number(updateData.filial_id);
+    if (updateData.motorista_id) updateData.motorista_id = Number(updateData.motorista_id);
 
     if (updateData.placa) {
       delete updateData.placa; // RN01: Placa única; Placa não pode ser alterada após cadastro.
@@ -112,10 +113,13 @@ export class CaminhaoService {
   }
 
   async checkExists(placa: string) {
-    const existingPlaca = await this.prisma.caminhao.findUnique({
+    const existingPlaca = placa ? await this.prisma.caminhao.findUnique({
       where: { placa },
-    });
-    return { placaExists: !!existingPlaca };
+    }) : null;
+    return { 
+      exists: !!existingPlaca,
+      placaExists: !!existingPlaca 
+    };
   }
 
   async softDelete(id: number) {

@@ -94,8 +94,24 @@
 
             <div class="form-row-premium">
                 <label>Status</label>
-                <input type="text" [value]="formCategoria.ativo ? 'Ativo' : 'Inativo'" readonly
-                    style="background: #f8fafc;">
+                <div class="status-input">
+                    <input type="text" [value]="formCategoria.ativo ? 'Ativo' : 'Inativo'" readonly
+                        style="background: #f8fafc; border-radius: 8px 0 0 8px;">
+                    <button class="status-btn" (click)="formCategoria.ativo = !formCategoria.ativo">
+                        Mudar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filial Selection (Mandatory) -->
+            <div class="form-row-premium mt-4">
+                <label>Filial Vinculada <span class="required-mark">*</span></label>
+                <select [(ngModel)]="formCategoria.filial_id">
+                   <option [ngValue]="null">Todas as Unidades (Global)</option>
+                   <option *ngFor="let f of filiais" [ngValue]="f.id">
+                        {{ f.nome }}
+                   </option>
+                </select>
             </div>
         </div>
 

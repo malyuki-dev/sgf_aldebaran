@@ -2,7 +2,8 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../../services/api.service';
-import { LucideAngularModule, Plus, Edit2, Trash2, Power, X, Layers, Truck, Zap, Package, Check } from 'lucide-angular';
+import { LucideAngularModule, Plus, Edit2, Trash2, Power, X, Layers, Truck, Zap, Package, Check, Building } from 'lucide-angular';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-categorias-fila',
@@ -21,6 +22,9 @@ export class CategoriasFilaComponent implements OnInit {
   showConfirmDelete = false;
   showSuccessModal = false;
   
+  filiais: any[] = [];
+  selectedFilialId: number | null = null;
+
   // Modal Form (Categoria)
   formCategoria: any = {
     id: null,
@@ -28,27 +32,46 @@ export class CategoriasFilaComponent implements OnInit {
     prefixo: '',
     tipo: '',
     cor: '#0099ab',
-    ativo: true
+    ativo: true,
+    filial_id: null
   };
 
   categoriaParaExcluir: any = null;
 
   readonly icons = { 
     plus: Plus, edit: Edit2, trash: Trash2, power: Power, 
-    x: X, layers: Layers, truck: Truck, zap: Zap, box: Package, check: Check
+    x: X, layers: Layers, truck: Truck, zap: Zap, box: Package, check: Check,
+    building: Building
   };
 
   constructor(
     private api: ApiService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
-    this.carregarCategorias();
+    this.route.queryParamMap.subscribe(params => {
+      const fid = params.get('filialId');
+      this.selectedFilialId = fid ? Number(fid) : null;
+      this.carregarCategorias();
+    });
+    this.carregarFiliais();
+  }
+
+  carregarFiliais() {
+    this.api.get<any[]>('/filiais').subscribe({
+      next: (res) => this.filiais = res.filter(f => f.ativo),
+      error: (err) => console.error('Erro ao carregar filiais:', err)
+    });
   }
 
   carregarCategorias() {
-    this.api.get<any[]>('/servicos').subscribe({
+    const params = new URLSearchParams();
+    if (this.selectedFilialId) params.append('filialId', this.selectedFilialId.toString());
+    params.append('includeInactive', 'true');
+    
+    this.api.get<any[]>(`/servicos?${params.toString()}`).subscribe({
       next: (data) => {
         this.categorias = data;
         this.cdr.detectChanges();
@@ -65,7 +88,8 @@ export class CategoriasFilaComponent implements OnInit {
       this.editandoCategoria = false;
       this.formCategoria = {
         id: null, nome: '', prefixo: '',
-        tipo: '', cor: '#0099ab', ativo: true
+        tipo: '', cor: '#0099ab', ativo: true,
+        filial_id: this.selectedFilialId
       };
     }
     this.showCategoriaModal = true;
@@ -86,9 +110,14 @@ export class CategoriasFilaComponent implements OnInit {
     if (!this.formCategoria.nome) return alert("O nome da categoria é obrigatório.");
     
     this.loading = true;
+    const payload = {
+      ...this.formCategoria,
+      filial_id: this.formCategoria.filial_id ? Number(this.formCategoria.filial_id) : null
+    };
+
     const request = this.editandoCategoria
-      ? this.api.patch(`/servicos/${this.formCategoria.id}`, this.formCategoria)
-      : this.api.post('/servicos', this.formCategoria);
+      ? this.api.patch(`/servicos/${this.formCategoria.id}`, payload)
+      : this.api.post('/servicos', payload);
 
     request.subscribe({
       next: () => {
@@ -111,7 +140,7 @@ export class CategoriasFilaComponent implements OnInit {
   }
 
   toggleStatusCategoria(item: any) {
-    this.api.patch(`/servicos/${item.id}`, { ativo: !item.ativo }).subscribe(() => {
+    this.api.patch(`/servicos/${Number(item.id)}`, { ativo: !item.ativo }).subscribe(() => {
       this.carregarCategorias();
       this.cdr.detectChanges();
     });

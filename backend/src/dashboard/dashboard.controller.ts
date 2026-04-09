@@ -17,4 +17,9 @@ export class DashboardController {
   ) {
     return this.dashboardService.getRelatorios(periodo || 'mes', filialId);
   }
+
+  @Get('supervisor')
+  getSupervisorOverview(@Query('filialId') filialId: string) {
+    return this.dashboardService.getSupervisorOverview(filialId);
+  }
 }

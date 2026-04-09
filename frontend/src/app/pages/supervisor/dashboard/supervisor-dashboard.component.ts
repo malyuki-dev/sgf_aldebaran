@@ -1,8 +1,9 @@
 import { Component, HostListener, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import {
   LucideAngularModule, AlertTriangle, ChevronRight, TrendingUp,
   Clock, Activity, Users, Truck, UserPlus, User, Settings, BarChart2,
@@ -10,17 +11,20 @@ import {
   Hash, Building, Package, Key, Lock, Phone, Mail, Eye, AlertCircle
 } from 'lucide-angular';
 import { GuicheService } from '../../../services/guiche.service';
+import { DashboardService } from '../../../services/dashboard.service';
+import { FilialService } from '../../../services/filial.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-supervisor-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, LucideAngularModule, ReactiveFormsModule],
   templateUrl: './supervisor-dashboard.component.html',
   styleUrls: ['./supervisor-dashboard.component.scss']
 })
 export class SupervisorDashboardComponent implements OnInit {
   // Ícones
-  readonly icons = {
+  readonly icons: any = {
     alert: AlertTriangle, right: ChevronRight, trendingUp: TrendingUp,
     clock: Clock, activity: Activity, users: Users,
     truck: Truck, userPlus: UserPlus, user: User,
@@ -33,30 +37,24 @@ export class SupervisorDashboardComponent implements OnInit {
 
   // Visão Geral (KPIs)
   visaoGeral = [
-    { titulo: 'Total Hoje', valor: '147', info: '+12%', corInfo: 'green', icon: this.icons.trendingUp, bgIcon: '#e0f2fe', colorIcon: '#0284c7' },
-    { titulo: 'Tempo Médio', valor: '8 min', info: '+3 min', corInfo: 'red', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
-    { titulo: 'Fila Atual', valor: '12', info: 'Normal', corInfo: 'gray', icon: this.icons.users, bgIcon: '#f3e8ff', colorIcon: '#9333ea' }
+    { titulo: 'Total Hoje', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.trendingUp, bgIcon: '#e0f2fe', colorIcon: '#0284c7' },
+    { titulo: 'Tempo Médio', valor: '0 min', info: '-', corInfo: 'gray', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
+    { titulo: 'Fila Atual', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.users, bgIcon: '#f3e8ff', colorIcon: '#9333ea' }
   ];
 
   // Status dos Guichês - carregar do serviço
   guiches: any[] = [];
 
   // Senhas Agendadas (Mock para Modal de Agendamentos)
-  agendamentos = [
-    { senha: 'A045', transportadora: 'TransXYZ', horario: '14:30', status: 'Aguardando' },
-    { senha: 'A046', transportadora: 'LogisticaBR', horario: '15:00', status: 'Atrasado' },
-    { senha: 'A047', transportadora: 'CargasRapid', horario: '15:15', status: 'Confirmado' },
-    { senha: 'A048', transportadora: 'NorteSul', horario: '16:00', status: 'Aguardando' }
-  ];
+  agendamentos: any[] = [];
 
-  // Lista de Atendimentos (Mock)
-  atendimentosList = [
-    { ticket: 'RP043', cliente: 'Carlos Silva', categoria: 'Retirada Pesada', operador: 'João Santos', tempoEspera: '12:30', status: 'Em Atendimento' },
-    { ticket: 'C041', cliente: 'Mariana Costa', categoria: 'Carga Comum', operador: 'Ana Costa', tempoEspera: '14:30', status: 'Em Atendimento' },
-    { ticket: 'CR038', cliente: 'Pedro Alves', categoria: 'Carga Refrigerada', operador: 'Pedro Lima', tempoEspera: '25:00', status: 'Atrasado' },
-    { ticket: 'C042', cliente: 'Sandra Vieira', categoria: 'Carga Comum', operador: 'Gustavo Campos', tempoEspera: '17:15', status: 'Em Atendimento' },
-    { ticket: 'A049', cliente: 'José Ferreira', categoria: 'Agendado', operador: '-', tempoEspera: '30:00', status: 'Aguardando' },
-  ];
+  // Lista de Atendimentos (Real)
+  atendimentosList: any[] = [];
+  filiais: any[] = [];
+  selectedFilialId: number | null = null;
+  filialId?: number; // Filial do usuário (contexto original)
+  
+  private filialSub?: Subscription;
 
   atendimentoSelecionado: any = null;
   showJustificativaModal = false;
@@ -79,7 +77,16 @@ export class SupervisorDashboardComponent implements OnInit {
   operadorForm: FormGroup;
   clienteForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute, private guicheService: GuicheService, private http: HttpClient, private cdr: ChangeDetectorRef) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private guicheService: GuicheService,
+    private dashboardService: DashboardService,
+    private filialService: FilialService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {
     this.justificativaForm = this.fb.group({
       motivo: ['', Validators.required],
       observacoes: ['']
@@ -130,6 +137,73 @@ export class SupervisorDashboardComponent implements OnInit {
       this.guiches = guiches;
       this.cdr.detectChanges();
     });
+
+    this.detectFilial();
+    
+    // Inscrever para mudanças globais de filial
+    this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
+      this.selectedFilialId = id;
+      this.loadData();
+    });
+    
+    // Refresh data every 30 seconds
+    setInterval(() => this.loadData(), 30000);
+  }
+
+  ngOnDestroy() {
+    if (this.filialSub) this.filialSub.unsubscribe();
+  }
+
+  detectFilial() {
+    const userStr = localStorage.getItem('usuario_sgf');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this.filialId = user.filial_id;
+        // Se for a primeira vez e tiver filial no user, seleciona ela
+        if (this.selectedFilialId === null) {
+          this.selectedFilialId = this.filialId || null;
+        }
+      } catch (e) {}
+    }
+  }
+
+  carregarFiliais() {
+    this.http.get<any[]>(`${environment.apiUrl}/filiais`, {
+      headers: new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('token')}`)
+    }).subscribe({
+      next: (data) => {
+        this.filiais = data;
+      },
+      error: (err) => console.error('Erro ao carregar filiais:', err)
+    });
+  }
+
+  onFilialChange() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.dashboardService.getSupervisorOverview(this.selectedFilialId || undefined).subscribe({
+      next: (res) => {
+        // Update KPIs
+        this.visaoGeral[0].valor = res.kpis.totalHoje;
+        this.visaoGeral[1].valor = res.kpis.tempoMedio;
+        this.visaoGeral[2].valor = res.kpis.filaAtual;
+
+        // Update Lists
+        this.agendamentos = res.agendamentos;
+        this.atendimentosList = res.atendimentos;
+
+        this.showAlertBanner = res.kpis.alertaSla;
+        
+        // Sincroniza os guichês
+        this.guicheService.refreshGuiches(this.selectedFilialId || undefined);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erro ao carregar dashboard:', err)
+    });
   }
 
   abrirModal(id: string) {
@@ -171,7 +245,7 @@ export class SupervisorDashboardComponent implements OnInit {
       const token = localStorage.getItem('token') || '';
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-      this.http.post('http://localhost:3000/usuarios', payload, { headers }).subscribe({
+      this.http.post(`${environment.apiUrl}/usuarios`, payload, { headers }).subscribe({
         next: () => {
           this.activeModal = null;
           this.successModal = 'operator';
@@ -263,6 +337,6 @@ export class SupervisorDashboardComponent implements OnInit {
   }
 
   get tempoMedio(): string {
-    return this.guicheService.tempoMedioGlobalFormatado;
+    return this.visaoGeral[1].valor;
   }
 }

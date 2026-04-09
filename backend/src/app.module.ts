@@ -16,6 +16,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { FilialModule } from './filial/filial.module';
 import { GuicheModule } from './guiche/guiche.module';
 import { NotificacaoModule } from './notificacao/notificacao.module';
+import { TaskManagementModule } from './task-management/task-management.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { NotificacaoModule } from './notificacao/notificacao.module';
     FilialModule,
     GuicheModule,
     NotificacaoModule,
+    TaskManagementModule,
   ],
   controllers: [],
   providers: [],

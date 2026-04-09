@@ -18,15 +18,18 @@ export class FilaService {
   ) {}
 
   // --- LÓGICA DE SEQUENCIAL DO TOTEM ---
-  async solicitarSenhaTotem(tipoRaw: string, nomeCategoria: string) {
-    // 1. Busca serviço pelo nome
+  async solicitarSenhaTotem(tipoRaw: string, nomeCategoria: string, filialId?: number) {
+    // 1. Busca serviço pelo nome E filial (se houver filialId)
     const servico = await this.prisma.servico.findFirst({
-      where: { nome: nomeCategoria },
+      where: { 
+        nome: nomeCategoria,
+        filial_id: filialId ? filialId : undefined 
+      },
     });
 
     if (!servico) {
       throw new BadRequestException(
-        `Serviço '${nomeCategoria}' não cadastrado.`,
+        `Serviço '${nomeCategoria}' não cadastrado para esta unidade.`,
       );
     }
 
@@ -37,13 +40,14 @@ export class FilaService {
         : 'Convencional';
     const prefixo = tipoFormatado === 'Preferencial' ? 'P' : 'C';
 
-    // 3. Conta senhas de hoje para gerar sequencial
+    // 3. Conta senhas de hoje para gerar sequencial (Filtra por filial também)
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
     const count = await this.prisma.senha.count({
       where: {
         servico_id: servico.id,
+        filial_id: filialId ? filialId : undefined,
         dataCriacao: { gt: hoje },
       },
     });
@@ -61,6 +65,7 @@ export class FilaService {
         tipoOrigem: 'TOTEM',
         prioridade: servico.prioridadePeso || 0,
         servico: { connect: { id: servico.id } },
+        filial: filialId ? { connect: { id: filialId } } : undefined,
       },
     });
 
@@ -75,7 +80,7 @@ export class FilaService {
     return senha;
   }
 
-  async validarCheckin(codigo: string) {
+  async validarCheckin(codigo: string, filialId?: number) {
     if (!codigo) throw new BadRequestException('Código obrigatório.');
 
     const agendamento = await this.prisma.agendamento.findUnique({
@@ -90,7 +95,7 @@ export class FilaService {
 
     // Busca bônus de agendamento na tabela configuracao
     const configBonus = await this.prisma.configuracao.findFirst({
-      where: { chave: 'BONUS_PRIORIDADE_AGENDAMENTO', filial_id: null },
+      where: { chave: 'BONUS_PRIORIDADE_AGENDAMENTO', filial_id: filialId || null },
     });
     const bonus = Number(configBonus?.valor) || 2;
 
@@ -98,13 +103,20 @@ export class FilaService {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     const count = await this.prisma.senha.count({
-      where: { servico_id: agendamento.servico.id, dataCriacao: { gt: hoje } },
+      where: { 
+        servico_id: agendamento.servico.id, 
+        filial_id: filialId || undefined,
+        dataCriacao: { gt: hoje } 
+      },
     });
 
     const numeroSeq = (count + 1).toString().padStart(3, '0');
     // Busca modificador
     const configMod = await this.prisma.configuracao.findFirst({
-      where: { chave: 'MODIFICADOR_AGENDAMENTO', filial_id: null },
+      where: { 
+        chave: 'MODIFICADOR_AGENDAMENTO', 
+        filial_id: filialId || null 
+      },
     });
     const mod = configMod?.valor || 'A';
 
@@ -118,6 +130,8 @@ export class FilaService {
         tipoOrigem: 'AGENDAMENTO',
         prioridade: (agendamento.servico.prioridadePeso || 0) + bonus,
         servico: { connect: { id: agendamento.servico.id } },
+        filial: filialId ? { connect: { id: filialId } } : undefined,
+        agendamento: { connect: { id: agendamento.id } },
       },
     });
 
@@ -197,11 +211,15 @@ export class FilaService {
     });
 
     const getConfig = (chave: string, padrao: string) => {
-      const branchVal = configs.find((c) => c.chave === chave && c.filial_id === fId);
+      const branchVal = configs.find(
+        (c) => c.chave === chave && c.filial_id === fId,
+      );
       if (branchVal && branchVal.valor && branchVal.valor.trim() !== '') {
         return branchVal.valor;
       }
-      const globalVal = configs.find((c) => c.chave === chave && c.filial_id === null);
+      const globalVal = configs.find(
+        (c) => c.chave === chave && c.filial_id === null,
+      );
       if (globalVal && globalVal.valor && globalVal.valor.trim() !== '') {
         return globalVal.valor;
       }
@@ -211,8 +229,10 @@ export class FilaService {
     const inicioStr = getConfig('TOTEM_HORARIO_INICIO', '08:00');
     const fimStr = getConfig('TOTEM_HORARIO_FIM', '18:00');
     const diasPermitidosJson = getConfig('TOTEM_DIAS', '[1,2,3,4,5]');
-    
-    console.log(`[FILA] Horários para filial ${fId}: ${inicioStr} - ${fimStr}, dias: ${diasPermitidosJson}`);
+
+    console.log(
+      `[FILA] Horários para filial ${fId}: ${inicioStr} - ${fimStr}, dias: ${diasPermitidosJson}`,
+    );
 
     let diasPermitidos: number[] = [];
     try {
@@ -227,7 +247,7 @@ export class FilaService {
 
     if (!diasPermitidos.includes(diaSemana)) {
       console.log(`[FILA] Dia ${diaSemana} não permitido para filial ${fId}`);
-      return []; 
+      return [];
     }
 
     // 3. Gerar Grade Dinâmica
@@ -256,7 +276,7 @@ export class FilaService {
 
   private parseTime(timeStr: string): number {
     if (!timeStr) return 0;
-    
+
     let hours = 0;
     let minutes = 0;
 
@@ -268,7 +288,7 @@ export class FilaService {
     // Remove AM/PM para o processamento numérico
     const timePart = cleanTime.replace('AM', '').replace('PM', '').trim();
     const parts = timePart.split(':').map(Number);
-    
+
     hours = parts[0] || 0;
     minutes = parts[1] || 0;
 
@@ -279,7 +299,9 @@ export class FilaService {
   }
 
   private formatTime(minutes: number): string {
-    const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+    const h = Math.floor(minutes / 60)
+      .toString()
+      .padStart(2, '0');
     const m = (minutes % 60).toString().padStart(2, '0');
     return `${h}:${m}`;
   }
@@ -325,10 +347,13 @@ export class FilaService {
     });
   }
 
-  async listarAgendamentos() {
+  async listarAgendamentos(filialId?: number) {
     return await this.prisma.agendamento.findMany({
+      where: {
+        filial_id: filialId ? filialId : undefined,
+      },
       orderBy: [{ data: 'asc' }, { hora: 'asc' }],
-      include: { servico: true },
+      include: { servico: true, filial: true },
     });
   }
 
@@ -383,14 +408,23 @@ export class FilaService {
     return senha;
   }
 
-  async chamarProximo(guiche: number) {
-    // Pega o próximo da fila (Prioridade DESC, depois ID ASC)
+  async chamarProximo(guicheId: number) {
+    const guicheInfo = await this.prisma.guiche.findUnique({
+      where: { id: guicheId },
+    });
+
+    if (!guicheInfo) throw new NotFoundException('Guichê não encontrado!');
+
+    // Pega o próximo da fila restrito à mesma filial_id do guichê
     const proxima = await this.prisma.senha.findFirst({
-      where: { status: 'AGUARDANDO' },
+      where: {
+        status: 'AGUARDANDO',
+        filial_id: guicheInfo.filial_id,
+      },
       orderBy: [{ prioridade: 'desc' }, { id: 'asc' }],
     });
 
-    if (!proxima) throw new NotFoundException('Fila vazia!');
+    if (!proxima) throw new NotFoundException('Fila vazia nesta filial!');
 
     // SLA Check: se esperou mais de 20 min, emite alerta
     const tempoEsperaMs =
@@ -410,17 +444,73 @@ export class FilaService {
     const senhaAtualizada = await this.prisma.senha.update({
       where: { id: proxima.id },
       data: { status: 'CHAMADO' },
+      // Traz agendamento junto para frontend mostrar o nome
+      include: { agendamento: true, servico: true },
     });
 
     // Registra o atendimento
     await this.prisma.atendimento.create({
       data: {
-        guiche,
+        guiche: guicheId,
         senha_id: proxima.id,
       },
     });
 
+    this.notificacaoGateway.broadcastTicket({
+        ticketId: senhaAtualizada.numeroDisplay,
+        category: senhaAtualizada.servico?.nome || 'Serviço',
+        guicheOrDoca: guicheInfo.numero.toString() || guicheId.toString(),
+        calledAt: new Date(),
+    });
+
     return senhaAtualizada;
+  }
+
+  async iniciarAtendimento(senhaId: number) {
+    return await this.prisma.senha.update({
+      where: { id: senhaId },
+      data: { status: 'EM_ATENDIMENTO' },
+      include: { agendamento: true, servico: true },
+    });
+  }
+
+  async finalizarAtendimento(senhaId: number) {
+    const senha = await this.prisma.senha.update({
+      where: { id: senhaId },
+      data: { status: 'FINALIZADO' },
+    });
+
+    // Marca o fim no registro de atendimento
+    await this.prisma.atendimento.updateMany({
+      where: { senha_id: senhaId, fimAtendimento: null },
+      data: { fimAtendimento: new Date() },
+    });
+
+    return senha;
+  }
+
+  async naoCompareceu(senhaId: number) {
+    return await this.prisma.senha.update({
+      where: { id: senhaId },
+      data: { status: 'CANCELADO' },
+    });
+  }
+
+  async listarProximas(guicheId: number) {
+    const guicheInfo = await this.prisma.guiche.findUnique({
+      where: { id: guicheId },
+    });
+    if (!guicheInfo) return [];
+
+    return await this.prisma.senha.findMany({
+      where: {
+        status: 'AGUARDANDO',
+        filial_id: guicheInfo.filial_id,
+      },
+      orderBy: [{ prioridade: 'desc' }, { id: 'asc' }],
+      take: 5,
+      include: { servico: true, agendamento: true },
+    });
   }
 
   async listarPainel() {
@@ -498,7 +588,7 @@ export class FilaService {
    */
   public async dequeueAtomic(): Promise<Ticket | null> {
     try {
-      // Security: Query atômica parametrizada estaticamente. 
+      // Security: Query atômica parametrizada estaticamente.
       const result = await this.prisma.$queryRaw<Ticket[]>`
         WITH next_ticket AS (
           SELECT id
@@ -521,8 +611,13 @@ export class FilaService {
 
       return result.length > 0 ? result[0] : null;
     } catch (error) {
-      console.error('[FilaService.dequeueAtomic] Falha na extração de ticket', error);
-      throw new InternalServerErrorException('Falha ao processar a fila. O banco de dados pode estar indisponível.');
+      console.error(
+        '[FilaService.dequeueAtomic] Falha na extração de ticket',
+        error,
+      );
+      throw new InternalServerErrorException(
+        'Falha ao processar a fila. O banco de dados pode estar indisponível.',
+      );
     }
   }
 
@@ -531,7 +626,7 @@ export class FilaService {
    */
   public async chamarProximoTicket(guicheId: string): Promise<void> {
     const ticket = await this.dequeueAtomic();
-    
+
     if (ticket) {
       this.notificacaoGateway.broadcastTicket({
         ticketId: ticket.id,
@@ -565,31 +660,17 @@ export class FilaService {
   }
 
   /**
-   * Retorna os últimos 5 tickets processados para reconciliação de estado.
+   * Retorna os últimos 10 tickets processados para reconciliação de estado.
    */
-  public async getHistorico(sala: string) {
-    const categoryFilter = sala === 'DOCA' 
-      ? { in: ['CAMINHAO', 'RETIRADA_PESADA'] } 
-      : { in: ['CLIENTE_RAPIDO', 'RETIRADA_RAPIDA'] };
-
-    const ultimosTickets = await this.prisma.ticket.findMany({
-      where: { 
-        status: 'PROCESSING',
-        category: categoryFilter as any 
-      },
-      orderBy: { updatedAt: 'desc' },
-      take: 5, 
-      select: {
-        id: true,
-        category: true,
-        updatedAt: true,
+  public async getHistorico(salaDesc: string) {
+    // Retorna todos os atendimentos recentes (usado para painel de TV)
+    return await this.prisma.atendimento.findMany({
+      take: 10,
+      orderBy: { inicioAtendimento: 'desc' },
+      include: {
+        senha: { select: { numeroDisplay: true, servico: { select: { nome: true } } } },
+        guiche_rel: { select: { numero: true, nome: true } }
       }
     });
-
-    return ultimosTickets.map(t => ({
-      ticketId: t.id,
-      guicheOrDoca: 'Guichê Padrão', 
-      calledAt: t.updatedAt
-    }));
   }
 }

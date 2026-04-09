@@ -28,7 +28,12 @@
 
     <div class="tabs-container">
         <div class="tabs-header">
-            <a *ngFor="let tab of tabs" [routerLink]="tab.route" class="tab-btn" [class.active]="currentTab === tab.id">
+            <a *ngFor="let tab of tabs" 
+               [routerLink]="tab.route" 
+               [queryParams]="{ filialId: selectedFilialId }"
+               queryParamsHandling="preserve"
+               class="tab-btn" 
+               [class.active]="currentTab === tab.id">
                 <lucide-icon [img]="tab.icon" size="18"></lucide-icon>
                 {{ tab.label }}
             </a>

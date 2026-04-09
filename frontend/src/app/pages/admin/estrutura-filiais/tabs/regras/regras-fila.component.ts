@@ -50,8 +50,9 @@ export class RegrasFilaComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.selectedFilialId = params['filialId'] ? Number(params['filialId']) : null;
+    this.route.queryParamMap.subscribe(params => {
+      const fid = params.get('filialId');
+      this.selectedFilialId = fid ? Number(fid) : null;
       this.carregarDados();
     });
   }
@@ -61,7 +62,7 @@ export class RegrasFilaComponent implements OnInit {
     const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
     
     forkJoin({
-      servicos: this.api.get<any[]>('/servicos').pipe(catchError(err => { console.error(err); return of([]); })),
+      servicos: this.api.get<any[]>(`/servicos${filialQuery}`).pipe(catchError(err => { console.error(err); return of([]); })),
       configs: this.api.get<any>(`/configuracoes/lista${filialQuery}`).pipe(catchError(err => { console.error(err); return of({}); }))
     }).subscribe({
       next: (res) => {

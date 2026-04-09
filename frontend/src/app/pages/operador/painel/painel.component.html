@@ -9,10 +9,8 @@
       <!-- Filial Selector -->
       <div class="control-group">
         <label>Filial</label>
-        <select class="dropdown" [(ngModel)]="filialSelecionada">
-          <option value="">Matriz - Centro</option>
-          <option value="norte">Filial Norte</option>
-          <option value="sul">Filial Sul</option>
+        <select class="dropdown" [(ngModel)]="filialSelecionada" (change)="onFilialChange()">
+          <option *ngFor="let f of filiais" [value]="f.id">{{ f.nome }}</option>
         </select>
       </div>
 
@@ -28,17 +26,17 @@
 
     <div class="header-right">
       <!-- Meus Atendimentos Badge -->
-      <button class="badge-button atendimentos">
+      <button class="badge-button atendimentos" (click)="navegarPara('meus-atendimentos')">
         <img src="assets/icon (2).svg" class="icon" alt="" />
         <span>Meus Atendimentos</span>
-        <div class="badge-count">5</div>
+        <div class="badge-count" *ngIf="badgeMeusAtendimentosCount > 0">{{ badgeMeusAtendimentosCount }}</div>
       </button>
 
       <!-- Agendamentos Badge -->
-      <button class="badge-button agendamentos">
+      <button class="badge-button agendamentos" (click)="navegarPara('agendamentos')">
         <img src="assets/Icon (4).svg" class="icon" alt="" />
         <span>Agendamentos</span>
-        <div class="badge-count">5</div>
+        <div class="badge-count" *ngIf="badgeAgendamentosCount > 0">{{ badgeAgendamentosCount }}</div>
       </button>
 
       <!-- Operator Profile -->
@@ -81,7 +79,7 @@
             <div class="time-idle">
               <span class="idle-label">Tempo ocioso de atendimento:</span>
               <img src="assets/Icon (9).svg" class="icon" alt="" />
-              <span class="time">0:01</span>
+              <span class="time">{{ tempoOciosoText }}</span>
             </div>
             <div class="guiche-disponivel">
               <div class="checkmark">
@@ -511,4 +509,24 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Sair -->
+<div *ngIf="modalAberto === 'sair'" class="modal-overlay">
+  <div class="modal-content logout-modal-redesign">
+    <div class="modal-body-centered">
+      <div class="logout-icon-glow">
+        <img src="assets/Icon.svg" class="glow-icon">
+      </div>
+      <h3 class="modal-title-bold">Finalizar Sessão?</h3>
+      <p class="modal-subtitle">Seu guichê será liberado para outros operadores e você retornará à tela de login.</p>
+    </div>
+    <div class="modal-actions-refined">
+      <button class="btn-cancel-glass" (click)="fecharModal()">Continuar Trabalhando</button>
+      <button class="btn-danger-solid" (click)="confirmarSair()">Encerrar e Sair</button>
+    </div>
+  </div>
+</div>
+
+
+
   

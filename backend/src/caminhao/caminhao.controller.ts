@@ -52,8 +52,8 @@ export class CaminhaoController {
   }
 
   @Get()
-  findAll(@Query('q') q?: string) {
-    return this.caminhaoService.findAll(q);
+  findAll(@Query('q') q?: string, @Query('filialId') filialId?: string) {
+    return this.caminhaoService.findAll(q, filialId ? +filialId : undefined);
   }
 
   @Get('check')

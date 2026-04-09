@@ -36,6 +36,7 @@ export class UsuarioService {
         email,
         perfil: perfil || 'OPERADOR',
         ativo: dados.ativo ?? true,
+        filial_id: dados.filial_id ? +dados.filial_id : null,
       },
       select: {
         id: true,
@@ -45,6 +46,7 @@ export class UsuarioService {
         perfil: true,
         ativo: true,
         criadoEm: true,
+        filial_id: true,
       },
     });
 
@@ -84,9 +86,12 @@ export class UsuarioService {
     };
   }
 
-  async findAll() {
+  async findAll(filialId?: number) {
     return await this.prisma.usuario.findMany({
-      where: { deletadoEm: null }, // Optionally handle soft-deleted
+      where: {
+        deletadoEm: null,
+        filial_id: filialId ? filialId : undefined,
+      },
       select: {
         id: true,
         nome: true,
@@ -96,6 +101,7 @@ export class UsuarioService {
         ativo: true,
         criadoEm: true,
         atualizadoEm: true,
+        filial_id: true,
       },
       orderBy: { id: 'asc' },
     });
@@ -113,6 +119,7 @@ export class UsuarioService {
         ativo: true,
         criadoEm: true,
         atualizadoEm: true,
+        filial_id: true,
       },
     });
 
@@ -147,6 +154,7 @@ export class UsuarioService {
         login: dados.login,
         perfil: dados.perfil,
         ativo: dados.ativo,
+        filial_id: dados.filial_id ? +dados.filial_id : null,
         atualizadoEm: new Date(),
       },
       select: {
@@ -156,6 +164,7 @@ export class UsuarioService {
         email: true,
         perfil: true,
         ativo: true,
+        filial_id: true,
       },
     });
 
@@ -196,6 +205,17 @@ export class UsuarioService {
       where: { id },
       data: { fotoPerfil: fotoUrl, atualizadoEm: new Date() },
       select: { id: true, nome: true, fotoPerfil: true },
+    });
+  }
+
+  async softDelete(id: number) {
+    await this.findOne(id);
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { 
+        deletadoEm: new Date(),
+        ativo: false 
+      },
     });
   }
 }

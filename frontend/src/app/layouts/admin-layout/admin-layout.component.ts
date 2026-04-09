@@ -6,11 +6,14 @@ import { Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
+import { FormsModule } from '@angular/forms';
+import { FilialService, Filial } from '../../services/filial.service';
+import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, FormsModule],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.scss'
 })
@@ -20,6 +23,10 @@ export class AdminLayoutComponent implements OnInit {
   userInitials: string = 'CA';
   userName: string = 'Carlos Admin';
   userRole: string = 'Administrador';
+  
+  filiais: Filial[] = [];
+  selectedFilialId: number | null = null;
+  loadingFiliais = false;
 
   showProfileMenu = false;
   showSupervisorProfileMenu = false;
@@ -31,6 +38,10 @@ export class AdminLayoutComponent implements OnInit {
 
   notificacoes: any[] = [];
   hasUnreadNotifications = false;
+
+  // Contador para badges do Supervisor
+  atendimentoCount = 0; 
+  agendamentoCount = 0;
 
   get notificacoesFiltradas() {
     return this.notificacoes.filter(n => !n.lida);
@@ -105,51 +116,77 @@ export class AdminLayoutComponent implements OnInit {
   constructor(
     private router: Router,
     private titleService: Title,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private filialService: FilialService,
+    private dashboardService: DashboardService
   ) { }
 
   ngOnInit() {
+    console.log('[HARD-DEBUG] AdminLayoutComponent Inicializado!');
+    
     const salvo = localStorage.getItem('usuario_sgf');
     if (!salvo) {
+      console.warn('[HARD-DEBUG] Nenhum usuário encontrado no localStorage. Redirecionando para login.');
       this.router.navigate(['/login']);
-    } else {
+      return;
+    }
+
+    try {
       this.usuario = JSON.parse(salvo);
+      console.log('[HARD-DEBUG] Usuário logado:', this.usuario.nome, 'ID Filial:', this.usuario.filial_id);
       
-      // Carregar notificações reais
       this.notificationService.fetchNotifications(this.usuario.id);
       this.notificationService.notifications$.subscribe(notifs => {
         this.notificacoes = notifs;
         this.hasUnreadNotifications = notifs.some(n => !n.lida);
       });
 
-      if (this.usuario && this.usuario.iniciais) {
+      if (this.usuario.iniciais) {
         this.userInitials = this.usuario.iniciais;
       } else {
-        const fallbackName = this.usuario?.nome || 'Administrador';
+        const fallbackName = this.usuario.nome || 'Administrador';
         this.userInitials = fallbackName.length >= 2 ? fallbackName.substring(0, 2).toUpperCase() : 'AD';
       }
 
-      if (this.usuario.perfil === 'SUPERVISOR' || this.usuario.tipo === 'SUPERVISOR') {
+      // Determinar Perfil e Role
+      const p = (this.usuario.perfil || '').toUpperCase();
+      const t = (this.usuario.tipo || '').toUpperCase();
+      
+      if (p === 'SUPERVISOR' || t === 'SUPERVISOR') {
         this.menuGroups = this.supervisorMenuGroups;
         this.userRole = 'Supervisor';
-      } else {
+      } else if (p === 'ADMIN' || t === 'ADMIN') {
         this.menuGroups = this.adminMenuGroups;
         this.userRole = 'Administrador';
+      } else {
+        this.menuGroups = this.adminMenuGroups;
+        this.userRole = this.usuario.perfil || 'Usuário';
       }
-    }
 
-    // Check dark mode preference
-    this.isDarkMode = localStorage.getItem('theme_sgf') === 'dark';
-    this.applyTheme();
+      console.log('[HARD-DEBUG] Role determinada:', this.userRole);
 
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
+      // Sincronização de Filiais (Global)
+      this.filialService.selectedFilial$.subscribe(id => {
+        this.selectedFilialId = id;
+        this.carregarContadores();
+      });
+
+      this.isDarkMode = localStorage.getItem('theme_sgf') === 'dark';
+      this.applyTheme();
+
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe(() => {
+        this.updateActivePageTitle();
+      });
+
       this.updateActivePageTitle();
-    });
+      this.carregarFiliais();
 
-    // Initial update
-    this.updateActivePageTitle();
+    } catch (e) {
+      console.error('[HARD-DEBUG] Erro ao processar dados do usuário:', e);
+      this.router.navigate(['/login']);
+    }
   }
 
   private updateActivePageTitle() {
@@ -268,6 +305,60 @@ export class AdminLayoutComponent implements OnInit {
 
   cancelLogout() {
     this.showLogoutModal = false;
+  }
+
+  carregarFiliais() {
+    this.loadingFiliais = true;
+    console.log('[DEBUG] Carregando filiais...');
+    this.filialService.getFiliais().subscribe({
+      next: (data) => {
+        this.filiais = data;
+        this.loadingFiliais = false;
+        console.log('[DEBUG] Filiais carregadas:', data.length, data);
+        
+        // Sincroniza a seleção inicial
+        const currentId = this.filialService.getSelectedFilialId();
+        console.log('[DEBUG] FilialID atual no service:', currentId);
+        
+        if (currentId) {
+          this.selectedFilialId = currentId;
+        } else if (this.userRole === 'Supervisor' && this.usuario?.filial_id) {
+          console.log('[DEBUG] Supervisor sem filial salva, usando filial do perfil:', this.usuario.filial_id);
+          this.selectedFilialId = this.usuario.filial_id;
+          this.filialService.setSelectedFilial(this.selectedFilialId);
+        }
+      },
+      error: (err) => {
+        console.error('[DEBUG] Erro ao carregar filiais:', err);
+        this.loadingFiliais = false;
+        this.selectedFilialId = this.filialService.getSelectedFilialId();
+      }
+    });
+  }
+
+  onFilialChange() {
+    console.log('Filial alterada para ID:', this.selectedFilialId);
+    this.filialService.setSelectedFilial(this.selectedFilialId);
+    this.carregarContadores();
+    
+    // Opcional: Feedback visual ou recarregar dados da página atual se necessário
+    if (this.selectedFilialId) {
+      const filial = this.filiais.find(f => f.id === this.selectedFilialId);
+      console.log('Nome da filial selecionada:', filial?.nome);
+    }
+  }
+
+  carregarContadores() {
+    // Apenas para Supervisor
+    if (this.userRole !== 'Supervisor') return;
+
+    this.dashboardService.getSupervisorOverview(this.selectedFilialId || undefined).subscribe({
+      next: (res) => {
+        this.atendimentoCount = res.atendimentos.length;
+        this.agendamentoCount = res.agendamentos.length;
+      },
+      error: (err) => console.error('Erro ao carregar contadores:', err)
+    });
   }
 
   logout() {

@@ -1,13 +1,12 @@
-<div class="logs-container animate-up">
+<div class="page-container animate-up">
     
     <!-- Seletor de Filial (Glassmorphism) -->
     <div class="filial-selector-wrapper">
         <div class="filial-selector-glass">
             <div class="selector-content">
                 <div class="selector-info">
-                    <lucide-icon [img]="icons.building" size="18" class="selector-icon"></lucide-icon>
                     <div class="selector-text">
-                        <span class="selector-label">Filial filtrada</span>
+                        <span class="selector-label">Filial atual</span>
                         <span class="selector-value">{{ selectedFilialName || 'Todas as Unidades' }}</span>
                     </div>
                 </div>
@@ -25,39 +24,34 @@
             </div>
         </div>
     </div>
-    <!-- Header -->
-    <header class="section-header">
-        <div class="header-left">
-            <div class="breadcrumb">
-                <span>Gestão</span>
-                <span class="separator">></span>
-                <span>Logs e Auditoria</span>
-            </div>
-            <h1>Logs e Auditoria</h1>
-        </div>
-    </header>
 
-    <!-- Header Actions & Filters -->
-    <div class="header-card">
+    <!-- Header -->
+
+    <!-- Content Card -->
+    <div class="list-card">
+        <!-- Alert Banner -->
         <div class="alert-banner">
-            <lucide-icon [img]="icons.lock" size="20"></lucide-icon>
+            <lucide-icon [img]="icons.lock" size="18"></lucide-icon>
             <span>Acesso restrito a Administradores - Todos os logs são monitorados</span>
         </div>
 
-        <div class="header-actions">
+        <!-- Filters & Actions -->
+        <div class="list-card-header mb-4">
             <div class="search-box">
-                <lucide-icon [img]="icons.search" size="20"></lucide-icon>
-                <input type="text" [ngModel]="filters.search" (input)="onSearchChange($any($event.target).value)" placeholder="Buscar logs por ação, descrição, usuário ou entidade...">
+                <lucide-icon [img]="icons.search" size="18"></lucide-icon>
+                <input type="text" [ngModel]="filters.search" (input)="onSearchChange($any($event.target).value)" 
+                    placeholder="Buscar logs por ação, descrição, usuário...">
             </div>
-            <button class="btn-export" (click)="exportPDF()" [disabled]="loading">
-                <lucide-icon [img]="icons.download" size="20"></lucide-icon>
-                Exportar
+            <button class="btn-primary" (click)="exportPDF()" [disabled]="loading">
+                <lucide-icon [img]="icons.download" size="18"></lucide-icon>
+                Exportar PDF
             </button>
         </div>
 
+        <!-- Advanced Filters Grid -->
         <div class="filters-grid">
             <div class="filter-item">
-                <label>Filtrar por Ação:</label>
+                <label>Ação:</label>
                 <select [(ngModel)]="filters.acao" (change)="carregar()">
                     <option value="">Todas as Ações</option>
                     <option value="Criação">Criação</option>
@@ -70,20 +64,18 @@
                 </select>
             </div>
             <div class="filter-item">
-                <label>De:</label>
+                <label>Data De:</label>
                 <input type="date" [(ngModel)]="filters.de" (change)="carregar()">
             </div>
             <div class="filter-item">
-                <label>Até:</label>
+                <label>Data Até:</label>
                 <input type="date" [(ngModel)]="filters.ate" (change)="carregar()">
             </div>
         </div>
-    </div>
 
-    <!-- Table -->
-    <div class="table-card">
-        <div class="table-responsive">
-            <table class="logs-table">
+        <!-- Table Container -->
+        <div class="table-container mt-4">
+            <table class="premium-table">
                 <thead>
                     <tr>
                         <th style="width: 180px;">DATA/HORA</th>
@@ -96,7 +88,7 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let log of logs">
-                        <td class="time-td">{{ log.criadoEm | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                        <td class="time-cell">{{ log.criadoEm | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                         <td>
                             <span class="action-badge" [ngClass]="getActionClass(log.acao)">
                                 {{ log.acao }}
@@ -136,7 +128,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-footer" *ngIf="total > 0">
+        <div class="table-footer" *ngIf="total > 0">
             <div class="page-info">
                 Mostrando {{ (page - 1) * limit + 1 }} a {{ Math.min(page * limit, total) }} de {{ total }} registros
             </div>

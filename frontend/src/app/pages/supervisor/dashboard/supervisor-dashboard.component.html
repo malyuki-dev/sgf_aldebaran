@@ -20,21 +20,19 @@
         
         <!-- Total Hoje -->
         <div class="kpi-card">
-          <span class="trend-indicator trend-up absolute-top-right">+12%</span>
           <div class="kpi-content">
             <div class="icon-box bg-blue-light text-blue">
               <lucide-icon [img]="icons.trendingUp" size="24"></lucide-icon>
             </div>
             <div class="kpi-info-flex">
               <span class="kpi-label">Total Hoje</span>
-              <strong class="kpi-value">147</strong>
+              <strong class="kpi-value">{{ visaoGeral[0].valor }}</strong>
             </div>
           </div>
         </div>
 
         <!-- Tempo Médio -->
         <div class="kpi-card">
-          <span class="trend-indicator trend-down absolute-top-right">+3 min</span>
           <div class="kpi-content">
             <div class="icon-box bg-green-light text-green">
               <lucide-icon [img]="icons.clock" size="24"></lucide-icon>
@@ -48,7 +46,6 @@
 
         <!-- Guichês Ativos -->
         <div class="kpi-card">
-          <span class="trend-indicator trend-up absolute-top-right">{{ getGuichesAtivosInfo().percentual }}</span>
           <div class="kpi-content">
             <div class="icon-box bg-green-light text-green">
               <lucide-icon [img]="icons.activity" size="24"></lucide-icon>
@@ -62,14 +59,13 @@
 
         <!-- Fila Atual -->
         <div class="kpi-card">
-          <span class="trend-indicator trend-neutral absolute-top-right">Normal</span>
           <div class="kpi-content">
             <div class="icon-box bg-purple-light text-purple">
               <lucide-icon [img]="icons.users" size="24"></lucide-icon>
             </div>
             <div class="kpi-info-flex">
               <span class="kpi-label">Fila Atual</span>
-              <strong class="kpi-value">12</strong>
+              <strong class="kpi-value">{{ visaoGeral[2].valor }}</strong>
             </div>
           </div>
         </div>
@@ -172,19 +168,19 @@
           <span>Relatórios Gerenciais</span>
         </button>
 
-        <!-- <button class="action-card" (click)="abrirModal('atendimentos')">
+        <button class="action-card" (click)="abrirModal('atendimentos')">
           <div class="action-icon bg-purple-light text-purple">
             <lucide-icon [img]="icons.history" size="24"></lucide-icon>
           </div>
           <span>Atendimentos</span>
-        </button> -->
+        </button>
 
-        <!-- <button class="action-card" (click)="abrirModal('agendamentos')">
+        <button class="action-card" (click)="abrirModal('agendamentos')">
           <div class="action-icon bg-teal-light text-teal">
             <lucide-icon [img]="icons.calendar" size="24"></lucide-icon>
           </div>
           <span>Agendamentos</span>
-        </button> -->
+        </button>
 
       </div>
     </section>

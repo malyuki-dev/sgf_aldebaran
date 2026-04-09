@@ -50,6 +50,7 @@ export class AuthService {
         tipo: staff.perfil,
         perfil: staff.perfil,
         iniciais,
+        filial_id: staff.filial_id,
       };
       return {
         token: this.jwtService.sign(payload),
@@ -60,6 +61,7 @@ export class AuthService {
           perfil: staff.perfil,
           iniciais,
           id: staff.id,
+          filial_id: staff.filial_id,
         },
       };
     }

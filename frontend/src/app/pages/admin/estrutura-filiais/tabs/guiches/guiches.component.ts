@@ -47,8 +47,10 @@ export class GuichesComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.selectedFilialId = params['filialId'] ? Number(params['filialId']) : null;
+    // Escuta mudanças de queryParams em toda a rota (inclusive no pai)
+    this.route.queryParamMap.subscribe(params => {
+      const fid = params.get('filialId');
+      this.selectedFilialId = fid ? Number(fid) : null;
       this.carregarDados();
     });
   }
@@ -81,9 +83,13 @@ export class GuichesComponent implements OnInit {
   }
 
   agruparGuiches() {
-    // Map existing guichês to their filiais, only active ones
+    // Filtramos primeiro as filiais pela seleção atual
     this.filiaisAgrupadas = this.filiais
-      .filter(f => f.ativo && (!this.selectedFilialId || f.id === this.selectedFilialId)) 
+      .filter(f => {
+         const ativo = f.ativo;
+         const correspondeFiltro = !this.selectedFilialId || f.id === this.selectedFilialId;
+         return ativo && correspondeFiltro;
+      })
       .map(f => {
         return {
           ...f,
@@ -105,7 +111,7 @@ export class GuichesComponent implements OnInit {
       this.form = {
         id: null, 
         nome: '',
-        filial_id: this.filiais.length > 0 ? this.filiais[0].id : null, 
+        filial_id: this.selectedFilialId || (this.filiais.length > 0 ? this.filiais[0].id : null), 
         status: 'Ativo'
       };
     }

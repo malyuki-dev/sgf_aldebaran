@@ -12,10 +12,9 @@
         <!-- Filial Dropdown -->
         <div class="filial-dropdown">
           <label>Filial</label>
-          <select [(ngModel)]="filialSelecionada" class="dropdown-select">
-            <option value="">Selecione...</option>
-            <option value="1">Filial 1</option>
-            <option value="2">Filial 2</option>
+          <select [(ngModel)]="filialSelecionada" (change)="onFilialChange()" class="dropdown-select">
+            <option value="">Selecione uma filial...</option>
+            <option *ngFor="let f of filiais" [value]="f.id">{{ f.nome }}</option>
           </select>
         </div>
 

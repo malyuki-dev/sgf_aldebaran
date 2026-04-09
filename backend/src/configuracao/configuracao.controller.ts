@@ -2,10 +2,10 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
   Body,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ConfiguracaoService } from './configuracao.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -20,22 +20,21 @@ export class ConfiguracaoController {
   ) {}
 
   @Get('lista')
-  findAllList(@Request() req: any) {
-    const { filialId } = req.query;
+  findAllList(@Query('filialId') filialId?: string) {
     return this.configuracaoService.findAllList(filialId);
   }
 
   @Post('bulk')
   async updateBulk(
-    @Body('configs') configs: { chave: string; valor: string }[],
     @Request() req: any,
+    @Body('configs') configs: { chave: string; valor: string }[],
+    @Query('filialId') filialId?: string,
   ) {
-    const { filialId } = req.query;
     const res = await this.configuracaoService.updateBulk(configs, filialId);
     await this.logService.logAction(
       'Configuração',
       `Atualizou múltiplas configurações ${filialId ? 'da filial ' + filialId : 'do sistema'}`,
-      req.user?.id,
+      req.user?.userId,
       'Configuração',
       'Sucesso',
       filialId ? +filialId : undefined,

@@ -52,6 +52,7 @@ export class ClientService {
         cpf: data.cpf || null,
         cnpj: data.cnpj || null,
         telefone: data.telefone || null,
+        filial_id: data.filial_id ? +data.filial_id : null,
       },
       select: {
         id: true,
@@ -114,6 +115,7 @@ export class ClientService {
         cpf: data.cpf || null,
         cnpj: data.cnpj || null,
         telefone: data.telefone || null,
+        filial_id: data.filial_id ? +data.filial_id : null,
       },
       select: {
         id: true,
@@ -137,8 +139,12 @@ export class ClientService {
   }
 
   // Listar todos (sem expor senhas)
-  async findAll() {
+  async findAll(filialId?: number) {
     return await this.prisma.clientes.findMany({
+      where: {
+        deletedAt: null,
+        filial_id: filialId ? filialId : undefined,
+      },
       select: {
         id: true,
         nome: true,
@@ -206,6 +212,7 @@ export class ClientService {
       where: { id },
       data: {
         ...safeData,
+        filial_id: safeData.filial_id ? +safeData.filial_id : undefined,
         updatedAt: new Date(),
       },
       select: {

@@ -1,8 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
+import { FilialService } from '../../../services/filial.service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule, Settings, Save, Database, Bell, Power, Shield, Tv, Mail, Globe, Clock, Layout, Share2, Building2, Upload, CheckCircle } from 'lucide-angular';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-configuracoes',
@@ -11,7 +14,7 @@ import { LucideAngularModule, Settings, Save, Database, Bell, Power, Shield, Tv,
   templateUrl: './configuracoes.component.html',
   styleUrls: ['./configuracoes.component.scss']
 })
-export class ConfiguracoesComponent implements OnInit {
+export class ConfiguracoesComponent implements OnInit, OnDestroy {
   readonly icons = {
     settings: Settings,
     save: Save,
@@ -43,18 +46,15 @@ export class ConfiguracoesComponent implements OnInit {
   ];
 
   form: any = {
-    // Geral
     UNIDADE_NOME: '',
     FUSO_HORARIO: 'America/Sao_Paulo',
     IDIOMA_SISTEMA: 'PT',
     TOTEM_HORARIO_INICIO: '08:00',
     TOTEM_HORARIO_FIM: '18:00',
-    TOTEM_DIAS: [1, 2, 3, 4, 5], // IDs dos dias
+    TOTEM_DIAS: [1, 2, 3, 4, 5],
     BACKUP_DIARIO: true,
     LOG_DETALHADO: true,
     LOGO_SISTEMA: '',
-
-    // ... (rest remains same)
     ALERTA_WHATSAPP: true,
     ALERTA_SMS: false,
     ALERTA_EMAIL: true,
@@ -82,46 +82,57 @@ export class ConfiguracoesComponent implements OnInit {
   mostrarSucesso = false;
   filiais: any[] = [];
   selectedFilialId: number | null = null;
+  private subs = new Subscription();
 
   constructor(
     private api: ApiService,
-    private cd: ChangeDetectorRef
+    private filialService: FilialService,
+    private cd: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router
   ) { }
 
   ngOnInit() {
-    this.carregarFiliais();
-    this.carregar();
+    // Escuta mudanças de filial via URL (Query Params)
+    this.subs.add(
+      this.route.queryParamMap.subscribe(params => {
+        const fid = params.get('filialId');
+        this.selectedFilialId = fid ? Number(fid) : null;
+        this.carregar();
+      })
+    );
+
+    // Carrega lista de filiais do serviço compartilhado
+    this.subs.add(
+      this.filialService.getFiliais().subscribe(data => {
+        this.filiais = data;
+        this.cd.detectChanges();
+      })
+    );
   }
 
-  carregarFiliais() {
-    this.api.get<any[]>('/filiais').subscribe({
-      next: (data) => {
-        this.filiais = data;
-        if (this.filiais.length > 0 && this.selectedFilialId === null) {
-          // Opcional: auto-selecionar a primeira filial se desejar
-          // this.selectedFilialId = this.filiais[0].id;
-          // this.carregar();
-        }
-      },
-      error: (err) => console.error('Erro ao carregar filiais', err)
-    });
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 
   onFilialChange() {
-    console.log('Mudando para filial:', this.selectedFilialId);
+    // Notifica o serviço global sobre a mudança feita localmente nesta página
+    this.filialService.setSelectedFilial(this.selectedFilialId);
     
-    // Sincronização automática do Nome da Unidade (Pedido pelo usuário)
+    // Atualiza a URL com o novo filialId
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { filialId: this.selectedFilialId },
+      queryParamsHandling: 'merge'
+    });
+
+    // Sugestão automática do nome da unidade baseada na filial selecionada
     if (this.selectedFilialId) {
       const filialObj = this.filiais.find(f => f.id === this.selectedFilialId);
-      if (filialObj) {
-        // Se estiver vazio ou for o padrão, sugere o nome da filial
-        if (!this.form.UNIDADE_NOME || this.form.UNIDADE_NOME.trim() === '') {
-          this.form.UNIDADE_NOME = filialObj.nome;
-        }
+      if (filialObj && (!this.form.UNIDADE_NOME || this.form.UNIDADE_NOME.trim() === '')) {
+        this.form.UNIDADE_NOME = filialObj.nome;
       }
     }
-
-    this.carregar();
   }
 
   onLogoSelected(event: any) {
@@ -141,12 +152,11 @@ export class ConfiguracoesComponent implements OnInit {
 
   carregar() {
     this.loading = true;
-    this.cd.detectChanges(); // Garante que spinner apareça
+    this.cd.detectChanges();
 
     const url = this.selectedFilialId ? `/configuracoes/lista?filialId=${this.selectedFilialId}` : '/configuracoes/lista';
     this.api.get<any[]>(url).subscribe({
       next: (data) => {
-        // Reseta o form para garantir que valores antigos não "vazamento" entre filiais
         this.resetFormToDefaults();
 
         if (data && data.length > 0) {
@@ -156,10 +166,11 @@ export class ConfiguracoesComponent implements OnInit {
                 try {
                   this.form[item.chave] = JSON.parse(item.valor);
                 } catch {
-                  this.form[item.chave] = item.valor.split(',').map(Number);
+                  const values = String(item.valor).split(',');
+                  this.form[item.chave] = values.map(v => Number(v.trim()));
                 }
               } else if (typeof this.form[item.chave] === 'boolean') {
-                this.form[item.chave] = item.valor === 'true';
+                this.form[item.chave] = String(item.valor) === 'true';
               } else {
                 this.form[item.chave] = item.valor;
               }
@@ -223,7 +234,6 @@ export class ConfiguracoesComponent implements OnInit {
   }
 
   salvar() {
-    console.log('Salvando configurações...', this.form);
     this.salvando = true;
     this.cd.detectChanges();
 
@@ -235,7 +245,6 @@ export class ConfiguracoesComponent implements OnInit {
     const url = this.selectedFilialId ? `/configuracoes/bulk?filialId=${this.selectedFilialId}` : '/configuracoes/bulk';
     this.api.post(url, { configs: payload }).subscribe({
       next: () => {
-        console.log('Configurações salvas com sucesso!');
         this.salvando = false;
         this.mostrarSucesso = true;
         this.cd.detectChanges();
