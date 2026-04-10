@@ -284,47 +284,49 @@ export class FilaService {
     return `${h}:${m}`;
   }
 
-  async criarAgendamento(dados: any) {
-    const fId = dados.filial_id ? Number(dados.filial_id) : null;
+async criarAgendamento(dados: any) {
+  const fId = dados.filial_id ? Number(dados.filial_id) : null;
 
-    // 1. Validar se o horário está dentro do permitido pela filial
-    const configs = await this.prisma.configuracao.findMany({
-      where: { OR: [{ filial_id: fId }, { filial_id: null }] },
-    });
-    const getConfig = (chave: string, padrao: string) => {
-      const bV = configs.find((c) => c.chave === chave && c.filial_id === fId);
-      if (bV) return bV.valor;
-      const gV = configs.find((c) => c.chave === chave && c.filial_id === null);
-      return gV ? gV.valor : padrao;
-    };
+  // 1. Validar se o horário está dentro do permitido pela filial
+  const configs = await this.prisma.configuracao.findMany({
+    where: { OR: [{ filial_id: fId }, { filial_id: null }] },
+  });
 
-    const inicio = this.parseTime(getConfig('TOTEM_HORARIO_INICIO', '08:00'));
-    const fim = this.parseTime(getConfig('TOTEM_HORARIO_FIM', '18:00'));
-    const horaAtual = this.parseTime(dados.hora);
+  const getConfig = (chave: string, padrao: string) => {
+    const bV = configs.find((c) => c.chave === chave && c.filial_id === fId);
+    if (bV) return bV.valor;
+    const gV = configs.find((c) => c.chave === chave && c.filial_id === null);
+    return gV ? gV.valor : padrao;
+  };
 
-    if (horaAtual < inicio || horaAtual >= fim) {
-      throw new Error('Horário fora do período de funcionamento da filial.');
-    }
+  const inicio = this.parseTime(getConfig('TOTEM_HORARIO_INICIO', '08:00'));
+  const fim = this.parseTime(getConfig('TOTEM_HORARIO_FIM', '18:00'));
+  const horaAtual = this.parseTime(dados.hora);
 
-    // 2. Verificar se já está ocupado
-    const ocupado = await this.prisma.agendamento.findFirst({
-      where: { data: dados.data, hora: dados.hora },
-    });
-    if (ocupado) throw new BadRequestException('Horário ocupado.');
-
-    return await this.prisma.agendamento.create({
-      data: {
-        nomeCliente: dados.nome,
-        documento: dados.documento,
-        data: dados.data,
-        hora: dados.hora,
-        status: 'CONFIRMADO',
-        codigo: dados.codigo,
-        servico: { connect: { id: Number(dados.servico_id) } },
-      },
-    });
+  if (horaAtual < inicio || horaAtual >= fim) {
+    throw new Error('Horário fora do período de funcionamento da filial.');
   }
 
+  // 2. Verificar se já está ocupado
+  const ocupado = await this.prisma.agendamento.findFirst({
+    where: { data: dados.data, hora: dados.hora },
+  });
+
+  if (ocupado) throw new BadRequestException('Horário ocupado.');
+
+  return await this.prisma.agendamento.create({
+    data: {
+      nomeCliente: dados.nome,
+      documento: dados.documento,
+      data: dados.data,
+      hora: dados.hora,
+      status: 'CONFIRMADO',
+      codigo: dados.codigo,
+      servico: { connect: { id: Number(dados.servico_id) } },
+      filial: { connect: { id: Number(dados.filial_id) } },
+    },
+  });
+}
   async listarAgendamentos() {
     return await this.prisma.agendamento.findMany({
       orderBy: [{ data: 'asc' }, { hora: 'asc' }],
