@@ -15,6 +15,7 @@ import { LogModule } from './log/log.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FilialModule } from './filial/filial.module';
 import { GuicheModule } from './guiche/guiche.module';
+import { MobileProfileModule } from './mobile-profile/mobile-profile.module';
 import { NotificacaoModule } from './notificacao/notificacao.module';
 
 @Module({
@@ -37,6 +38,7 @@ import { NotificacaoModule } from './notificacao/notificacao.module';
     DashboardModule,
     FilialModule,
     GuicheModule,
+    MobileProfileModule,
     NotificacaoModule,
   ],
   controllers: [],

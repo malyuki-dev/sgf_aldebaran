@@ -7,6 +7,8 @@ export interface AuthenticatedUser {
   nome?: string | null;
   email?: string | null;
   telefone?: string | null;
+  cpf?: string | null;
+  cnpj?: string | null;
   tipo?: string | null;
   perfil?: string | null;
 }
@@ -61,6 +63,19 @@ export class AuthService {
       return JSON.parse(rawUser) as AuthenticatedUser;
     } catch {
       return null;
+    }
+  }
+
+  setCurrentUser(user: AuthenticatedUser): void {
+    localStorage.setItem('usuario_sgf', JSON.stringify(user));
+    localStorage.setItem('usuario_nome', user.nome || 'Cliente');
+
+    if (user.id !== undefined && user.id !== null) {
+      localStorage.setItem('usuario_id', String(user.id));
+    }
+
+    if (localStorage.getItem('client_user')) {
+      localStorage.setItem('client_user', JSON.stringify(user));
     }
   }
 

@@ -84,7 +84,16 @@ export class AuthService {
       };
       return {
         token: this.jwtService.sign(payload),
-        usuario: { nome: cliente.nome, email: cliente.email, tipo: 'CLIENTE' },
+        usuario: {
+          id: cliente.id,
+          nome: cliente.nome,
+          email: cliente.email,
+          telefone: cliente.telefone,
+          tipo: 'CLIENTE',
+          perfil: 'CLIENTE',
+          cpf: cliente.cpf,
+          cnpj: cliente.cnpj,
+        },
       };
     }
 

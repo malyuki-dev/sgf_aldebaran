@@ -30,6 +30,10 @@ export class ApiService {
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, { headers: this.getHeaders() });
   }
 
+  put<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.put<T>(`${this.baseUrl}${endpoint}`, body, { headers: this.getHeaders() });
+  }
+
   patch<T>(endpoint: string, body: any): Observable<T> {
     return this.http.patch<T>(`${this.baseUrl}${endpoint}`, body, { headers: this.getHeaders() });
   }

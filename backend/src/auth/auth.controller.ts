@@ -13,7 +13,7 @@ export class AuthController {
   async login(@Body() body: any) {
     try {
       const res = await this.authService.login(body);
-      if (res.usuario?.id) {
+      if (typeof res.usuario?.id === 'number') {
         await this.logService.logAction(
           'Login',
           `Login realizado com sucesso`,

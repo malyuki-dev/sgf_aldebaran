@@ -63,11 +63,7 @@ export const routes: Routes = [
       { path: 'perfil', component: ClientPerfilComponent },
       {
         path: 'perfil/editar',
-        loadComponent: () => import('./pages/client/placeholder/client-placeholder.component').then(m => m.ClientPlaceholderComponent),
-        data: {
-          title: 'Editar Dados',
-          description: 'Esta rota já está registrada para a futura edição do perfil do cliente e pode ser conectada ao backend sem alterar a navegação principal.',
-        }
+        loadComponent: () => import('./pages/client/perfil-editar/perfil-editar.component').then(m => m.PerfilEditarComponent),
       },
       {
         path: 'configuracoes',

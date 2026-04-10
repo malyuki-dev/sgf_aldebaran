@@ -1,0 +1,150 @@
+<section class="edit-profile-page">
+  <div class="edit-profile-shell">
+    <header class="edit-profile-header">
+      <div>
+        <p class="page-eyebrow">Portal do Cliente</p>
+        <h2>Editar Dados</h2>
+        <p class="page-description">
+          Atualize os dados cadastrais da sua conta e gerencie sua senha com segurança.
+        </p>
+      </div>
+    </header>
+
+    <div class="loading-state" *ngIf="loadingProfile">
+      <lucide-icon [img]="icons.loader" size="24" class="spin"></lucide-icon>
+      <span>Carregando dados do perfil...</span>
+    </div>
+
+    <div class="edit-profile-grid" *ngIf="!loadingProfile">
+      <section class="content-card">
+        <div class="card-heading">
+          <div class="card-icon">
+            <lucide-icon [img]="icons.user" size="20"></lucide-icon>
+          </div>
+          <div>
+            <h3>Dados cadastrais</h3>
+            <p>Edite apenas os campos permitidos para o seu tipo de cadastro.</p>
+          </div>
+        </div>
+
+        <div
+          class="feedback-banner"
+          *ngIf="profileFeedback"
+          [class.feedback-banner--error]="profileFeedback.type === 'error'"
+        >
+          <lucide-icon
+            [img]="profileFeedback.type === 'success' ? icons.success : icons.error"
+            size="18"
+          ></lucide-icon>
+          <span>{{ profileFeedback.message }}</span>
+        </div>
+
+        <form class="form-grid" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="form-field form-field--full">
+            <label>{{ nameLabel }}</label>
+            <input type="text" formControlName="nomeExibicao" />
+            <small class="field-error" *ngIf="fieldInvalid('profile', 'nomeExibicao')">
+              {{ getFieldError('profile', 'nomeExibicao') }}
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label>{{ documentLabel }}</label>
+            <input type="text" formControlName="documento" readonly />
+            <small class="field-help">Este documento não pode ser alterado.</small>
+          </div>
+
+          <div class="form-field">
+            <label>{{ isPessoaJuridica ? 'E-mail comercial' : 'E-mail' }}</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.mail" size="18"></lucide-icon>
+              <input type="email" formControlName="email" />
+            </div>
+            <small class="field-error" *ngIf="fieldInvalid('profile', 'email')">
+              {{ getFieldError('profile', 'email') }}
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label>Telefone / Celular</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.phone" size="18"></lucide-icon>
+              <input type="text" formControlName="telefone" placeholder="(00) 00000-0000" />
+            </div>
+            <small class="field-error" *ngIf="fieldInvalid('profile', 'telefone')">
+              {{ getFieldError('profile', 'telefone') }}
+            </small>
+          </div>
+
+          <div class="form-actions">
+            <button class="primary-button" type="submit" [disabled]="savingProfile">
+              <lucide-icon [img]="savingProfile ? icons.loader : icons.save" size="18" [class.spin]="savingProfile"></lucide-icon>
+              <span>{{ profileSubmitLabel }}</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="content-card content-card--security">
+        <div class="card-heading">
+          <div class="card-icon card-icon--amber">
+            <lucide-icon [img]="icons.security" size="20"></lucide-icon>
+          </div>
+          <div>
+            <h3>Alterar senha</h3>
+            <p>Use um fluxo separado para atualizar sua senha com validações de segurança.</p>
+          </div>
+        </div>
+
+        <div
+          class="feedback-banner"
+          *ngIf="passwordFeedback"
+          [class.feedback-banner--error]="passwordFeedback.type === 'error'"
+        >
+          <lucide-icon
+            [img]="passwordFeedback.type === 'success' ? icons.success : icons.error"
+            size="18"
+          ></lucide-icon>
+          <span>{{ passwordFeedback.message }}</span>
+        </div>
+
+        <form class="form-grid" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="form-field form-field--full">
+            <label>Senha atual</label>
+            <input type="password" formControlName="senhaAtual" />
+            <small class="field-error" *ngIf="fieldInvalid('password', 'senhaAtual')">
+              {{ getFieldError('password', 'senhaAtual') }}
+            </small>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label>Nova senha</label>
+            <input type="password" formControlName="novaSenha" />
+            <small class="field-error" *ngIf="fieldInvalid('password', 'novaSenha')">
+              {{ getFieldError('password', 'novaSenha') }}
+            </small>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label>Confirmar nova senha</label>
+            <input type="password" formControlName="confirmarNovaSenha" />
+            <small class="field-error" *ngIf="fieldInvalid('password', 'confirmarNovaSenha')">
+              {{ getFieldError('password', 'confirmarNovaSenha') }}
+            </small>
+          </div>
+
+          <small class="field-error field-error--group" *ngIf="passwordGroupError">
+            {{ passwordGroupError }}
+          </small>
+
+          <div class="form-actions">
+            <button class="secondary-button" type="submit" [disabled]="savingPassword">
+              <lucide-icon [img]="savingPassword ? icons.loader : icons.key" size="18" [class.spin]="savingPassword"></lucide-icon>
+              <span>{{ passwordSubmitLabel }}</span>
+            </button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </div>
+</section>
