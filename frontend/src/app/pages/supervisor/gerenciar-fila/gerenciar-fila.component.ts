@@ -5,6 +5,7 @@ import { LucideAngularModule, Search, Clock, User, AlertCircle, ArrowUpCircle, C
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 import { GuicheService } from '../../../services/guiche.service';
+import { FilialService } from '../../../services/filial.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -46,7 +47,6 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   guiches: any[] = [];
   private baiasTimer: any;
 
-  // Modal state para guichês
   showOperadorModal = false;
   guicheAtual: any = null;
   operadoresDisponiveis: any[] = [];
@@ -55,7 +55,16 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   private apiUrl = environment.apiUrl;
   private relatoriosTimer: any;
 
-  constructor(private guicheService: GuicheService, private http: HttpClient, private fb: FormBuilder, private cdr: ChangeDetectorRef) { }
+  private filialSub?: any;
+  selectedFilialId: number | null = null;
+
+  constructor(
+    private guicheService: GuicheService,
+    private filialService: FilialService,
+    private http: HttpClient,
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.configForm = new FormGroup({
@@ -76,9 +85,11 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
       funcao: ['Operador']
     });
 
-    // Carregar dados reais da API
-    this.guicheService.carregarGuichesDaApi();
-    
+    this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
+      this.selectedFilialId = id;
+      this.guicheService.carregarGuichesDaApi(id || undefined);
+    });
+
     // Buscar estatística de tempo médio do dia e atualizar constantemente
     this.carregarDadosTempoMedio();
     this.relatoriosTimer = setInterval(() => {
@@ -91,7 +102,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    // Simulando o cronômetro localmente para as baias
+    // Timer for baia occupancy countdowns
     this.baiasTimer = setInterval(() => {
       this.baias.forEach(baia => {
         if (baia.status === 'ocupada' && baia.startTime) {
@@ -116,11 +127,13 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.baiasTimer) clearInterval(this.baiasTimer);
     if (this.relatoriosTimer) clearInterval(this.relatoriosTimer);
+    if (this.filialSub) this.filialSub.unsubscribe();
   }
 
   carregarDadosTempoMedio() {
     const token = localStorage.getItem('token') || '';
-    this.http.get<any>(`${this.apiUrl}/dashboard/relatorios?periodo=dia`, {
+    const filialParam = this.selectedFilialId ? `&filialId=${this.selectedFilialId}` : '';
+    this.http.get<any>(`${this.apiUrl}/dashboard/relatorios?periodo=dia${filialParam}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (dados) => {
@@ -164,7 +177,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
     this.showSuccessModal = false;
   }
 
-  // Métodos para Guichês
+  // --- Operators Management ---
   abrirModalAdicionarOperador(guiche: any) {
     this.guicheAtual = guiche;
     this.showOperadorModal = true;
@@ -174,7 +187,8 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   }
 
   carregarOperadores() {
-    this.http.get<any[]>(`${this.apiUrl}/usuarios`).subscribe(
+    const filialParam = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+    this.http.get<any[]>(`${this.apiUrl}/usuarios${filialParam}`).subscribe(
       (usuarios: any[]) => {
         // Filtrar apenas usuários com perfil 'OPERADOR' e ativos
         let operadoresFiltrados = usuarios.filter(
@@ -227,6 +241,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   }
 
   encerrarAtendimentoGuiche(guiche: any) {
+    // Atendimento encerramento flow
     if (guiche.status === 'ocupado') {
       if (confirm(`Deseja encerrar o atendimento ${guiche.ticket} no Guichê ${guiche.numero}?`)) {
         this.guicheService.encerrarAtendimento(guiche.numero);

@@ -1,0 +1,71 @@
+<div class="kanban-container">
+  <div class="header">
+    <h1>Quadro de Tarefas</h1>
+    <button class="btn-primary" (click)="openNewTaskModal(0)">
+      <lucide-icon [name]="icons.plus" size="20"></lucide-icon>
+      Nova Tarefa
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Carregando tarefas...</p>
+  </div>
+
+  <div *ngIf="!loading" class="kanban-board" cdkDropListGroup>
+    <div *ngFor="let status of statusList" class="status-column">
+      <div class="column-header">
+        <div class="header-left">
+          <lucide-icon [name]="status.icon || icons.alert" size="20"></lucide-icon>
+          <h2>{{ status.nome }}</h2>
+        </div>
+        <span class="count">{{ status.tasks?.length || 0 }}</span>
+      </div>
+
+      <div
+        cdkDropList
+        [cdkDropListData]="status.tasks || []"
+        class="task-list"
+        (cdkDropListDropped)="onTaskDrop($event, status.id)">
+        
+        <div *ngFor="let task of status.tasks" class="task-card" cdkDrag (click)="openTaskDetail(task)">
+          <div class="card-priority" [ngClass]="getPriorityClass(task.prioridade)"></div>
+          
+          <h3>{{ task.titulo }}</h3>
+          <p class="description">{{ task.descricao }}</p>
+          
+          <div class="card-footer">
+            <div class="user-info" *ngIf="task.responsavel">
+                <img *ngIf="task.responsavel.fotoPerfil" [src]="task.responsavel.fotoPerfil" alt="">
+                <lucide-icon *ngIf="!task.responsavel.fotoPerfil" [name]="icons.user" size="14"></lucide-icon>
+                <span>{{ task.responsavel.nome }}</span>
+            </div>
+            <div class="date-info" *ngIf="task.dataEntrega">
+                <lucide-icon [name]="icons.calendar" size="14"></lucide-icon>
+                <span>{{ task.dataEntrega | date:'dd/MM' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Placeholder para quando a lista estiver vazia -->
+        <div *ngIf="!status.tasks || status.tasks.length === 0" class="empty-placeholder">
+          Nenhuma tarefa aqui
+        </div>
+      </div>
+
+      <button class="add-task-inline" (click)="openNewTaskModal(status.id)">
+        <lucide-icon [name]="icons.plus" size="16"></lucide-icon>
+        Adicionar
+      </button>
+    </div>
+  </div>
+
+  <app-task-modal
+    *ngIf="showModal"
+    [task]="currentTask"
+    [statusId]="currentStatusId"
+    [statusList]="statusList"
+    (close)="closeModal()"
+    (saved)="onTaskSaved()">
+  </app-task-modal>
+</div>

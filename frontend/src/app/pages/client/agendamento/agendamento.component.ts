@@ -65,7 +65,7 @@ export class AgendamentoComponent implements OnInit {
   };
 
   constructor(
-    private apiService: ApiService,
+    private api: ApiService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
@@ -81,7 +81,7 @@ export class AgendamentoComponent implements OnInit {
   checkReschedule() {
     const reId = this.route.snapshot.queryParamMap.get('re');
     if (reId) {
-      this.apiService.get<any[]>('/fila/agendamento').subscribe(data => {
+      this.api.get<any[]>('/fila/agendamento').subscribe(data => {
         const ag = data.find(a => a.id === Number(reId));
         if (ag) {
           this.form.filialId = ag.filial_id || this.form.filialId;
@@ -93,7 +93,7 @@ export class AgendamentoComponent implements OnInit {
   }
 
   carregarDados() {
-    this.apiService.get<any[]>('/filiais').pipe(
+    this.api.get<any[]>('/filiais').pipe(
       catchError(err => {
         console.error('Erro ao carregar filiais', err);
         return of([]);
@@ -107,7 +107,7 @@ export class AgendamentoComponent implements OnInit {
       this.cdr.detectChanges();
     });
 
-    this.apiService.get<any[]>('/servicos').pipe(
+    this.api.get<any[]>('/servicos').pipe(
       catchError(err => {
         console.error('Erro ao carregar categorias', err);
         return of([]);
@@ -124,7 +124,7 @@ export class AgendamentoComponent implements OnInit {
     if (!this.form.filialId) return;
     this.configCarregada = false;
 
-    this.apiService.get<any[]>(`/configuracoes/lista?filialId=${this.form.filialId}`).pipe(
+    this.api.get<any[]>(`/configuracoes/lista?filialId=${this.form.filialId}`).pipe(
       catchError(err => {
         console.error('Erro ao carregar configs', err);
         return of([]);
@@ -174,7 +174,7 @@ export class AgendamentoComponent implements OnInit {
     const dataObj = new Date(this.anoAtual, this.mesAtual, this.form.data, 12, 0, 0);
     const dataStr = dataObj.toISOString().split('T')[0];
 
-    this.apiService.get<any[]>(`/fila/agendamento/horarios?data=${dataStr}&filialId=${this.form.filialId}`).pipe(
+    this.api.get<any[]>(`/fila/agendamento/horarios?data=${dataStr}&filialId=${this.form.filialId}`).pipe(
       catchError(err => {
         console.error('Erro ao carregar horários', err);
         return of([]);
@@ -281,7 +281,7 @@ export class AgendamentoComponent implements OnInit {
   }
 
   confirmar() {
-    // 1. Obter dados do usuário logado
+    // Fetch logged user data
     const userJson = localStorage.getItem('usuario_sgf');
     if (!userJson) {
       alert('Usuário não identificado. Por favor, faça login novamente.');
@@ -290,14 +290,14 @@ export class AgendamentoComponent implements OnInit {
     }
     const user = JSON.parse(userJson);
 
-    // 2. Formatar a data para YYYY-MM-DD
+    // Format date for ISO standard
     const dataObj = new Date(this.anoAtual, this.mesAtual, this.form.data || 1);
     const dataFormatada = dataObj.toISOString().split('T')[0];
 
-    // 3. Gerar código único aleatório (Ex: AB1234)
+    // Generate unique slot reference
     const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // 4. Montar Payload para o Backend
+    // Construct API payload
     const payload = {
       nome: user.nome,
       documento: user.email, // Usando email como identificador (ou CPF se existir)
@@ -310,8 +310,8 @@ export class AgendamentoComponent implements OnInit {
 
     console.log('Enviando agendamento:', payload);
 
-    // 5. Enviar para o Backend
-    this.apiService.post('/fila/agendamento', payload).subscribe({
+    // Dispatch request
+    this.api.post<any>('/fila/agendamento', payload).subscribe({
       next: (res) => {
         console.log('Agendamento salvo com sucesso:', res);
         this.showSuccessModal = true;

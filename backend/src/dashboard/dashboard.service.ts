@@ -37,7 +37,6 @@ export class DashboardService {
     });
     const totalAtendimentosHoje = atendimentosHojeLista.length;
 
-    // 4. Tempo Médio de Espera (Cálculo real)
     let totalEsperaMinutos = 0;
     let counts = 0;
 
@@ -67,7 +66,6 @@ export class DashboardService {
 
     const tempoMedio = counts > 0 ? Math.round(totalEsperaMinutos / counts) : 0;
 
-    // 5. Atividades Recentes (Audit Logs reais)
     const logsRecentes = await this.prisma.log_auditoria.findMany({
       where: {
         ...(fid ? { filial_id: fid } : {}),
@@ -111,7 +109,6 @@ export class DashboardService {
         ? undefined
         : +filialId
       : undefined;
-    // periodo can be 'dia', 'semana', 'mes'
     const now = new Date();
     const dataInicio = new Date();
 
@@ -163,16 +160,14 @@ export class DashboardService {
 
     const fid = filialId && !isNaN(+filialId) ? +filialId : undefined;
     
-    // Início do dia local (meia-noite)
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    // 1. KPIs
     const senhasAtivas = await this.prisma.senha.findMany({
       where: {
         OR: [
-          { status: { in: ['AGUARDANDO', 'CHAMADO'] } }, // Fila atual (qualquer data)
-          { dataCriacao: { gte: startOfToday } }        // Criadas hoje (mesmo se finalizadas)
+          { status: { in: ['AGUARDANDO', 'CHAMADO'] } },
+          { dataCriacao: { gte: startOfToday } }
         ],
         ...(fid ? { filial_id: fid } : {}),
       },
@@ -182,7 +177,6 @@ export class DashboardService {
     const totalHoje = senhasAtivas.filter(s => s.dataCriacao >= startOfToday).length;
     const filaAtual = senhasAtivas.filter(s => s.status === 'AGUARDANDO').length;
     
-    // Para o cálculo de tempo médio, usamos apenas o que foi atendido hoje
     const senhasHojeComAtendimento = senhasAtivas.filter(s => 
       s.dataCriacao >= startOfToday && 
       s.atendimento && s.atendimento.length > 0
@@ -197,7 +191,6 @@ export class DashboardService {
     }
     const tempoMedio = counts > 0 ? Math.round(totalEsperaMinutos / counts) : 0;
 
-    // 2. Agendamentos do Dia
     const agendamentos = await this.prisma.agendamento.findMany({
       where: {
         data: todayStr,
@@ -208,10 +201,9 @@ export class DashboardService {
       orderBy: { hora: 'asc' },
     });
 
-    // 3. Atendimentos/Fila Detalhada
     const atendimentosQueue = await this.prisma.senha.findMany({
       where: {
-        status: { in: ['AGUARDANDO', 'CHAMADO'] }, // Qualquer data, se estiver na fila
+        status: { in: ['AGUARDANDO', 'CHAMADO'] },
         ...(fid ? { filial_id: fid } : {}),
       },
       include: {
@@ -228,7 +220,6 @@ export class DashboardService {
       orderBy: { dataCriacao: 'asc' },
     });
 
-    // 4. Configurações da Filial (Admin)
     const configs = await this.prisma.configuracao.findMany({
       where: {
         OR: [{ filial_id: fid }, { filial_id: null }],
@@ -249,7 +240,7 @@ export class DashboardService {
         totalHoje: totalHoje.toString(),
         tempoMedio: `${tempoMedio} min`,
         filaAtual: filaAtual.toString(),
-        alertaSla: tempoMedio > metaEspera,
+        alertaSla: tempoMedio > metaEspera || atendimentosQueue.some(s => Math.floor((new Date().getTime() - s.dataCriacao.getTime()) / 60000) > metaEspera),
       },
       agendamentos: agendamentos.map((a) => ({
         senha: a.codigo || 'S/N',

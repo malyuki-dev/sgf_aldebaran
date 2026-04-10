@@ -13,32 +13,32 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
-  // 1. LOGIN (Já estava pronto)
+  // Standard login flow
   login(credenciais: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credenciais);
   }
 
-  // 2. CADASTRO (Novo) - Apontando para Clientes
+  // Customer registration
   signup(dados: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/clientes/autocadastro`, dados);
   }
 
-  // 3. RECUPERAR SENHA (Novo)
+  // Password recovery
   recover(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/recover`, { email });
   }
 
-  // 4. REDEFINIR SENHA (Novo)
+  // Password reset implementation
   resetPassword(token: string, novaSenha: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, novaSenha });
   }
 
-  // 5. BUSCAR TOTAL DE FILIAIS ATIVAS (Novo)
+  // Active branches retrieval
   getPublicBranchCount(): Observable<any> {
     return this.http.get(`${this.baseUrl}/filiais/public/count`);
   }
 
-  // Úteis
+  // Session management
   getToken() { return localStorage.getItem('token'); }
   isLoggedIn() { return !!localStorage.getItem('token'); }
 

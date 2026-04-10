@@ -2,6 +2,7 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
+import { FilialService } from '../../../services/filial.service';
 import { LucideAngularModule, Megaphone, UserCheck, Clock, History, AlertTriangle, Monitor, RotateCw, XCircle, CheckCircle } from 'lucide-angular';
 
 @Component({
@@ -12,21 +13,18 @@ import { LucideAngularModule, Megaphone, UserCheck, Clock, History, AlertTriangl
   styleUrl: './atendimento.component.scss'
 })
 export class AtendimentoComponent implements OnInit, OnDestroy {
-  // Configuração
   guiches: any[] = [];
   selectedGuicheId: number | null = null;
   
-  // Estado do Atendimento
   senhaAtual: any | null = null;
   loading = false;
   statusAtendimento: 'IDLE' | 'CHAMANDO' | 'EM_ATENDIMENTO' | 'FINALIZADO' = 'IDLE';
   
-  // Cronômetro
-  tempoAtendimento = 0; // em segundos
+  tempoAtendimento = 0;
   private timerInterval: any;
 
-  // Histórico local da sessão
   historicoSessao: any[] = [];
+  selectedFilialId: number | null = null;
 
   readonly icons: any = { 
     megaphone: Megaphone, 
@@ -39,25 +37,32 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
     cancel: XCircle, 
     success: CheckCircle 
   };
+  private filialSub?: any;
 
   constructor(
     private api: ApiService,
+    private filialService: FilialService,
     private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit() {
-    this.carregarGuiches();
-    // Recuperar último guichê salvo no navegador por conveniência
-    const salvo = localStorage.getItem('ultimoGuiche');
-    if (salvo) this.selectedGuicheId = Number(salvo);
+    this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
+      this.selectedFilialId = id;
+      this.carregarGuiches();
+    });
+
+    const saved = localStorage.getItem('ultimoGuiche');
+    if (saved) this.selectedGuicheId = Number(saved);
   }
 
   ngOnDestroy() {
     this.stopTimer();
+    if (this.filialSub) this.filialSub.unsubscribe();
   }
 
   carregarGuiches() {
-    this.api.get<any[]>('/guiches').subscribe(res => {
+    const params = this.selectedFilialId ? { filialId: this.selectedFilialId } : {};
+    this.api.get<any[]>('/guiches', params).subscribe(res => {
       this.guiches = res.filter(g => g.ativo);
       if (!this.selectedGuicheId && this.guiches.length > 0) {
         this.selectedGuicheId = this.guiches[0].id;
@@ -79,15 +84,12 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
 
     this.api.post<any>('/fila/chamar_proximo', { guiche: this.selectedGuicheId }).subscribe({
       next: (res) => {
-        // Normaliza resposta do backend
         this.senhaAtual = res?.senha || res;
         this.statusAtendimento = 'EM_ATENDIMENTO';
         this.loading = false;
         
-        // Inicia Cronômetro
         this.startTimer();
         
-        // Adiciona ao início do histórico local
         this.historicoSessao.unshift({
           ...this.senhaAtual,
           horaChamada: new Date()
@@ -112,9 +114,6 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
 
   chamarNovamente() {
     if (!this.senhaAtual || this.loading) return;
-    
-    // Na prática, basta re-chamar o endpoint ou emitir via socket. 
-    // Como o backend emite via socket no chamar_proximo, vamos re-chamar pra garantir que o painel mostre.
     this.api.post<any>('/fila/chamar_proximo', { guiche: this.selectedGuicheId, repetir: true }).subscribe();
   }
 
@@ -128,7 +127,7 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // --- TIMER LOGIC ---
+  // --- Internal Session Timer ---
   private startTimer() {
     this.stopTimer();
     this.tempoAtendimento = 0;

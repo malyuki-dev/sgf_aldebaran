@@ -16,9 +16,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // --- LOGIN ---
+  // User login logic
   async login(body: any) {
-    // 1. Tenta achar na tabela de Usuários (Staff Operacional/Admin)
     // O usuário pode tentar fazer login usando o email ou o username (login)
     const staff = await this.prisma.usuario.findFirst({
       where: {
@@ -66,7 +65,7 @@ export class AuthService {
       };
     }
 
-    // 2. Tenta achar na tabela de Clientes (Público) se não achou no Staff
+    // Internal customers table check
     const cliente = await this.prisma.clientes.findUnique({
       where: { email: body.email },
     });
@@ -93,7 +92,7 @@ export class AuthService {
     throw new UnauthorizedException('Credenciais incorretas.');
   }
 
-  // --- CADASTRO ---
+  // Customer registration
   async register(dados: any) {
     const existe = await this.prisma.clientes.findFirst({
       where: {
@@ -128,7 +127,7 @@ export class AuthService {
     return { message: 'Criado com sucesso', id: novo.id };
   }
 
-  // --- RECUPERAR SENHA ---
+  // Password recovery
   async recover(email: string) {
     const user = await this.prisma.clientes.findUnique({
       where: { email },
@@ -154,7 +153,7 @@ export class AuthService {
     return { message: 'Link de recuperação enviado.' };
   }
 
-  // --- REDEFINIR SENHA ---
+  // Password reset
   async resetPassword(token: string, novaSenha: string) {
     try {
       // Valida e decodifica o token JWT

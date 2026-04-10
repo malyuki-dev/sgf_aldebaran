@@ -35,32 +35,25 @@ export class SupervisorDashboardComponent implements OnInit {
     eye: Eye, alertCircle: AlertCircle
   };
 
-  // Visão Geral (KPIs)
   visaoGeral = [
     { titulo: 'Total Hoje', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.trendingUp, bgIcon: '#e0f2fe', colorIcon: '#0284c7' },
     { titulo: 'Tempo Médio', valor: '0 min', info: '-', corInfo: 'gray', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
     { titulo: 'Fila Atual', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.users, bgIcon: '#f3e8ff', colorIcon: '#9333ea' }
   ];
 
-  // Status dos Guichês - carregar do serviço
   guiches: any[] = [];
-
-  // Senhas Agendadas (Mock para Modal de Agendamentos)
   agendamentos: any[] = [];
-
-  // Lista de Atendimentos (Real)
   atendimentosList: any[] = [];
   filiais: any[] = [];
   selectedFilialId: number | null = null;
-  filialId?: number; // Filial do usuário (contexto original)
+  filialId?: number;
   
   private filialSub?: Subscription;
 
   atendimentoSelecionado: any = null;
   showJustificativaModal = false;
-  justificativaForm: FormGroup;
+  justificativaForm!: FormGroup;
 
-  // Ações de Gerenciamento
   acoes = [
     { id: 'truck', nome: 'Cadastrar Caminhão', icon: this.icons.truck },
     { id: 'operator', nome: 'Cadastrar Operador', icon: this.icons.userPlus },
@@ -129,8 +122,8 @@ export class SupervisorDashboardComponent implements OnInit {
       }
     });
 
-    // Carregar dados reais da API
-    this.guicheService.carregarGuichesDaApi();
+    const initialId = this.filialService.getSelectedFilialId();
+    this.guicheService.carregarGuichesDaApi(initialId || undefined);
 
     // Inscrever aos dados de guichês do serviço
     this.guicheService.guiches$.subscribe(guiches => {
@@ -140,7 +133,6 @@ export class SupervisorDashboardComponent implements OnInit {
 
     this.detectFilial();
     
-    // Inscrever para mudanças globais de filial
     this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
       this.selectedFilialId = id;
       this.loadData();

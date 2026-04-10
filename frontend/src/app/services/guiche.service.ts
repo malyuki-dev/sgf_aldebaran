@@ -63,9 +63,10 @@ export class GuicheService {
 
   guiches$ = this.guichesSubject.asObservable();
   private lastFilialId?: number;
-
-  carregarGuichesDaApi() {
-    this.http.get<any[]>(this.apiUrl, { headers: this.authHeaders() }).subscribe({
+  carregarGuichesDaApi(filialId?: number) {
+    this.lastFilialId = filialId;
+    const params = filialId ? `?filialId=${filialId}` : '';
+    this.http.get<any[]>(`${this.apiUrl}${params}`, { headers: this.authHeaders() }).subscribe({
       next: (guichesDb) => {
         const ativos = guichesDb.filter(g => g.ativo);
         const correntes = this.guichesSubject.value;
@@ -128,6 +129,7 @@ export class GuicheService {
       error: (err) => console.error('Erro ao buscar guichês:', err)
     });
   }
+
   get tempoTolerancia(): number {
     return this._tempoTolerancia;
   }
@@ -138,12 +140,12 @@ export class GuicheService {
 
   private iniciarTimer() {
     this.timer = setInterval(() => {
-      // 1. Sincroniza com o servidor a cada 10 segundos para status geral
+      // Sync with server every 10 seconds
       if (Math.floor(Date.now() / 1000) % 10 === 0) {
         this.refreshGuiches(this.lastFilialId);
       }
 
-      // 2. Atualiza timers locais para suavidade na interface (a cada 1s)
+      // Smooth timer updates for the UI
       let needsUpdate = false;
       const guiches = this.guichesSubject.value.map(g => {
         if (g.status === 'ocupado' && g.startTime) {
@@ -253,7 +255,7 @@ export class GuicheService {
     return this.guichesSubject.value.filter(g => g.status !== 'vazio' && g.status !== 'manutencao').length;
   }
 
-  // ─── Tempo Médio (fonte única para Dashboard e Relatórios) ───────────────────
+  // --- Real-time metrics for Dashboard ---
 
   /**
    * Retorna a soma total de segundos da sessão atual (histórico + guichês ocupados).

@@ -17,24 +17,24 @@ model agendamento {
   status      String  @default("PENDENTE") @db.VarChar
   codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
   servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
-  
-  filial_id   Int?
-  filial      filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
-  
-  senha       senha[]
+
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+
+  senha senha[]
 }
 
 model atendimento {
-  id                Int       @id(map: "PK_ad65f895dac5fe2b905001750c2") @default(autoincrement())
-  guiche            Int
-  guiche_rel        guiche    @relation("AtendimentoGuiche", fields: [guiche], references: [id])
-  inicioAtendimento DateTime  @default(now()) @db.Timestamp(6)
-  fimAtendimento    DateTime? @db.Timestamp(6)
-  notaAvaliacao     Int?
-  justificativaDemora String? @db.VarChar(500)
-  motivoDemora      String? @db.VarChar(100)
-  senha_id          Int?
-  senha             senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
+  id                  Int       @id(map: "PK_ad65f895dac5fe2b905001750c2") @default(autoincrement())
+  guiche              Int
+  guiche_rel          guiche    @relation("AtendimentoGuiche", fields: [guiche], references: [id])
+  inicioAtendimento   DateTime  @default(now()) @db.Timestamp(6)
+  fimAtendimento      DateTime? @db.Timestamp(6)
+  notaAvaliacao       Int?
+  justificativaDemora String?   @db.VarChar(500)
+  motivoDemora        String?   @db.VarChar(100)
+  senha_id            Int?
+  senha               senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
 }
 
 // NOTE: legacy model `cliente` removed on 2026-03-04.
@@ -53,7 +53,7 @@ model clientes {
   deletedAt DateTime? @db.Timestamp(6)
 
   filial_id Int?
-  filial    filial?   @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model senha {
@@ -67,70 +67,70 @@ model senha {
   prioridade    Int           @default(0)
   atendimento   atendimento[]
   servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
-  
-  filial_id     Int?
-  filial        filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 
   agendamento_id Int?
   agendamento    agendamento? @relation(fields: [agendamento_id], references: [id], onDelete: SetNull)
 }
 
 model servico {
-  id             Int           @id(map: "PK_289d0aa6d49f9d0fd65aefc6677") @default(autoincrement())
-  nome           String        @db.VarChar
-  sigla          String        @db.VarChar
-  prefixo        String?       @db.VarChar
-  icone          String?       @db.VarChar(50)
-  tipo           String?       @db.VarChar
-  cor            String?       @db.VarChar
-  prioridadePeso Int           @default(1)
-  metaEspera      Int?      @default(20) // em minutos
-  metaAtendimento Int?      @default(15) // em minutos
-  ativo          Boolean       @default(true)
-  deletadoEm     DateTime?     @db.Timestamp(6)
-  agendamento    agendamento[]
-  senha          senha[]
+  id              Int           @id(map: "PK_289d0aa6d49f9d0fd65aefc6677") @default(autoincrement())
+  nome            String        @db.VarChar
+  sigla           String        @db.VarChar
+  prefixo         String?       @db.VarChar
+  icone           String?       @db.VarChar(50)
+  tipo            String?       @db.VarChar
+  cor             String?       @db.VarChar
+  prioridadePeso  Int           @default(1)
+  metaEspera      Int?          @default(20) // em minutos
+  metaAtendimento Int?          @default(15) // em minutos
+  ativo           Boolean       @default(true)
+  deletadoEm      DateTime?     @db.Timestamp(6)
+  agendamento     agendamento[]
+  senha           senha[]
 
-  filial_id      Int?
-  filial         filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model motorista {
-  id             Int        @id @default(autoincrement())
-  nome           String     @db.VarChar(200)
-  cpf            String     @unique @db.VarChar(14)
-  cnh            String     @unique @db.VarChar(20)
-  email          String     @db.VarChar(100)
-  telefone       String?    @db.VarChar(15)
-  transportadora String?    @db.VarChar(100)
-  ativo          Boolean    @default(true)
-  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
-  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
-  deletadoEm     DateTime?  @db.Timestamp(6)
-  
-  caminhoes      caminhao[]
-  filial_id      Int?
-  filial         filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  id             Int       @id @default(autoincrement())
+  nome           String    @db.VarChar(200)
+  cpf            String    @unique @db.VarChar(14)
+  cnh            String    @unique @db.VarChar(20)
+  email          String    @db.VarChar(100)
+  telefone       String?   @db.VarChar(15)
+  transportadora String?   @db.VarChar(100)
+  ativo          Boolean   @default(true)
+  criadoEm       DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime? @db.Timestamp(6)
+
+  caminhoes caminhao[]
+  filial_id Int?
+  filial    filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model caminhao {
-  id             Int        @id @default(autoincrement())
-  placa          String     @unique @db.VarChar(8)
-  modelo         String     @db.VarChar(100)
-  transportadora String     @db.VarChar(100)
-  capacidade     String     @db.VarChar(20)
-  observacoes    String?    @db.VarChar(300)
-  status         String     @default("ATIVO") @db.VarChar(20) // ATIVO, INATIVO
-  
-  motorista_id   Int?
-  motorista      motorista? @relation(fields: [motorista_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  id             Int     @id @default(autoincrement())
+  placa          String  @unique @db.VarChar(8)
+  modelo         String  @db.VarChar(100)
+  transportadora String  @db.VarChar(100)
+  capacidade     String  @db.VarChar(20)
+  observacoes    String? @db.VarChar(300)
+  status         String  @default("ATIVO") @db.VarChar(20) // ATIVO, INATIVO
 
-  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
-  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
-  deletadoEm     DateTime?  @db.Timestamp(6)
+  motorista_id Int?
+  motorista    motorista? @relation(fields: [motorista_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
-  filial_id      Int?
-  filial         filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model usuario {
@@ -145,123 +145,123 @@ model usuario {
   criadoEm     DateTime  @default(now()) @db.Timestamp(6)
   atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
   deletadoEm   DateTime? @db.Timestamp(6)
-  
+
   logs_auditoria log_auditoria[]
   notificacoes   notificacao[]
-  
-  guicheAtual    guiche?   @relation("OperadorGuicheAtual")
-  sessoesGuiche  operador_sessao[]
-  
+
+  guicheAtual   guiche?           @relation("OperadorGuicheAtual")
+  sessoesGuiche operador_sessao[]
+
   tasksCriadas    TaskItem[] @relation("TaskCriador")
   tasksAtribuidas TaskItem[] @relation("TaskResponsavel")
 
-  filial_id      Int?
-  filial         filial?       @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 }
 
 model configuracao {
-  id           Int       @id @default(autoincrement())
-  chave        String    @db.VarChar(50) 
-  valor        String    @db.Text
-  descricao    String?   @db.VarChar(200)
-  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  id           Int      @id @default(autoincrement())
+  chave        String   @db.VarChar(50)
+  valor        String   @db.Text
+  descricao    String?  @db.VarChar(200)
+  atualizadoEm DateTime @default(now()) @db.Timestamp(6)
 
-  filial_id    Int?
-  filial       filial?   @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: Cascade)
 
   @@unique([chave, filial_id])
 }
 
 model log_auditoria {
-  id           Int       @id @default(autoincrement())
-  acao         String    @db.VarChar(100)
-  descricao    String    @db.VarChar(500)
-  entidade     String?   @db.VarChar(100)
-  status       String?   @db.VarChar(50) @default("Sucesso")
-  
-  usuario_id   Int?
-  usuario      usuario?  @relation(fields: [usuario_id], references: [id])
-  
-  filial_id    Int?
-  filial       filial?   @relation(fields: [filial_id], references: [id], onDelete: SetNull)
-  
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  id        Int     @id @default(autoincrement())
+  acao      String  @db.VarChar(100)
+  descricao String  @db.VarChar(500)
+  entidade  String? @db.VarChar(100)
+  status    String? @default("Sucesso") @db.VarChar(50)
+
+  usuario_id Int?
+  usuario    usuario? @relation(fields: [usuario_id], references: [id])
+
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+
+  criadoEm DateTime @default(now()) @db.Timestamp(6)
 }
 
 model notificacao {
-  id           Int       @id @default(autoincrement())
-  titulo       String    @db.VarChar(100)
-  mensagem     String    @db.VarChar(500)
-  lida         Boolean   @default(false)
-  rota         String?   @db.VarChar(200)
-  icon         String?   @db.VarChar(50) @default("bell")
-  iconClass    String?   @db.VarChar(50) @default("blue-icon")
-  usuario_id   Int?
-  usuario      usuario?  @relation(fields: [usuario_id], references: [id])
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  id         Int      @id @default(autoincrement())
+  titulo     String   @db.VarChar(100)
+  mensagem   String   @db.VarChar(500)
+  lida       Boolean  @default(false)
+  rota       String?  @db.VarChar(200)
+  icon       String?  @default("bell") @db.VarChar(50)
+  iconClass  String?  @default("blue-icon") @db.VarChar(50)
+  usuario_id Int?
+  usuario    usuario? @relation(fields: [usuario_id], references: [id])
+  criadoEm   DateTime @default(now()) @db.Timestamp(6)
 }
 
 model filial {
-  id           Int       @id @default(autoincrement())
-  nome         String    @db.VarChar(150)
-  email        String?   @db.VarChar(100)
-  telefone     String?   @db.VarChar(20)
-  cnpj         String?   @unique @db.VarChar(20)
-  endereco     String?   @db.VarChar(200)
-  cor          String?   @default("#0ea5e9") @db.VarChar(20)
-  ativo        Boolean   @default(true)
-  
+  id       Int     @id @default(autoincrement())
+  nome     String  @db.VarChar(150)
+  email    String? @db.VarChar(100)
+  telefone String? @db.VarChar(20)
+  cnpj     String? @unique @db.VarChar(20)
+  endereco String? @db.VarChar(200)
+  cor      String? @default("#0ea5e9") @db.VarChar(20)
+  ativo    Boolean @default(true)
+
   criadoEm     DateTime  @default(now()) @db.Timestamp(6)
   atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
   deletadoEm   DateTime? @db.Timestamp(6)
 
-  guiches       guiche[]
-  configuracoes configuracao[]
+  guiches        guiche[]
+  configuracoes  configuracao[]
   logs_auditoria log_auditoria[]
-  
+
   // Relações adicionadas
-  usuarios      usuario[]
-  servicos      servico[]
-  senhas        senha[]
-  agendamentos  agendamento[]
-  clientes      clientes[]
-  motoristas    motorista[]
-  caminhoes     caminhao[]
+  usuarios     usuario[]
+  servicos     servico[]
+  senhas       senha[]
+  agendamentos agendamento[]
+  clientes     clientes[]
+  motoristas   motorista[]
+  caminhoes    caminhao[]
 }
 
 model guiche {
-  id                   Int              @id @default(autoincrement())
-  numero               String           @unique @db.VarChar(20) // mantido como na HMLG (String varchhar e unico)
-  nome                 String?          @db.VarChar(100)
-  descricao            String?          @db.VarChar(120)
-  status               String           @default("Offline") @db.VarChar(20)
-  ativo                Boolean          @default(true)
-  
-  filial_id            Int?
-  filial               filial?          @relation(fields: [filial_id], references: [id], onDelete: Cascade)
-  
-  operadorAtualId      Int?             @unique
-  loginOperadorEm      DateTime?        @db.Timestamp(6)
-  atendimentoAtualCodigo String?        @db.VarChar(30)
-  
-  criadoEm             DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm         DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm           DateTime? @db.Timestamp(6)
-  
-  operadorAtual        usuario?         @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  sessoes              operador_sessao[]
-  atendimentos         atendimento[]    @relation("AtendimentoGuiche")
+  id        Int     @id @default(autoincrement())
+  numero    String  @unique @db.VarChar(20) // mantido como na HMLG (String varchhar e unico)
+  nome      String? @db.VarChar(100)
+  descricao String? @db.VarChar(120)
+  status    String  @default("Offline") @db.VarChar(20)
+  ativo     Boolean @default(true)
+
+  filial_id Int?
+  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+
+  operadorAtualId        Int?      @unique
+  loginOperadorEm        DateTime? @db.Timestamp(6)
+  atendimentoAtualCodigo String?   @db.VarChar(30)
+
+  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
+  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
+  deletadoEm   DateTime? @db.Timestamp(6)
+
+  operadorAtual usuario?          @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sessoes       operador_sessao[]
+  atendimentos  atendimento[]     @relation("AtendimentoGuiche")
 }
 
 model operador_sessao {
-  id             Int       @id @default(autoincrement())
-  operador_id    Int
-  guiche_id      Int
-  loginEm        DateTime  @default(now()) @db.Timestamp(6)
-  logoutEm       DateTime? @db.Timestamp(6)
-  ativo          Boolean   @default(true)
-  operador       usuario   @relation(fields: [operador_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  guiche         guiche    @relation(fields: [guiche_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id          Int       @id @default(autoincrement())
+  operador_id Int
+  guiche_id   Int
+  loginEm     DateTime  @default(now()) @db.Timestamp(6)
+  logoutEm    DateTime? @db.Timestamp(6)
+  ativo       Boolean   @default(true)
+  operador    usuario   @relation(fields: [operador_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  guiche      guiche    @relation(fields: [guiche_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([operador_id], map: "IDX_operador_sessao_operador")
   @@index([guiche_id], map: "IDX_operador_sessao_guiche")
@@ -296,16 +296,16 @@ enum TicketStatus {
 }
 
 model Ticket {
-  id            String       @id @default(uuid()) @db.Uuid
-  origin        Origin
-  type          TicketType
-  category      Category
-  status        TicketStatus @default(PENDING)
-  
-  scheduledTime DateTime?    // Nulo se vier do Totem
-  
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id       String       @id @default(uuid()) @db.Uuid
+  origin   Origin
+  type     TicketType
+  category Category
+  status   TicketStatus @default(PENDING)
+
+  scheduledTime DateTime? // Nulo se vier do Totem
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, createdAt], map: "idx_active_tickets")
   @@map("aldebaran_tickets")
@@ -320,36 +320,36 @@ enum Priority {
 }
 
 model StatusItem {
-  id        Int        @id @default(autoincrement())
-  nome      String     @db.VarChar(50)
-  cor       String?    @db.VarChar(20)
-  icon      String?    @db.VarChar(50)
-  ordem     Int        @default(0)
-  ativo     Boolean    @default(true)
-  criadoEm  DateTime   @default(now()) @db.Timestamp(6)
-  tasks     TaskItem[]
+  id       Int        @id @default(autoincrement())
+  nome     String     @db.VarChar(50)
+  cor      String?    @db.VarChar(20)
+  icon     String?    @db.VarChar(50)
+  ordem    Int        @default(0)
+  ativo    Boolean    @default(true)
+  criadoEm DateTime   @default(now()) @db.Timestamp(6)
+  tasks    TaskItem[]
 
   @@map("status_items")
 }
 
 model TaskItem {
-  id            Int        @id @default(autoincrement())
-  titulo        String     @db.VarChar(200)
-  descricao     String?    @db.VarChar(1000)
-  prioridade    Priority   @default(MEDIA)
-  
-  status_id     Int
-  status        StatusItem @relation(fields: [status_id], references: [id])
-  
-  criadoPor_id  Int
-  criadoPor     usuario    @relation("TaskCriador", fields: [criadoPor_id], references: [id])
-  
+  id         Int      @id @default(autoincrement())
+  titulo     String   @db.VarChar(200)
+  descricao  String?  @db.VarChar(1000)
+  prioridade Priority @default(MEDIA)
+
+  status_id Int
+  status    StatusItem @relation(fields: [status_id], references: [id])
+
+  criadoPor_id Int
+  criadoPor    usuario @relation("TaskCriador", fields: [criadoPor_id], references: [id])
+
   responsavel_id Int?
-  responsavel    usuario?   @relation("TaskResponsavel", fields: [responsavel_id], references: [id])
-  
-  dataEntrega   DateTime?  @db.Timestamp(6)
-  ordem         Int        @default(0)
-  criadoEm      DateTime   @default(now()) @db.Timestamp(6)
+  responsavel    usuario? @relation("TaskResponsavel", fields: [responsavel_id], references: [id])
+
+  dataEntrega DateTime? @db.Timestamp(6)
+  ordem       Int       @default(0)
+  criadoEm    DateTime  @default(now()) @db.Timestamp(6)
 
   @@map("task_items")
 }

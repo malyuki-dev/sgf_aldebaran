@@ -13,14 +13,14 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const user = JSON.parse(userJson);
   const role = user.perfil || user.tipo;
 
-  // 1. ADMIN - Acesso Livre a tudo
+  // Admin
   if (role === 'ADMIN') {
     return true;
   }
 
   const url = state.url;
 
-  // 2. SUPERVISOR - Somente /supervisor ou /totem
+  // Supervisor
   if (role === 'SUPERVISOR') {
     if (url.startsWith('/supervisor') || url.startsWith('/totem')) {
       return true;
@@ -30,7 +30,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // 3. OPERADOR - Somente /operador ou /totem
+  // Operator
   if (role === 'OPERADOR') {
     if (url.startsWith('/operador') || url.startsWith('/totem')) {
       return true;
@@ -40,7 +40,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // 4. CLIENTE - Somente /client
+  // Client
   if (role === 'CLIENTE') {
     if (url.startsWith('/client')) {
       return true;

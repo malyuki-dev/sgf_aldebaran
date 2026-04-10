@@ -136,7 +136,7 @@ export class AdminLayoutComponent implements OnInit {
       console.log('[HARD-DEBUG] Usuário logado:', this.usuario.nome, 'ID Filial:', this.usuario.filial_id);
       
       this.notificationService.fetchNotifications(this.usuario.id);
-      this.notificationService.notifications$.subscribe(notifs => {
+      this.notificationService.notifications$.subscribe((notifs: any[]) => {
         this.notificacoes = notifs;
         this.hasUnreadNotifications = notifs.some(n => !n.lida);
       });
@@ -166,7 +166,7 @@ export class AdminLayoutComponent implements OnInit {
       console.log('[HARD-DEBUG] Role determinada:', this.userRole);
 
       // Sincronização de Filiais (Global)
-      this.filialService.selectedFilial$.subscribe(id => {
+      this.filialService.selectedFilial$.subscribe((id: number | null) => {
         this.selectedFilialId = id;
         this.carregarContadores();
       });
@@ -309,27 +309,21 @@ export class AdminLayoutComponent implements OnInit {
 
   carregarFiliais() {
     this.loadingFiliais = true;
-    console.log('[DEBUG] Carregando filiais...');
     this.filialService.getFiliais().subscribe({
-      next: (data) => {
+      next: (data: Filial[]) => {
         this.filiais = data;
         this.loadingFiliais = false;
-        console.log('[DEBUG] Filiais carregadas:', data.length, data);
         
-        // Sincroniza a seleção inicial
         const currentId = this.filialService.getSelectedFilialId();
-        console.log('[DEBUG] FilialID atual no service:', currentId);
         
-        if (currentId) {
-          this.selectedFilialId = currentId;
-        } else if (this.userRole === 'Supervisor' && this.usuario?.filial_id) {
-          console.log('[DEBUG] Supervisor sem filial salva, usando filial do perfil:', this.usuario.filial_id);
+        if (this.userRole === 'SUPERVISOR' && !currentId && this.usuario?.filial_id) {
+          this.filialService.setSelectedFilial(this.usuario.filial_id);
           this.selectedFilialId = this.usuario.filial_id;
-          this.filialService.setSelectedFilial(this.selectedFilialId);
+        } else {
+          this.selectedFilialId = currentId;
         }
       },
       error: (err) => {
-        console.error('[DEBUG] Erro ao carregar filiais:', err);
         this.loadingFiliais = false;
         this.selectedFilialId = this.filialService.getSelectedFilialId();
       }

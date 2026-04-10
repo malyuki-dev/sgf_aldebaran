@@ -515,7 +515,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         
         const fid = parseInt(this.filialSelecionada, 10);
         
-        // 1. Agendamentos da Filial
+        // Branch specific scheduling
         this.api.get<any[]>('/fila/agendamento', { filialId: fid.toString() }).subscribe({
             next: (list) => {
                 // Filtra agendamentos de HOJE que ainda não foram realizados
@@ -528,7 +528,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             }
         });
 
-        // 2. Meus Atendimentos (Tickets finalizados hoje pelo operador)
+        // Operator session history
         // Mocking for now or querying history if available
         // Para fins de demonstração, vamos simular que o operador tem alguns atendimentos
         // Em um sistema real, haveria um endpoint /fila/operador/total-dia

@@ -1,6 +1,6 @@
 /* src/styles.scss */
 
-/* --- VARIÁVEIS GLOBAIS (Baseadas na imagem de referência) --- */
+/* Global Variables */
 :root {
   --auth-gradient-start: #0EA5E9;
   --auth-gradient-end: #0F766E;
@@ -10,7 +10,6 @@
   --auth-bg-light: #F8FAFC;
   --auth-border: #E2E8F0;
 
-  /* Global Admin Theme Variables */
   --bg-body: #f4f7f6;
   --bg-card: #ffffff;
   --text-primary: #1e293b;
@@ -32,7 +31,7 @@ body.dark-theme {
   color: var(--text-primary);
 }
 
-/* Reset Básico */
+/* Base Reset */
 body {
   margin: 0;
   padding: 0;
@@ -42,9 +41,7 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* ============================================================
-   LAYOUT DE AUTENTICAÇÃO (Login, Signup, Recover)
-   ============================================================ */
+/* Auth Layout */
 
 /* Container Principal (Split Screen) */
 .split-layout {
@@ -59,7 +56,7 @@ body {
   }
 }
 
-/* --- LADO ESQUERDO (HERO / DEGRADÊ) --- */
+/* Hero Section */
 .hero-section {
   flex: 1;
   /* GRADIENTE VERTICAL EXATO */
@@ -162,7 +159,7 @@ body {
   }
 }
 
-/* --- LADO DIREITO (FORMULÁRIO) --- */
+/* Form Section */
 .form-section {
   flex: 1;
   display: flex;
@@ -362,7 +359,7 @@ body {
   }
 }
 
-/* --- UTILITÁRIOS --- */
+/* Utility Classes */
 
 /* Abas (Pills) do Cadastro */
 .tabs-pills {
@@ -500,9 +497,7 @@ body {
   animation: fadeIn 0.3s ease;
 }
 
-/* ============================================================
-   GLOBAL LIST CARD DESIGN (Mockup Compliant)
-   ============================================================ */
+/* List Card Design */
 .crud-page {
   animation: fadeIn 0.4s ease;
   padding: 1.5rem 0;
@@ -788,9 +783,7 @@ body {
   }
 }
 
-/* ============================================================
-   GLOBAL MODAL DESIGN (Mockup Compliant)
-   ============================================================ */
+/* Modal Design */
 .modal-overlay {
   position: fixed;
   top: 0;

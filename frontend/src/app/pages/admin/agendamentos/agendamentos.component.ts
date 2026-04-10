@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
+import { FilialService } from '../../../services/filial.service';
 import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule, Calendar, Clock, User, MapPin, Phone, FileText, Search, Plus, Filter, X, CheckCircle, Trash2, AlertCircle, ChevronRight } from 'lucide-angular';
 
@@ -12,25 +13,22 @@ import { LucideAngularModule, Calendar, Clock, User, MapPin, Phone, FileText, Se
   templateUrl: './agendamentos.component.html',
   styleUrl: './agendamentos.component.scss'
 })
-export class AgendamentosComponent implements OnInit {
+export class AgendamentosComponent implements OnInit, OnDestroy {
   agendamentos: any[] = [];
   agendamentosFiltrados: any[] = [];
   servicos: any[] = [];
   loading = true;
   loadingHorarios = false;
 
-  // Filtros
   filtroBusca = '';
   filtroStatus = 'TODOS';
   filtroData = '';
   selectedFilialId: number | null = null;
 
-  // Modal
   showModal = false;
   isEditing = false;
   horariosDisponiveis: any[] = [];
 
-  // Form
   form = {
     id: null as number | null,
     nome: '',
@@ -47,19 +45,33 @@ export class AgendamentosComponent implements OnInit {
     file: FileText, search: Search, plus: Plus, filter: Filter, x: X, 
     check: CheckCircle, trash: Trash2, alert: AlertCircle, chevron: ChevronRight 
   };
+  private filialSub?: any;
 
   constructor(
     private api: ApiService,
+    private filialService: FilialService,
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.selectedFilialId = params['filialId'] ? Number(params['filialId']) : null;
+    this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
+      this.selectedFilialId = id;
       this.carregar();
       this.carregarServicos();
     });
+
+    this.route.queryParams.subscribe(params => {
+      if (params['filialId']) {
+        this.selectedFilialId = Number(params['filialId']);
+        this.carregar();
+        this.carregarServicos();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.filialSub) this.filialSub.unsubscribe();
   }
 
   carregar() {

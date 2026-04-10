@@ -10,7 +10,7 @@ export class CronService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
-    // 1. Busca configurações de reset
+    // Retrieve reset configuration
     const configs = await this.prisma.configuracao.findMany();
     const horarioReset =
       configs.find((c) => c.chave === 'HORARIO_RESET')?.valor || '00:00';

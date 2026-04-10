@@ -46,14 +46,14 @@ export class AuthController {
     return res;
   }
 
-  // --- ROTA DE RECUPERAÇÃO ---
+  // Password recovery endpoint
   @Post('recover')
   async recover(@Body() body: { email: string }) {
     console.log('📡 [CONTROLLER] Rota /recover chamada com:', body);
     return this.authService.recover(body.email);
   }
 
-  // --- ROTA DE REDEFINIÇÃO ---
+  // Password reset endpoint
   @Post('reset-password')
   async resetPassword(@Body() body: { token: string; novaSenha: string }) {
     return this.authService.resetPassword(body.token, body.novaSenha);

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-// --- COMPONENTES PÚBLICOS (Gerais) ---
+
 import { LoginComponent } from './pages/login/login.component';
 import { RecoverComponent } from './pages/recover/recover.component';
 import { SignupComponent } from './pages/signup/signup.component';
@@ -11,7 +11,7 @@ import { roleGuard } from './guards/role.guard';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { TotemLayoutComponent } from './layouts/totem-layout/totem-layout.component';
 
-// Cliente (Área Logada)
+// Cliente
 import { ClientLayoutComponent } from './layouts/client-layout/client-layout';
 import { ClientHomeComponent } from './pages/client/home/client-home.component';
 import { AgendamentoComponent } from './pages/client/agendamento/agendamento.component';
@@ -41,16 +41,13 @@ import { PainelTvComponent } from './pages/tv/painel-tv.component';
 import { EscolhaGuiches } from './pages/operador/escolha-guiches/escolha-guiches';
 
 export const routes: Routes = [
-  // 1. Rota Raiz -> Login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // 2. ROTAS PÚBLICAS (Acesso sem estar logado)
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'recover', component: RecoverComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
 
-  // 3. ÁREA DO CLIENTE (Protegida futuramente)
   {
     path: 'client',
     component: ClientLayoutComponent,
@@ -64,7 +61,6 @@ export const routes: Routes = [
     ]
   },
 
-  // 4. ÁREA DO ADMIN
   {
     path: 'admin',
     component: AdminLayoutComponent,
@@ -103,7 +99,6 @@ export const routes: Routes = [
     ]
   },
 
-  // 4.5. ÁREA DO SUPERVISOR
   {
     path: 'supervisor',
     component: AdminLayoutComponent,
@@ -120,7 +115,6 @@ export const routes: Routes = [
     ]
   },
 
-  // 5. ÁREA DO TOTEM
   {
     path: 'totem',
     component: TotemLayoutComponent,
@@ -136,10 +130,8 @@ export const routes: Routes = [
     ]
   },
 
-  // 6. PAINEL TV
   { path: 'painel', component: PainelTvComponent },
 
-  // 7. ÁREA DO OPERADOR
   { path: 'operador/escolha-guiches', component: EscolhaGuiches, canActivate: [roleGuard] },
   { path: 'operador/painel', loadComponent: () => import('./pages/operador/painel/painel.component').then(m => m.PainelOperadorComponent), canActivate: [roleGuard] },
 ];

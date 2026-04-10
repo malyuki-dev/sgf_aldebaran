@@ -98,19 +98,15 @@ export class LoginComponent implements OnInit {
         this.cd.detectChanges();
       },
       error: (erro: any) => {
-        // --- AQUI ESTÁ A CORREÇÃO DE VELOCIDADE ---
+        this.carregando = false;
+        this.erroLogin = true;
 
-        this.carregando = false; // 1. Destrava o botão imediatamente
-        this.erroLogin = true;   // 2. Ativa a mensagem vermelha na tela
-
-        // 3. Mostra o Prompt que você pediu se for erro de senha (401)
         if (erro.status === 401) {
           alert('Senha incorreta! Verifique suas credenciais.');
         } else {
           alert('Erro ao conectar. Tente novamente.');
         }
 
-        // 4. Força o Angular a atualizar a tela AGORA (sem delay)
         this.cd.detectChanges();
       }
     });

@@ -17,13 +17,12 @@ export class FilaService {
     private notificacaoGateway: NotificacaoGateway,
   ) {}
 
-  // --- LÓGICA DE SEQUENCIAL DO TOTEM ---
+  // Totem ticket generation logic
   async solicitarSenhaTotem(tipoRaw: string, nomeCategoria: string, filialId?: number) {
-    // 1. Busca serviço pelo nome E filial (se houver filialId)
     const servico = await this.prisma.servico.findFirst({
-      where: { 
+      where: {
         nome: nomeCategoria,
-        filial_id: filialId ? filialId : undefined 
+        ...(filialId ? { filial_id: +filialId } : {}),
       },
     });
 
@@ -33,51 +32,41 @@ export class FilaService {
       );
     }
 
-    // 2. Define Prefixo e Tipo
-    const tipoFormatado =
-      (tipoRaw || '').toLowerCase() === 'preferencial'
-        ? 'Preferencial'
-        : 'Convencional';
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const tipoFormatado = (tipoRaw || '').toLowerCase() === 'preferencial' ? 'Preferencial' : 'Convencional';
     const prefixo = tipoFormatado === 'Preferencial' ? 'P' : 'C';
 
-    // 3. Conta senhas de hoje para gerar sequencial (Filtra por filial também)
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const count = await this.prisma.senha.count({
+    const totalHoje = await this.prisma.senha.count({
       where: {
-        servico_id: servico.id,
-        filial_id: filialId ? filialId : undefined,
-        dataCriacao: { gt: hoje },
+        dataCriacao: { gte: startOfToday },
+        filial_id: filialId ? +filialId : null,
       },
     });
 
-    // 4. Gera o número (Ex: C-NEG001)
-    const numeroSeq = (count + 1).toString().padStart(3, '0');
-    const numeroDisplay = `${prefixo}-${servico.sigla}${numeroSeq}`;
+    const sequencial = (totalHoje + 1).toString().padStart(3, '0');
+    const numeroDisplay = `${prefixo}-${servico.sigla}${sequencial}`;
 
-    // 5. Salva no banco (Calculando prioridade do serviço)
-    const senha = await this.prisma.senha.create({
+    const novaSenha = await this.prisma.senha.create({
       data: {
         numeroDisplay,
         status: 'AGUARDANDO',
-        tipo: tipoFormatado,
+        filial_id: filialId ? +filialId : null,
+        servico_id: servico.id,
         tipoOrigem: 'TOTEM',
-        prioridade: servico.prioridadePeso || 0,
-        servico: { connect: { id: servico.id } },
-        filial: filialId ? { connect: { id: filialId } } : undefined,
+        tipo: tipoFormatado,
       },
     });
 
-    // Notificação de nova senha
     await this.notificacaoService.criar({
       titulo: 'Nova Senha Gerada',
-      mensagem: `Ticket ${senha.numeroDisplay} no serviço ${servico.nome}.`,
+      mensagem: `Ticket ${novaSenha.numeroDisplay} no serviço ${servico.nome}.`,
       icon: 'ticket',
       rota: '/admin/dashboard',
     });
 
-    return senha;
+    return novaSenha;
   }
 
   async validarCheckin(codigo: string, filialId?: number) {
@@ -93,13 +82,11 @@ export class FilaService {
     if (agendamento.status === 'REALIZADO')
       return { valido: false, mensagem: 'Check-in já realizado.' };
 
-    // Busca bônus de agendamento na tabela configuracao
     const configBonus = await this.prisma.configuracao.findFirst({
       where: { chave: 'BONUS_PRIORIDADE_AGENDAMENTO', filial_id: filialId || null },
     });
     const bonus = Number(configBonus?.valor) || 2;
 
-    // Gera a senha manualmente para incluir prioridade agendamento
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     const count = await this.prisma.senha.count({
@@ -111,7 +98,6 @@ export class FilaService {
     });
 
     const numeroSeq = (count + 1).toString().padStart(3, '0');
-    // Busca modificador
     const configMod = await this.prisma.configuracao.findFirst({
       where: { 
         chave: 'MODIFICADOR_AGENDAMENTO', 
@@ -140,7 +126,6 @@ export class FilaService {
       data: { status: 'REALIZADO' },
     });
 
-    // Notificação de check-in
     await this.notificacaoService.criar({
       titulo: 'Check-in Realizado',
       mensagem: `Cliente ${agendamento.nomeCliente} chegou para o agendamento.`,
@@ -151,7 +136,6 @@ export class FilaService {
     return { valido: true, mensagem: 'Sucesso', ticket: senhaGerada };
   }
 
-  // --- SERVIÇOS (CRUD) ---
   async criarServico(nome: string, sigla: string) {
     const existe = await this.prisma.servico.findFirst({
       where: { OR: [{ nome }, { sigla }] },
@@ -167,7 +151,6 @@ export class FilaService {
   }
 
   async atualizarServico(id: number, dados: any) {
-    // Verifica se existe
     await this.buscarServicoPorId(id);
     return await this.prisma.servico.update({
       where: { id },
@@ -177,7 +160,6 @@ export class FilaService {
 
   async excluirServico(id: number) {
     await this.buscarServicoPorId(id);
-    // Soft Delete (Marca data de deleção)
     return await this.prisma.servico.update({
       where: { id },
       data: { deletadoEm: new Date() },
@@ -186,7 +168,7 @@ export class FilaService {
 
   async listarServicos() {
     return await this.prisma.servico.findMany({
-      where: { deletadoEm: null }, // Traz apenas os ativos
+      where: { deletadoEm: null },
     });
   }
 
@@ -196,14 +178,9 @@ export class FilaService {
     return servico;
   }
 
-  // --- AGENDAMENTOS ---
   async horariosDisponiveis(data: string, filialId?: any) {
-    const fId =
-      filialId && filialId !== 'null' && filialId !== 'undefined'
-        ? Number(filialId)
-        : null;
+    const fId = filialId && filialId !== 'null' && filialId !== 'undefined' ? Number(filialId) : null;
 
-    // 1. Buscar Configurações (Filial + Global como fallback)
     const configs = await this.prisma.configuracao.findMany({
       where: {
         OR: [{ filial_id: fId }, { filial_id: null }],
@@ -230,10 +207,6 @@ export class FilaService {
     const fimStr = getConfig('TOTEM_HORARIO_FIM', '18:00');
     const diasPermitidosJson = getConfig('TOTEM_DIAS', '[1,2,3,4,5]');
 
-    console.log(
-      `[FILA] Horários para filial ${fId}: ${inicioStr} - ${fimStr}, dias: ${diasPermitidosJson}`,
-    );
-
     let diasPermitidos: number[] = [];
     try {
       diasPermitidos = JSON.parse(diasPermitidosJson);
@@ -241,16 +214,13 @@ export class FilaService {
       diasPermitidos = [1, 2, 3, 4, 5];
     }
 
-    // 2. Validar se o dia da semana é permitido
     const dataObj = new Date(data + 'T12:00:00');
     const diaSemana = dataObj.getDay();
 
     if (!diasPermitidos.includes(diaSemana)) {
-      console.log(`[FILA] Dia ${diaSemana} não permitido para filial ${fId}`);
       return [];
     }
 
-    // 3. Gerar Grade Dinâmica
     const grade: string[] = [];
     let atual = this.parseTime(inicioStr);
     const fim = this.parseTime(fimStr);
@@ -260,11 +230,8 @@ export class FilaService {
       atual += 30;
     }
 
-    console.log(`[FILA] Grade gerada: ${grade.length} slots`);
-
-    // 4. Filtrar horários já ocupados
     const agendados = await this.prisma.agendamento.findMany({
-      where: { data, status: { not: 'CANCELADO' } },
+      where: { data: data, status: { not: 'CANCELADO' } },
     });
     const horariosOcupados = agendados.map((a) => a.hora);
 
@@ -280,12 +247,10 @@ export class FilaService {
     let hours = 0;
     let minutes = 0;
 
-    // Remove espaços e converte para uppercase para lidar com am/pm
     const cleanTime = timeStr.trim().toUpperCase();
     const isPM = cleanTime.includes('PM');
     const isAM = cleanTime.includes('AM');
 
-    // Remove AM/PM para o processamento numérico
     const timePart = cleanTime.replace('AM', '').replace('PM', '').trim();
     const parts = timePart.split(':').map(Number);
 
@@ -309,7 +274,6 @@ export class FilaService {
   async criarAgendamento(dados: any) {
     const fId = dados.filial_id ? Number(dados.filial_id) : null;
 
-    // 1. Validar se o horário está dentro do permitido pela filial
     const configs = await this.prisma.configuracao.findMany({
       where: { OR: [{ filial_id: fId }, { filial_id: null }] },
     });
@@ -328,7 +292,6 @@ export class FilaService {
       throw new Error('Horário fora do período de funcionamento da filial.');
     }
 
-    // 2. Verificar se já está ocupado
     const ocupado = await this.prisma.agendamento.findFirst({
       where: { data: dados.data, hora: dados.hora },
     });
@@ -373,7 +336,8 @@ export class FilaService {
     });
   }
 
-  // --- FILA / PAINEL ---
+  // Queue management and dashboard views
+
   async solicitarSenha(servicoId: number) {
     const servico = await this.prisma.servico.findUnique({
       where: { id: servicoId },

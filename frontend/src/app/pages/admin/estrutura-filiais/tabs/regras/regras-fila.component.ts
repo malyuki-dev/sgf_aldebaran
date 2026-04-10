@@ -89,7 +89,7 @@ export class RegrasFilaComponent implements OnInit {
   salvarAlteracoes() {
     this.loading = true;
     
-    // 1. Preparar observáveis de serviços (Global por enquanto)
+    // Prepare service observables
     const servicoRequests = this.servicos.map(s => 
       this.api.patch(`/servicos/${s.id}`, {
         prefixo: s.prefixo,
@@ -99,7 +99,7 @@ export class RegrasFilaComponent implements OnInit {
       })
     );
 
-    // 2. Preparar observável de configurações (USANDO POST /bulk e filialId)
+    // Prepare configuration observables
     // Transformar objeto local para array esperado pelo backend
     const configList = Object.keys(this.configs).map(chave => ({
       chave: chave,
@@ -109,7 +109,7 @@ export class RegrasFilaComponent implements OnInit {
     const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
     const configRequest = this.api.post(`/configuracoes/bulk${filialQuery}`, { configs: configList });
 
-    // 3. Executar tudo em paralelo
+    // Concurrent execution
     forkJoin([...servicoRequests, configRequest]).subscribe({
       next: () => {
         this.loading = false;

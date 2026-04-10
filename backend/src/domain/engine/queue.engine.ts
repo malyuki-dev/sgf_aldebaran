@@ -7,12 +7,8 @@ export class AldebaranQueueEngine {
   private readonly AGING_FACTOR_PER_MINUTE = 50;
 
   /**
-   * Calcula a prioridade absoluta com complexidade O(1).
-   * O score baseia-se em:
-   * 1. SLA Critico (Agendamentos < 5min)
-   * 2. Tipo Preferencial (Lei)
-   * 3. Categoria Rápida (Eficiência de Fluxo)
-   * 4. Aging (Evita Inanição de cargas pesadas)
+   * Calculates absolute priority based on SLA, legal requirements, 
+   * and anti-starvation (aging) logic. 
    */
   public calculateScore(
     ticket: Ticket,
@@ -22,7 +18,7 @@ export class AldebaranQueueEngine {
     const createdAtMs = ticket.createdAt.getTime();
     const minutesWaiting = Math.floor((currentTimeMs - createdAtMs) / 60000);
 
-    // 1. Regra de Agendamento (SLA)
+    // Critical SLA for scheduled items
     if (ticket.origin === 'SCHEDULED' && ticket.scheduledTime) {
       const scheduledMs = ticket.scheduledTime.getTime();
       const minutesToSchedule = Math.floor(
@@ -34,12 +30,12 @@ export class AldebaranQueueEngine {
       }
     }
 
-    // 2. Regra de Preferencial (Lei)
+    // Preferential access (Legal)
     if (ticket.origin === 'TOTEM' && ticket.type === 'PREFERENTIAL') {
       score += this.WEIGHT_PREFERENTIAL;
     }
 
-    // 3. Otimização de Vazão (Shortest Job First)
+    // Fast-track flow optimization
     if (
       ticket.category === 'CLIENTE_RAPIDO' ||
       ticket.category === 'RETIRADA_RAPIDA'
@@ -47,7 +43,7 @@ export class AldebaranQueueEngine {
       score += this.WEIGHT_FAST_TRACK;
     }
 
-    // 4. Anti-Starvation (Aging)
+    // Anti-starvation / Aging
     score += minutesWaiting * this.AGING_FACTOR_PER_MINUTE;
 
     return score;
