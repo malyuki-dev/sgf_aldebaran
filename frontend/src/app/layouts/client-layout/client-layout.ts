@@ -109,6 +109,10 @@ export class ClientLayoutComponent implements OnInit {
       this.activePageTitle = 'Agendar Serviço';
     } else if (url.includes('/client/meus-agendamentos')) {
       this.activePageTitle = 'Meus Agendamentos';
+    } else if (url.includes('/client/perfil/editar')) {
+      this.activePageTitle = 'Editar Dados';
+    } else if (url.includes('/client/configuracoes')) {
+      this.activePageTitle = 'Configurações';
     } else if (url.includes('/client/suporte')) {
       this.activePageTitle = 'Ajuda e Suporte';
     } else if (url.includes('/client/perfil')) {

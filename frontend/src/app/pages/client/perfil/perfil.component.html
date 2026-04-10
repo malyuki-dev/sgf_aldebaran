@@ -1,0 +1,100 @@
+<section class="client-profile-page" aria-labelledby="client-profile-title">
+  <div class="profile-shell">
+    <header class="profile-intro">
+      <div>
+        <p class="profile-eyebrow">Portal do Cliente</p>
+        <h2 id="client-profile-title" class="profile-title">Meu Perfil</h2>
+      </div>
+
+      <div class="profile-language-chip" aria-hidden="true">
+        <lucide-icon [img]="icons.languages" size="18"></lucide-icon>
+        <span>PT-BR</span>
+      </div>
+    </header>
+
+    <div class="profile-grid">
+      <article class="profile-summary-card">
+        <div class="profile-summary-top">
+          <div class="profile-avatar" [class.has-image]="profile.avatarUrl">
+            <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" [alt]="'Avatar de ' + profile.nome" />
+            <span *ngIf="!profile.avatarUrl">{{ initials }}</span>
+          </div>
+
+          <div class="profile-summary-text">
+            <p class="profile-tag">Conta autenticada</p>
+            <h3>{{ profile.nome }}</h3>
+            <p class="profile-caption">Dados básicos do cliente prontos para futura integração com API.</p>
+          </div>
+        </div>
+
+        <dl class="profile-details">
+          <div class="detail-item">
+            <dt>
+              <lucide-icon [img]="icons.email" size="16"></lucide-icon>
+              <span>E-mail</span>
+            </dt>
+            <dd>{{ profile.email }}</dd>
+          </div>
+
+          <div class="detail-item">
+            <dt>
+              <lucide-icon [img]="icons.phone" size="16"></lucide-icon>
+              <span>Telefone</span>
+            </dt>
+            <dd>{{ profile.telefone }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <section class="profile-actions-panel" aria-labelledby="profile-actions-title">
+        <div class="panel-header">
+          <p class="panel-eyebrow">Ações da conta</p>
+          <h3 id="profile-actions-title">Gerencie seu acesso</h3>
+        </div>
+
+        <div class="profile-actions-list">
+          <button
+            *ngFor="let action of primaryActions"
+            type="button"
+            class="profile-action-card"
+            (click)="onActionClick(action)"
+          >
+            <span class="action-icon">
+              <lucide-icon [img]="action.icon" size="20"></lucide-icon>
+            </span>
+
+            <span class="action-copy">
+              <span class="action-title">{{ action.titulo }}</span>
+              <span class="action-description">{{ action.descricao }}</span>
+            </span>
+
+            <span class="action-chevron" aria-hidden="true">
+              <lucide-icon [img]="icons.chevron" size="18"></lucide-icon>
+            </span>
+          </button>
+        </div>
+
+        <div class="logout-block">
+          <button
+            type="button"
+            class="profile-action-card profile-action-card--danger"
+            (click)="onActionClick(logoutAction)"
+          >
+            <span class="action-icon">
+              <lucide-icon [img]="logoutAction.icon" size="20"></lucide-icon>
+            </span>
+
+            <span class="action-copy">
+              <span class="action-title">{{ logoutAction.titulo }}</span>
+              <span class="action-description">{{ logoutAction.descricao }}</span>
+            </span>
+
+            <span class="action-chevron" aria-hidden="true">
+              <lucide-icon [img]="icons.chevron" size="18"></lucide-icon>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>

@@ -16,6 +16,7 @@ import { ClientLayoutComponent } from './layouts/client-layout/client-layout';
 import { ClientHomeComponent } from './pages/client/home/client-home.component';
 import { AgendamentoComponent } from './pages/client/agendamento/agendamento.component';
 import { ClientAppointmentsComponent } from './pages/client/client-appointments/client-appointments.component';
+import { ClientPerfilComponent } from './pages/client/perfil/perfil.component';
 import { SuporteComponent } from './pages/client/suporte/suporte';
 // Nota: Removi o Login/Signup antigos da pasta client para não confundir
 
@@ -59,6 +60,23 @@ export const routes: Routes = [
       { path: 'home', component: ClientHomeComponent },
       { path: 'agendar', component: AgendamentoComponent },
       { path: 'meus-agendamentos', component: ClientAppointmentsComponent },
+      { path: 'perfil', component: ClientPerfilComponent },
+      {
+        path: 'perfil/editar',
+        loadComponent: () => import('./pages/client/placeholder/client-placeholder.component').then(m => m.ClientPlaceholderComponent),
+        data: {
+          title: 'Editar Dados',
+          description: 'Esta rota já está registrada para a futura edição do perfil do cliente e pode ser conectada ao backend sem alterar a navegação principal.',
+        }
+      },
+      {
+        path: 'configuracoes',
+        loadComponent: () => import('./pages/client/placeholder/client-placeholder.component').then(m => m.ClientPlaceholderComponent),
+        data: {
+          title: 'Configurações',
+          description: 'Espaço reservado para preferências do cliente, notificações e demais opções da conta.',
+        }
+      },
       { path: 'suporte', component: SuporteComponent }
     ]
   },

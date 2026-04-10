@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface AuthenticatedUser {
+  id?: string | number;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  tipo?: string | null;
+  perfil?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -39,6 +48,22 @@ export class AuthService {
   }
 
   // Úteis
+  getCurrentUser(): AuthenticatedUser | null {
+    const rawUser =
+      localStorage.getItem('usuario_sgf') ??
+      localStorage.getItem('client_user');
+
+    if (!rawUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawUser) as AuthenticatedUser;
+    } catch {
+      return null;
+    }
+  }
+
   getToken() { return localStorage.getItem('token'); }
   isLoggedIn() { return !!localStorage.getItem('token'); }
 
@@ -47,6 +72,8 @@ export class AuthService {
     localStorage.removeItem('usuario_nome');
     localStorage.removeItem('usuario_sgf');
     localStorage.removeItem('guicheAtual');
+    localStorage.removeItem('client_token');
+    localStorage.removeItem('client_user');
   }
 
   logout() {
