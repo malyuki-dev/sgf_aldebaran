@@ -118,7 +118,7 @@ export class GuicheService {
         const mapped = data.map(g => ({
           id: g.id,
           numero: parseInt(g.numero, 10) || g.id,
-          status: (g.status.toLowerCase() === 'online' || g.status.toLowerCase() === 'ativo') ? 'disponivel' : (g.status.toLowerCase() === 'ocupado' ? 'ocupado' : 'vazio'),
+          status: (g.status.toLowerCase() === 'online' || g.status.toLowerCase() === 'ativo' || g.status.toLowerCase() === 'offline') ? 'disponivel' : (g.status.toLowerCase() === 'ocupado' ? 'ocupado' : 'vazio'),
           statusLabel: g.status,
           operador: g.operadorAtual?.nome || null,
           ticket: g.atendimentoAtualCodigo || null,

@@ -15,17 +15,15 @@ $red-dark: #b91c1c;
 
 .config-page {
   font-family: 'Inter', sans-serif;
-  background-color: $bg-page;
   min-height: 100vh;
-  padding-bottom: 40px;
 }
 
 .top-nav {
   display: flex;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: white;
-  border-bottom: 1px solid $border;
+  padding: 0 0 24px 0;
+  background: transparent;
+  border-bottom: none;
 
   .btn-voltar {
     background: white;
@@ -42,8 +40,8 @@ $red-dark: #b91c1c;
 }
 
 .config-container {
-  max-width: 1200px;
-  margin: 40px auto;
+  max-width: 100%;
+  margin: 0;
   display: flex;
   gap: 32px;
   align-items: flex-start;
@@ -106,7 +104,7 @@ $red-dark: #b91c1c;
   flex: 1;
   background: white;
   border-radius: 12px;
-  padding: 40px 48px;
+  padding: 40px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   border: 1px solid #f3f4f6;
 }

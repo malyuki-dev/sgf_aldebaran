@@ -163,31 +163,43 @@ export class DashboardService {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
+    // Todas as senhas criadas hoje na filial
     const senhasAtivas = await this.prisma.senha.findMany({
       where: {
-        OR: [
-          { status: { in: ['AGUARDANDO', 'CHAMADO'] } },
-          { dataCriacao: { gte: startOfToday } }
-        ],
+        dataCriacao: { gte: startOfToday },
         ...(fid ? { filial_id: fid } : {}),
       },
       include: { atendimento: true },
     });
 
-    const totalHoje = senhasAtivas.filter(s => s.dataCriacao >= startOfToday).length;
-    const filaAtual = senhasAtivas.filter(s => s.status === 'AGUARDANDO').length;
+    // Senhas que ainda estão em espera (independente de quando foram criadas, ex: ontem a noite)
+    const senhasEmEspera = await this.prisma.senha.findMany({
+      where: {
+        status: 'AGUARDANDO',
+        ...(fid ? { filial_id: fid } : {}),
+      }
+    });
+
+    const totalHoje = senhasAtivas.length;
+    const filaAtual = senhasEmEspera.length;
     
-    const senhasHojeComAtendimento = senhasAtivas.filter(s => 
-      s.dataCriacao >= startOfToday && 
+    // Calcula tempo médio das senhas que foram atendidas hoje
+    const senhasAtendidasHoje = senhasAtivas.filter(s => 
       s.atendimento && s.atendimento.length > 0
     );
+
     let totalEsperaMinutos = 0;
     let counts = 0;
-    for (const senha of senhasHojeComAtendimento) {
-      const inicio = senha.atendimento[0].inicioAtendimento.getTime();
-      const criacao = senha.dataCriacao.getTime();
-      totalEsperaMinutos += (inicio - criacao) / 60000;
-      counts++;
+    for (const senha of senhasAtendidasHoje) {
+      if (senha.atendimento[0] && senha.atendimento[0].inicioAtendimento) {
+        const inicio = senha.atendimento[0].inicioAtendimento.getTime();
+        const criacao = senha.dataCriacao.getTime();
+        const diff = (inicio - criacao) / 60000;
+        if (diff > 0) {
+          totalEsperaMinutos += diff;
+          counts++;
+        }
+      }
     }
     const tempoMedio = counts > 0 ? Math.round(totalEsperaMinutos / counts) : 0;
 

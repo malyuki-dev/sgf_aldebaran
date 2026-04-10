@@ -4,6 +4,10 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule, Edit2, Trash2, Search, Plus, X, CheckCircle } from 'lucide-angular';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
+import { FilialService } from '../../../services/filial.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-supervisor-configuracoes',
@@ -37,11 +41,19 @@ export class SupervisorConfiguracoesComponent implements OnInit {
     { nome: 'Julia Farias', email: 'julia.f@fila.com', perfil: 'Operador', status: 'Inativo' }
   ];
 
-  constructor(private fb: FormBuilder) {}
+  selectedFilialId: number | null = null;
+  private filialSub?: any;
+
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private filialService: FilialService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.configForm = this.fb.group({
-      nomeFilial: ['Matriz - Centro'],
+      nomeFilial: [{ value: '', disabled: true }],
       fusoHorario: ['(GMT-03:00) Brasília'],
       modoEscuro: [false],
       sonsAlerta: [true],
@@ -61,10 +73,46 @@ export class SupervisorConfiguracoesComponent implements OnInit {
     this.novoUsuarioForm = this.fb.group({
       nome: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      perfil: ['', Validators.required],
+      perfil: ['OPERADOR', Validators.required],
       senha: ['', [Validators.required, Validators.minLength(6)]],
       confirmarSenha: ['', Validators.required]
     }, { validators: this.senhasIguais });
+
+    this.filialSub = this.filialService.selectedFilial$.subscribe((id: number | null) => {
+      this.selectedFilialId = id;
+      if (id) {
+        this.carregarConfiguracoes();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.filialSub) this.filialSub.unsubscribe();
+  }
+
+  carregarConfiguracoes() {
+    const token = localStorage.getItem('token') || '';
+    this.http.get<any[]>(`${environment.apiUrl}/configuracao/filial/${this.selectedFilialId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (configs) => {
+        const patch: any = {};
+        configs.forEach(c => {
+          if (c.chave === 'TEMPO_TOLERANCIA') patch.tempoTolerancia = parseInt(c.valor, 10);
+          if (c.chave === 'LIMITE_ATENDIMENTOS') patch.limiteAtendimentos = parseInt(c.valor, 10);
+          if (c.chave === 'PRIORIDADE_AUTOMATICA') patch.prioridadePcdIdoso = c.valor === 'true';
+        });
+        
+        // Carrega nome da filial
+        this.filialService.getFiliais().subscribe((filiais: any[]) => {
+          const f = filiais.find((fl: any) => fl.id === this.selectedFilialId);
+          if (f) patch.nomeFilial = f.nome;
+          this.configForm.patchValue(patch);
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => console.error('Erro ao carregar configurações:', err)
+    });
   }
 
   senhasIguais(group: FormGroup) {
@@ -82,18 +130,39 @@ export class SupervisorConfiguracoesComponent implements OnInit {
   }
 
   salvarConfiguracoes() {
-    this.showSuccessModal = true;
-    this.successMessage = 'Configurações salvas com sucesso!';
+    this.persistirConfiguracoes();
   }
 
   salvarRegras() {
-    this.showSuccessModal = true;
-    this.successMessage = 'Regras de fila salvas com sucesso!';
+    this.persistirConfiguracoes();
   }
 
   salvarNotificacoes() {
-    this.showSuccessModal = true;
-    this.successMessage = 'Configurações de notificação salvas com sucesso!';
+    this.persistirConfiguracoes();
+  }
+
+  private persistirConfiguracoes() {
+    const val = this.configForm.value;
+    const items = [
+      { chave: 'TEMPO_TOLERANCIA', valor: String(val.tempoTolerancia) },
+      { chave: 'LIMITE_ATENDIMENTOS', valor: String(val.limiteAtendimentos) },
+      { chave: 'PRIORIDADE_AUTOMATICA', valor: String(val.prioridadePcdIdoso) }
+    ];
+
+    const token = localStorage.getItem('token') || '';
+    this.http.post(`${environment.apiUrl}/configuracao/batch`, {
+      filialId: this.selectedFilialId,
+      configs: items
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: () => {
+        this.showSuccessModal = true;
+        this.successMessage = 'Configurações salvas com sucesso!';
+        this.cdr.detectChanges();
+      },
+      error: (err) => alert('Erro ao salvar configurações')
+    });
   }
 
   fecharSuccessModal() {
@@ -108,10 +177,18 @@ export class SupervisorConfiguracoesComponent implements OnInit {
 
   confirmarZerar() {
     if (this.zerarInput.trim().toUpperCase() === 'ZERAR') {
-      this.showZerarModal = false;
-      this.zerarInput = '';
-      this.showSuccessModal = true;
-      this.successMessage = 'Fila zerada com sucesso. Numeração reiniciada.';
+      const token = localStorage.getItem('token') || '';
+      this.http.post(`${environment.apiUrl}/fila/reset`, { filialId: this.selectedFilialId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).subscribe({
+        next: () => {
+          this.showZerarModal = false;
+          this.zerarInput = '';
+          this.showSuccessModal = true;
+          this.successMessage = 'Fila zerada com sucesso. Numeração reiniciada.';
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
@@ -134,10 +211,26 @@ export class SupervisorConfiguracoesComponent implements OnInit {
       this.novoUsuarioForm.markAllAsTouched();
       return;
     }
-    const u = this.novoUsuarioForm.value;
-    this.usuariosMock.push({ nome: u.nome, email: u.email, perfil: u.perfil, status: 'Ativo' });
-    this.fecharModalUsuario();
-    this.showSuccessModal = true;
-    this.successMessage = `Usuário "${u.nome}" criado com sucesso!`;
+    const val = this.novoUsuarioForm.value;
+    const payload = {
+      nome: val.nome,
+      email: val.email,
+      login: val.email.split('@')[0], // Fallback login
+      senha: val.senha,
+      perfil: val.perfil,
+      filial_id: this.selectedFilialId
+    };
+
+    const token = localStorage.getItem('token') || '';
+    this.http.post(`${environment.apiUrl}/usuarios`, payload, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: () => {
+        this.fecharModalUsuario();
+        this.showSuccessModal = true;
+        this.successMessage = `Usuário "${val.nome}" criado com sucesso!`;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

@@ -9,6 +9,8 @@ import {
   ArrowLeft, Download, AlertTriangle, User, TrendingUp, TrendingDown
 } from 'lucide-angular';
 import { GuicheService } from '../../../services/guiche.service';
+import { FilialService } from '../../../services/filial.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-supervisor-relatorios',
@@ -47,6 +49,7 @@ export class SupervisorRelatoriosComponent implements OnInit, OnDestroy {
   maxTempoAtendimento = 0;
 
   // Dashboard KPIs
+  // Dashboard KPIs
   totalAtendidos = 0;
   tempoMedioEsperaGeral = 0;
 
@@ -56,14 +59,19 @@ export class SupervisorRelatoriosComponent implements OnInit, OnDestroy {
   // Tempo médio calculado a partir do backend (snapshots + ao vivo)
   tempoMedioAtendimentoStr = '0 min';
 
+  selectedFilialId: number | null = null;
+  selectedFilialNome: string = 'Carregando...';
+
   private updateTimer: any;
-  private readonly apiUrl = 'http://localhost:3000/dashboard';
+  private filialSub?: any;
+  private readonly apiUrl = environment.apiUrl + '/dashboard';
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private guicheService: GuicheService
+    private guicheService: GuicheService,
+    private filialService: FilialService
   ) {
     this.justificativaForm = this.fb.group({
       motivo: ['', Validators.required],
@@ -71,106 +79,80 @@ export class SupervisorRelatoriosComponent implements OnInit, OnDestroy {
     });
   }
 
-  atendimentosMock = [
-    {
-      senha: 'RP-A045', originIcon: this.icons.calendar,
-      clienteNome: 'João Silva', clienteSub: 'Transp. ABC',
-      categoria: 'Retirada Pesada', categoriaClass: 'cat-orange',
-      operador: 'Maria S.',
-      espera: '5 min', esperaAlerta: false, atendimento: '12 min',
-      avaliacao: 'Excelente', avaliacaoEmoji: '😁', avaliacaoClass: 'eval-green',
-      status: 'CONCLUÍDO', statusBoxClass: 'status-green', statusType: '',
-      acaoTipo: 'view', acaoClass: 'btn-blue-light'
-    },
-    {
-      senha: 'C-035', originIcon: this.icons.fileText,
-      clienteNome: 'Roberto Almeida', clienteSub: 'Avulso',
-      categoria: 'Caminhão', categoriaClass: 'cat-green',
-      operador: 'Ana Costa',
-      espera: '84 min', esperaAlerta: true, atendimento: '7 min',
-      avaliacao: 'Péssimo', avaliacaoEmoji: '😡', avaliacaoClass: 'eval-red',
-      status: 'CONCLUÍDO', statusBoxClass: 'status-green', statusType: 'alert-row',
-      acaoTipo: 'view', acaoClass: 'btn-teal'
-    },
-    {
-      senha: 'CR-036', originIcon: this.icons.calendar,
-      clienteNome: 'Lucas Ferreira', clienteSub: '',
-      categoria: 'Cliente Rápido', categoriaClass: 'cat-gray',
-      operador: '-',
-      espera: '15 min', esperaAlerta: false, atendimento: '-',
-      avaliacao: '-', avaliacaoEmoji: '', avaliacaoClass: '',
-      status: 'NÃO COMPARECEU', statusBoxClass: 'status-red-text', statusType: 'missed-row',
-      acaoTipo: 'resgatar', acaoClass: ''
-    }
-  ];
+  atendimentosList: any[] = [];
 
   ngOnInit() {
-    this.carregarDadosApi();
-    this.carregarTempoMedio();
+    this.filialSub = this.filialService.selectedFilial$.subscribe((id: number | null) => {
+      this.selectedFilialId = id;
+      this.atualizarNomeFilial();
+      this.carregarDadosApi();
+      this.carregarTempoMedio();
+    });
 
-    // Atualização a cada 10 segundos
+    // Atualização a cada 30 segundos
     this.updateTimer = setInterval(() => {
       this.carregarDadosApi();
       this.carregarTempoMedio();
-    }, 10000);
+    }, 30000);
   }
 
   ngOnDestroy() {
-    if (this.updateTimer) {
-      clearInterval(this.updateTimer);
-    }
+    if (this.updateTimer) clearInterval(this.updateTimer);
+    if (this.filialSub) this.filialSub.unsubscribe();
+  }
+
+  private atualizarNomeFilial() {
+    this.filialService.getFiliais().subscribe((filiais: any[]) => {
+      const f = filiais.find((f: any) => f.id === this.selectedFilialId);
+      if (f) this.selectedFilialNome = f.nome;
+    });
   }
 
   selecionarPeriodo(periodo: 'hoje' | 'semana' | 'mes') {
     this.periodoAtivo = periodo;
-
-    // Mapa para o campo "periodo" da API de gráficos (usa nomenclatura diferente)
-    const periodoApiMap: Record<string, string> = { hoje: 'dia', semana: 'semana', mes: 'mes' };
-    this.carregarDadosApi(periodoApiMap[periodo]);
+    this.carregarDadosApi();
     this.carregarTempoMedio();
   }
 
   /**
-   * Busca o tempo médio no backend passando os dados ao vivo da sessão corrente.
-   * O backend agrega snapshots persistidos + dados ao vivo (apenas para "hoje").
+   * Busca o tempo médio no backend.
    */
   carregarTempoMedio() {
-    const somaVivo = this.guicheService.somaSegundosVivo;
-    const qtdVivo = this.guicheService.qtdVivo;
-
-    const params = new URLSearchParams({
-      periodo: this.periodoAtivo,
-      somaVivo: String(somaVivo),
-      qtdVivo: String(qtdVivo)
-    });
-
+    const periodMap = { hoje: 'dia', semana: 'semana', mes: 'mes' };
+    const p = periodMap[this.periodoAtivo] || 'dia';
+    const filialParam = this.selectedFilialId ? `&filialId=${this.selectedFilialId}` : '';
+    
     const token = localStorage.getItem('token') || '';
-    this.http.get<any>(`${this.apiUrl}/snapshots?${params.toString()}`, {
+    this.http.get<any>(`${this.apiUrl}/relatorios?periodo=${p}${filialParam}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (res) => {
-        this.tempoMedioAtendimentoStr = res.tempoFormatado || '0 min';
+        // Assume relatorios returns kpis or use dedicated overview
+        this.tempoMedioAtendimentoStr = res.kpis?.tempoMedio || '0 min';
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Erro ao carregar tempo médio:', err)
     });
   }
 
-  carregarDadosApi(periodo = 'dia') {
+  carregarDadosApi() {
+    const periodMap = { hoje: 'dia', semana: 'semana', mes: 'mes' };
+    const p = periodMap[this.periodoAtivo] || 'dia';
+    const filialParam = this.selectedFilialId ? `&filialId=${this.selectedFilialId}` : '';
+    
     const token = localStorage.getItem('token') || '';
-    this.http.get<any>(`${this.apiUrl}/relatorios?periodo=${periodo}`, {
+    this.http.get<any>(`${this.apiUrl}/overview?filialId=${this.selectedFilialId || ''}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
-      next: (dados) => {
-        if (dados.graficosPorHora) {
-          this.graficosPorHora = dados.graficosPorHora;
-          this.totalAtendidos = dados.totalAtendimentos || 0;
-          this.tempoMedioEsperaGeral = dados.tempoMedioEspera || 0;
+      next: (res) => {
+        if (res.kpis) {
+          this.totalAtendidos = parseInt(res.kpis.totalHoje, 10) || 0;
+          this.tempoMedioEsperaGeral = parseInt(res.kpis.tempoMedio, 10) || 0;
+          this.tempoMedioAtendimentoStr = res.kpis.tempoMedio;
 
-          this.maxHistoricoFila = Math.max(...this.graficosPorHora.map(g => g.historicoFila), 1);
-          this.maxTempoEspera = Math.max(...this.graficosPorHora.map(g => g.tempoEsperaMedio), 1);
-          this.maxTempoAtendimento = Math.max(...this.graficosPorHora.map(g => g.tempoAtendimentoMedio), 1);
-
+          // Replace mock list with real atendimentos from queue/history
+          this.atendimentosList = res.atendimentos || [];
+          
           this.cdr.detectChanges();
         }
       },

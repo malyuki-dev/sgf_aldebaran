@@ -57,6 +57,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
 
   private filialSub?: any;
   selectedFilialId: number | null = null;
+  selectedFilialNome: string = 'Carregando...';
 
   constructor(
     private guicheService: GuicheService,
@@ -85,8 +86,9 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
       funcao: ['Operador']
     });
 
-    this.filialSub = this.filialService.selectedFilial$.subscribe(id => {
+    this.filialSub = this.filialService.selectedFilial$.subscribe((id: number | null) => {
       this.selectedFilialId = id;
+      this.atualizarNomeFilial();
       this.guicheService.carregarGuichesDaApi(id || undefined);
     });
 
@@ -97,7 +99,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
     }, 10000);
 
     // Inscrever aos dados de guichês do serviço
-    this.guicheService.guiches$.subscribe(guiches => {
+    this.guicheService.guiches$.subscribe((guiches: any[]) => {
       this.guiches = guiches;
       this.cdr.detectChanges();
     });
@@ -124,6 +126,13 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  private atualizarNomeFilial() {
+    this.filialService.getFiliais().subscribe((filiais: any[]) => {
+      const f = filiais.find((f: any) => f.id === this.selectedFilialId);
+      if (f) this.selectedFilialNome = f.nome;
+    });
+  }
+
   ngOnDestroy() {
     if (this.baiasTimer) clearInterval(this.baiasTimer);
     if (this.relatoriosTimer) clearInterval(this.relatoriosTimer);
@@ -136,7 +145,7 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${this.apiUrl}/dashboard/relatorios?periodo=dia${filialParam}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
-      next: (dados) => {
+      next: (dados: any) => {
         this.tempoMedioAtendimentoGeral = dados.tempoMedioAtendimento || 0;
         this.cdr.detectChanges();
       }

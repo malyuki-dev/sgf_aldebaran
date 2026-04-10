@@ -9,18 +9,17 @@ $border: #e5e7eb;
 
 .relatorios-page {
   font-family: 'Inter', sans-serif;
-  background-color: $bg-page;
   min-height: 100vh;
 }
 
-/* HEADER BRANCO (Image 2) */
+/* HEADER TRANSPARENTE (Alinhado com Dashboard) */
 .page-header.white-header {
-  background: white;
-  padding: 16px 32px;
+  background: transparent;
+  padding: 0 0 24px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid $border;
+  border-bottom: none;
   color: $text-main;
 
   .header-left { display: flex; align-items: center; gap: 16px; }
@@ -39,7 +38,7 @@ $border: #e5e7eb;
   .header-right { display: flex; align-items: center; gap: 16px; }
   
   .date-pills {
-    display: flex; background: #f3f4f6; padding: 4px; border-radius: 8px;
+    display: flex; background: #e5e7eb; padding: 4px; border-radius: 8px;
     button {
       padding: 6px 16px; border: none; background: transparent; border-radius: 6px;
       font-weight: 600; color: $text-sec; cursor: pointer; font-size: 0.9rem;
@@ -64,9 +63,9 @@ $border: #e5e7eb;
 }
 
 .page-content {
-  padding: 32px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* KPI GRID */

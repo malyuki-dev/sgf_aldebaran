@@ -7,7 +7,7 @@
           Voltar ao Dashboard
         </a>
       </div>
-      <h1>Gerenciamento de Fila e Fluxo</h1>
+      <h1>Gerenciamento de Fila - {{ selectedFilialNome || 'Carregando...' }}</h1>
       <div class="statistics-bar">
         <span class="stat-pill"><lucide-icon [img]="icons.users" size="14"></lucide-icon> {{ filaEspera.length }} na
           fila</span>
