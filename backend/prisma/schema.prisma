@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model agendamento {
@@ -14,11 +13,10 @@ model agendamento {
   data        String  @db.VarChar
   hora        String  @db.VarChar
   servico_id  Int
+  filial_id   Int?
   status      String  @default("PENDENTE") @db.VarChar
   codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
   servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
-
-  filial_id Int?
   filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
 
   senha senha[]

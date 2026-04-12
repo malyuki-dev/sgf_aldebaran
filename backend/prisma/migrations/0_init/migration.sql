@@ -1,0 +1,127 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
+-- Required by the `clientes.id` default using uuid_generate_v4()
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- CreateTable
+CREATE TABLE "agendamento" (
+    "id" SERIAL NOT NULL,
+    "nomeCliente" VARCHAR NOT NULL,
+    "documento" VARCHAR,
+    "data" VARCHAR NOT NULL,
+    "hora" VARCHAR NOT NULL,
+    "servico_id" INTEGER NOT NULL,
+    "status" VARCHAR NOT NULL DEFAULT 'PENDENTE',
+    "codigo" VARCHAR,
+
+    CONSTRAINT "PK_a102b15cfec9ce6d8ac6193345f" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "atendimento" (
+    "id" SERIAL NOT NULL,
+    "guiche" INTEGER NOT NULL,
+    "inicioAtendimento" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "fimAtendimento" TIMESTAMP(6),
+    "notaAvaliacao" INTEGER,
+    "senha_id" INTEGER,
+
+    CONSTRAINT "PK_ad65f895dac5fe2b905001750c2" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "cliente" (
+    "id" SERIAL NOT NULL,
+    "nome" VARCHAR(150) NOT NULL,
+    "documento" VARCHAR(18) NOT NULL,
+    "email" VARCHAR(100) NOT NULL,
+    "telefone" VARCHAR(15),
+    "dataNascimento" DATE,
+    "endereco" VARCHAR(200),
+    "ativo" BOOLEAN NOT NULL DEFAULT true,
+    "criadoEm" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizadoEm" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletadoEm" TIMESTAMP(6),
+
+    CONSTRAINT "PK_18990e8df6cf7fe71b9dc0f5f39" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "clientes" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "nome" VARCHAR NOT NULL,
+    "email" VARCHAR NOT NULL,
+    "senha" VARCHAR NOT NULL,
+    "telefone" VARCHAR,
+    "tipo" VARCHAR NOT NULL DEFAULT 'CLIENT',
+    "cpf" VARCHAR,
+    "cnpj" VARCHAR,
+    "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" TIMESTAMP(6),
+
+    CONSTRAINT "PK_d76bf3571d906e4e86470482c08" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "senha" (
+    "id" SERIAL NOT NULL,
+    "numeroDisplay" VARCHAR NOT NULL,
+    "status" VARCHAR NOT NULL DEFAULT 'AGUARDANDO',
+    "dataCriacao" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "servico_id" INTEGER NOT NULL,
+    "tipo" VARCHAR,
+
+    CONSTRAINT "PK_b37a7066eee39372a6563da7e6d" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "servico" (
+    "id" SERIAL NOT NULL,
+    "nome" VARCHAR NOT NULL,
+    "sigla" VARCHAR NOT NULL,
+    "prioridadePeso" INTEGER NOT NULL DEFAULT 1,
+    "ativo" BOOLEAN NOT NULL DEFAULT true,
+    "deletadoEm" TIMESTAMP(6),
+
+    CONSTRAINT "PK_289d0aa6d49f9d0fd65aefc6677" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "usuario" (
+    "id" SERIAL NOT NULL,
+    "login" VARCHAR NOT NULL,
+    "senha" VARCHAR NOT NULL,
+    "nome" VARCHAR NOT NULL,
+
+    CONSTRAINT "PK_a56c58e5cabaa04fb2c98d2d7e2" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_f629da6cac8eef92c24a738f772" ON "agendamento"("codigo");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_ff8b9ce3895d7283cb8604d5685" ON "cliente"("documento");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_3cd5652ab34ca1a0a2c7a255313" ON "clientes"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_fd1214820b9f05720b26a917630" ON "clientes"("cpf");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_bd9bd4df1ccf6f9d83a6f4b26cb" ON "clientes"("cnpj");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_59bc805e13413e4be83be3a7752" ON "usuario"("login");
+
+-- AddForeignKey
+ALTER TABLE "agendamento" ADD CONSTRAINT "FK_65fbef35c493560dfa50ede21b2" FOREIGN KEY ("servico_id") REFERENCES "servico"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "atendimento" ADD CONSTRAINT "FK_5a06e5ba080d56c2f08596fdae1" FOREIGN KEY ("senha_id") REFERENCES "senha"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "senha" ADD CONSTRAINT "FK_5c96ad536fb91e74faedac3a1eb" FOREIGN KEY ("servico_id") REFERENCES "servico"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+

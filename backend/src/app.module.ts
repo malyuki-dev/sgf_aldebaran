@@ -15,6 +15,7 @@ import { LogModule } from './log/log.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FilialModule } from './filial/filial.module';
 import { GuicheModule } from './guiche/guiche.module';
+import { MobileProfileModule } from './mobile-profile/mobile-profile.module';
 import { NotificacaoModule } from './notificacao/notificacao.module';
 import { TaskManagementModule } from './task-management/task-management.module';
 
@@ -38,6 +39,7 @@ import { TaskManagementModule } from './task-management/task-management.module';
     DashboardModule,
     FilialModule,
     GuicheModule,
+    MobileProfileModule,
     NotificacaoModule,
     TaskManagementModule,
   ],
