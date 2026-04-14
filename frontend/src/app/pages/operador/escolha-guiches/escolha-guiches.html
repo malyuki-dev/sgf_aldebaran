@@ -123,7 +123,9 @@
         <!-- Footer do Card: Código de Atendimento (ocupado) ou Botão Selecionar (disponível) -->
         <div class="card-footer">
           <div *ngIf="guiche.ocupado" class="atendimento-info">
-            <small>Atendendo</small>
+            <small>
+              {{ guiche.situacaoAtendimento === 'CHAMANDO' ? 'Chamando' : guiche.situacaoAtendimento === 'ATENDENDO' ? 'Atendendo' : 'Sem ticket' }}
+            </small>
             <strong>{{ guiche.codigoAtendimento || '--' }}</strong>
           </div>
           <button

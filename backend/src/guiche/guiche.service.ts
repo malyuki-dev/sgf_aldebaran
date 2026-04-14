@@ -7,7 +7,7 @@ export class GuicheService {
   constructor(
     private prisma: PrismaService,
     private notificacaoService: NotificacaoService,
-  ) {}
+  ) { }
 
   async create(data: any) {
     const guiche = await this.prisma.guiche.create({
@@ -36,9 +36,30 @@ export class GuicheService {
     return await this.prisma.guiche.findMany({
       where: {
         deletadoEm: null,
-        filial: filialId ? { id: filialId, ativo: true } : { ativo: true }, 
+        filial: filialId ? { id: filialId, ativo: true } : { ativo: true },
       },
-      include: { filial: true },
+      include: {
+        filial: true,
+        operadorAtual: {
+          select: {
+            id: true,
+            nome: true,
+          },
+        },
+        atendimentos: {
+          where: { fimAtendimento: null },
+          orderBy: { inicioAtendimento: 'desc' },
+          take: 1,
+          include: {
+            senha: {
+              select: {
+                numeroDisplay: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: [{ filial: { nome: 'asc' } }, { numero: 'asc' }],
     });
   }
