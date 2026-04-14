@@ -90,10 +90,31 @@ export class FiliaisComponent implements OnInit {
   }
 
   salvarFilial() {
+    const normalize = (value: unknown): string | undefined => {
+      const text = (value ?? '').toString().trim();
+      return text.length > 0 ? text : undefined;
+    };
+
+    const nome = normalize(this.form.nome);
+    if (!nome) {
+      alert('Nome da filial e obrigatorio.');
+      return;
+    }
+
+    const payload = {
+      nome,
+      email: normalize(this.form.email),
+      endereco: normalize(this.form.endereco),
+      telefone: normalize(this.form.telefone),
+      cnpj: normalize(this.form.cnpj),
+      cor: normalize(this.form.cor),
+      ativo: this.form.ativo !== false,
+    };
+
     this.loading = true;
     const request = this.editando 
-      ? this.api.patch(`/filiais/${this.form.id}`, this.form)
-      : this.api.post('/filiais', this.form);
+      ? this.api.patch(`/filiais/${this.form.id}`, payload)
+      : this.api.post('/filiais', payload);
 
     request.subscribe({
       next: () => {

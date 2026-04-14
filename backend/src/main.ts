@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 // Ensure crypto is available globally for Node.js < 19
 if (!global.crypto) {
   global.crypto = require('crypto');
@@ -11,6 +13,8 @@ import { RedisIoAdapter } from './gateway/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.enableShutdownHooks();
 
   // 🔌 ADAPTADOR REDIS (Escalabilidade de Sockets)
   const redisIoAdapter = new RedisIoAdapter(app);
@@ -46,7 +50,8 @@ async function bootstrap() {
     console.log('🔓 CORS Habilitado');
     console.log('✅ Validação Global Ativada');
   } catch (error) {
-    if (error.code === 'EADDRINUSE') {
+    const err = error as NodeJS.ErrnoException;
+    if (err.code === 'EADDRINUSE') {
       console.error('❌ ERRO: A porta 3000 já está em uso!');
       console.error('💡 Dica: Verifique se outro servidor já está rodando ou use: fuser -k 3000/tcp');
       process.exit(1);
