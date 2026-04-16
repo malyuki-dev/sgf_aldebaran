@@ -228,7 +228,7 @@ export class SupervisorDashboardComponent implements OnInit {
 
   getGuichesAtivosInfo() {
     if (!this.guiches || this.guiches.length === 0) {
-      return { valor: '0/6', percentual: '0%' };
+      return { valor: '0/0', percentual: '0%' };
     }
     const ativos = this.guiches.filter(g => g.status !== 'vazio').length;
     const total = this.guiches.length;
