@@ -25,6 +25,8 @@ import { TotemInicialComponent } from './pages/totem/totem-inicial/totem-inicial
 import { TotemSenhaComponent } from './pages/totem/totem-senha/totem-senha.component';
 import { TotemTipoAtendimentoComponent } from './pages/totem/totem-tipo-atendimento/totem-tipo-atendimento.component';
 import { PainelTvComponent } from './pages/tv/painel-tv.component';
+import { TicketComponent } from './pages/mobile/ticket/ticket.component';
+import { ComprovanteComponent } from './pages/mobile/comprovante/comprovante.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -33,6 +35,8 @@ export const routes: Routes = [
   { path: 'signup', component: SignupComponent },
   { path: 'recover', component: RecoverComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'mobile/ticket/:id', component: TicketComponent },
+  { path: 'mobile/comprovante/:id', component: ComprovanteComponent },
 
   {
     path: 'client',
@@ -225,6 +229,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicial', pathMatch: 'full' },
       {
         path: 'setup',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/totem/totem-setup/totem-setup.component').then(
             (m) => m.TotemSetupComponent,

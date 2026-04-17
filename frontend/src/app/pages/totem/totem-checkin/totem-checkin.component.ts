@@ -1,7 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule } from '@angular/forms';
 import { TotemService } from '../../../services/totem.service';
 
 @Component({
@@ -23,14 +23,14 @@ export class TotemCheckinComponent {
   constructor(
     private router: Router,
     private totemService: TotemService
-  ) {}
+  ) { }
 
   // --- MODAL DE CÓDIGO ---
-  
+
   abrirModalCodigo() {
     this.mostrarModalCodigo = true;
     this.codigoDigitado = ''; // Limpa o campo ao abrir
-    
+
     // Opcional: Dar foco no input automaticamente (requer ViewChild, mas o usuário pode clicar)
   }
 
@@ -39,9 +39,10 @@ export class TotemCheckinComponent {
   }
 
   confirmarCodigo() {
-    if (this.codigoDigitado.trim().length > 0) {
-      console.log('Código confirmado:', this.codigoDigitado);
-      this.totemService.validarCheckin(this.codigoDigitado);
+    const codigoNormalizado = this.codigoDigitado.trim();
+    if (codigoNormalizado.length > 0) {
+      console.log('Código confirmado:', codigoNormalizado);
+      this.totemService.validarCheckin(codigoNormalizado);
       this.fecharModalCodigo();
     }
   }

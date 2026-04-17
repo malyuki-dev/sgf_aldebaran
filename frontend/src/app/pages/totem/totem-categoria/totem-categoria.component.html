@@ -1,93 +1,87 @@
- <div class="totem-container">
-
- 
-
+﻿<div class="totem-container">
   <header>
-
     <div class="brand-area">
-
-      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">
-
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="brand-logo">  
     </div>
-
     <div class="lang-switch">
-
       <div class="lang-option active">PT</div>
-
       <div class="lang-option">EN</div>
-
     </div>
-
   </header>
 
-
   <main class="main-content">
-
-   
-
-    <div class="center-wrapper">
-
-     
-
+    <div class="center-wrapper" *ngIf="!categoriaSelecionada">
       <div class="heading-group">
-
         <h1>Selecione a Categoria</h1>
-
         <p>Toque na opção correspondente</p>
-
       </div>
-
-
       <div class="cards-row">
-
-       
-
-        <div class="category-card"
-
-             *ngFor="let cat of categorias"
-
-             (click)="selecionarCategoria(cat)">
-
-         
-
+        <div class="category-card" *ngFor="let cat of categorias" (click)="selecionarCategoria(cat)">
           <div class="icon-box">
             <lucide-icon [img]="cat.icone" [size]="56" class="totem-icon"></lucide-icon>
           </div>
-
-         
-
           <h2>{{ cat.nome }}</h2>
-
           <p>{{ cat.descricao }}</p>
-
-         
-
         </div>
-
-
       </div>
-
-
+      
+      <div class="footer-action">
+        <button class="btn-back" routerLink="/totem/tipo-atendimento">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">      
+            <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+      </div>
     </div>
 
+    <!-- Tela do Contador de Garrafões (Design Figma) -->
+    <div class="garrafoes-wrapper" *ngIf="categoriaSelecionada">
 
-    <div class="footer-action">
+      <div class="garrafoes-card">
+        <!-- Título Superior -->
+        <h2 class="garrafoes-main-title">Selecione a Quantidade desejada de Garrafões de 20 L:</h2>
 
-      <button class="btn-back" routerLink="/totem/tipo-atendimento">
+        <div class="garrafoes-content">
+          <!-- Lado Esquerdo -->
+          <div class="garrafoes-left">
+            <div class="img-garrafoes-bg">
+              <img src="assets/garrafoes.svg" alt="Garrafões" class="img-garrafoes">
+            </div>
+            <h3 class="garrafoes-title">Quantidade de Garrafões</h3>
+            <p class="garrafoes-desc">Clique nos Seletores ao Lado para Aumentar ou Diminuir a<br>Quantidade de Garrafões</p>
+          </div>
 
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Divisor -->
+          <div class="garrafoes-divider"></div>
 
+          <!-- Lado Direito -->
+          <div class="garrafoes-right">
+            <div class="garrafoes-selector-container">
+              <div class="garrafoes-selector">
+                <button class="btn-control minus" (click)="diminuirQtde()">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path></svg>
+                </button>
+                <span class="qty-value">{{ quantidadeGarrafoes }}</span>
+                <button class="btn-control plus" (click)="aumentarQtde()">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+                </button>
+              </div>
+
+              <button class="btn-confirmar" (click)="confirmar()">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão Voltar Inferior -->
+      <button class="btn-voltar-bottom" (click)="cancelar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">      
           <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
-
         </svg>
-
         Voltar
-
       </button>
 
     </div>
-
-
   </main>
-
-</div> 
+</div>

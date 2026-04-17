@@ -15,12 +15,27 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('fila')
 export class FilaController {
-  constructor(private readonly filaService: FilaService) {}
+  constructor(private readonly filaService: FilaService) { }
 
   // Totem e Check-in
   @Post('totem/senha')
-  solicitarSenhaTotem(@Body() body: { tipo: string; categoria: string; filialId?: number }) {
-    return this.filaService.solicitarSenhaTotem(body.tipo, body.categoria, body.filialId);
+  solicitarSenhaTotem(
+    @Body()
+    body: {
+      tipo: string;
+      categoria?: string;
+      categoriaId?: number;
+      filialId?: number;
+      qtdeGarrafoes?: number;
+    },
+  ) {
+    return this.filaService.solicitarSenhaTotem(
+      body.tipo,
+      body.categoria,
+      body.filialId,
+      body.categoriaId,
+      body.qtdeGarrafoes,
+    );
   }
 
   @Post('checkin/validar')
@@ -94,8 +109,8 @@ export class FilaController {
   }
 
   @Post('chamar_proximo')
-  chamarProximo(@Body() body: { guiche: number }) {
-    return this.filaService.chamarProximo(body.guiche);
+  chamarProximo(@Body() body: { guiche: number; repetir?: boolean }) {
+    return this.filaService.chamarProximo(body.guiche, !!body.repetir);
   }
 
   @UseGuards(JwtAuthGuard)

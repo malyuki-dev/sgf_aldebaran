@@ -29,7 +29,7 @@
         </div>
       </div>
 
-      <button class="btn-voucher">
+      <button class="btn-voucher" [routerLink]="['/mobile/comprovante', proximoAgendamento.id]">
         <lucide-icon [img]="icons.qrcode" size="20"></lucide-icon>
         Abrir Voucher / Check-in
       </button>

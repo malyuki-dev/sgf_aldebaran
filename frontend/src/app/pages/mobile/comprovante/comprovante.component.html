@@ -1,76 +1,88 @@
-<div class="mobile-container">
-  
-  <!-- Cabeçalho -->
-  <div class="header-mobile">
-    <h2>Comprovante Digital</h2>
-    <p>Apresente na recepção</p>
+<div class="voucher-shell">
+  <div class="voucher-modal">
+    <div class="voucher-header">
+      <h2>Voucher de Agendamento:</h2>
+      <button
+        class="btn-refresh"
+        type="button"
+        (click)="recarregarAgora()"
+        [disabled]="!podeAtualizar"
+        title="Atualizar agora"
+      >
+        <lucide-icon [img]="icons.refresh" [size]="16"></lucide-icon>
+        {{ carregandoSilencioso ? 'Atualizando...' : 'Atualizar' }}
+      </button>
+    </div>
+
+    <p class="update-note" [class.syncing]="carregandoSilencioso">
+      {{ getTextoAtualizacao() }}
+    </p>
+
+    <div class="state loading" *ngIf="loading">
+      Carregando voucher...
+    </div>
+
+    <div class="state error" *ngIf="!loading && erro">
+      {{ erro }}
+    </div>
+
+    <div class="voucher-body" *ngIf="!loading && !erro && dados">
+      <div class="meta-grid">
+        <div class="meta-item">
+          <lucide-icon [img]="icons.calendar" [size]="16"></lucide-icon>
+          <div>
+            <span>Data</span>
+            <strong>{{ getDataFormatada() }}</strong>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <lucide-icon [img]="icons.clock" [size]="16"></lucide-icon>
+          <div>
+            <span>Horario</span>
+            <strong>{{ getHorarioExibicao() }}</strong>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <lucide-icon [img]="icons.map" [size]="16"></lucide-icon>
+          <div>
+            <span>Local</span>
+            <strong>{{ getLocalExibicao() }}</strong>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <lucide-icon [img]="icons.tag" [size]="16"></lucide-icon>
+          <div>
+            <span>Status</span>
+            <strong class="status-text" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-panel" *ngIf="qrCodeImage">
+        <img [src]="qrCodeImage" alt="QR Code de Check-in" />
+      </div>
+
+    </div>
+
+    <div class="voucher-secondary" *ngIf="!loading && !erro && dados">
+      <div class="ou-divider">
+        <span>OU</span>
+      </div>
+
+      <div class="codigo-panel" *ngIf="codigoCheckinExibicao">
+        {{ codigoCheckinExibicao }}
+      </div>
+
+      <p class="hint">
+        Escaneie o QR Code ou digite o codigo no Totem para confirmar sua chegada.
+      </p>
+
+      <button class="btn-fechar" [routerLink]="['/client/home']" type="button">
+        Fechar
+      </button>
+    </div>
   </div>
-
-  <!-- Estado de Carregamento -->
-  <div *ngIf="loading" class="loading">Carregando...</div>
-
-  <!-- Cartão Principal -->
-  <div *ngIf="!loading && dados" class="card pass-card">
-    
-    <div class="status-icon">
-      <lucide-icon [img]="icons.check" [size]="48"></lucide-icon>
-    </div>
-
-    <h1>Confirmado</h1>
-    <p class="status-text">Seu horário está reservado.</p>
-
-    <!-- ÁREA DO QR CODE (Imagem Gerada) -->
-    <div class="qr-wrapper" *ngIf="qrCodeImage">
-      <img [src]="qrCodeImage" alt="QR Code Agendamento">
-    </div>
-
-    <!-- Lista de Informações -->
-    <div class="info-list">
-      
-      <div class="info-item">
-        <lucide-icon [img]="icons.calendar" class="icon"></lucide-icon>
-        <div>
-          <span>DATA</span>
-          <strong>{{ dados.data | date:'dd/MM/yyyy' }}</strong>
-        </div>
-      </div>
-
-      <div class="info-item">
-        <lucide-icon [img]="icons.clock" class="icon"></lucide-icon>
-        <div>
-          <span>HORÁRIO</span>
-          <strong>{{ dados.hora }}</strong>
-        </div>
-      </div>
-
-      <div class="info-item">
-        <lucide-icon [img]="icons.user" class="icon"></lucide-icon>
-        <div>
-          <span>CLIENTE</span>
-          <strong>{{ dados.nomeCliente }}</strong>
-        </div>
-      </div>
-
-      <div class="info-item">
-        <lucide-icon [img]="icons.map" class="icon"></lucide-icon>
-        <div>
-          <span>SERVIÇO</span>
-          <strong>{{ dados.servico?.nome }}</strong>
-        </div>
-      </div>
-
-       <div class="info-item">
-        <lucide-icon [img]="icons.file" class="icon"></lucide-icon>
-        <div>
-          <span>DOCUMENTO</span>
-          <strong>{{ dados.documento || '-' }}</strong>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div *ngIf="!loading && !dados" class="error">Agendamento não encontrado.</div>
-  
-  <p class="footer-id">ID do Agendamento: #{{ dados?.id }}</p>
 </div>

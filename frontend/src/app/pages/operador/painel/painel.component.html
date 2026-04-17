@@ -43,7 +43,7 @@
       <div class="operator-profile">
         <div class="profile-info">
           <p class="name">{{ nomeOperador }}</p>
-          <p class="guiche">Guichê {{ numeroGuiche }}</p>
+          <p class="guiche">{{ formatarTituloGuiche(numeroGuiche) }}</p>
         </div>
         <div class="avatar">
           <img src="assets/Icon (7).svg" class="icon" alt="" />
@@ -61,7 +61,7 @@
     <div class="left-section">
       <!-- Call Buttons -->
       <div class="call-buttons">
-        <button class="btn-call-primary" (click)="chamarProximo()" [disabled]="!numeroGuiche">
+        <button class="btn-call-primary" (click)="chamarProximo()" [disabled]="!numeroGuiche || (ticketAtual && ticketAtual.status !== 'FINALIZADO' && ticketAtual.status !== 'CANCELADO')" [class.disabled-btn]="ticketAtual && ticketAtual.status !== 'FINALIZADO' && ticketAtual.status !== 'CANCELADO'">
           <div class="btn-call-wrap">
             <img src="assets/Icon (3).svg" class="icon" alt="" />
             <span>Chamar Próximo</span>
@@ -250,9 +250,9 @@
           </div>
           <p class="ticket-service">{{ ticket.servico }}</p>
           <div class="queue-item-footer">
-            <span class="queue-position">
-              <img src="assets/Vector (1).svg" class="icon queue-icon-img" alt="" />
-              {{ ticket.posicao }}
+            <span class="queue-position" *ngIf="ticket.qtdeGarrafoes > 0">
+              <img src="assets/Vector (1).svg" class="icon queue-icon-img" alt="" style="width:12px; margin-right:4px;" />
+              {{ ticket.qtdeGarrafoes }}
             </span>
           </div>
         </div>
@@ -320,7 +320,7 @@
                (click)="g.status !== 'FECHADO' && selecionarGuicheTransferencia(g.id)">
             <ng-container *ngIf="g.status !== 'FECHADO'">
               <div class="guiche-header">
-                <span>Guichê {{ g.guiche }}</span>
+                <span>{{ formatarTituloGuiche(g.guiche) }}</span>
                 <span class="badge-status" [class.disponivel]="g.status === 'DISPONÍVEL'">{{ g.status }}</span>
               </div>
               <div class="guiche-operador">
@@ -334,7 +334,7 @@
               </div>
             </ng-container>
             <ng-container *ngIf="g.status === 'FECHADO'">
-              <div class="guiche-fechado-title">Guichê {{ g.guiche }}</div>
+              <div class="guiche-fechado-title">{{ formatarTituloGuiche(g.guiche) }}</div>
               <div class="guiche-fechado-subtitle">Fechado</div>
             </ng-container>
           </div>
@@ -363,7 +363,7 @@
     <div class="success-flux">
       <span class="senha">{{ ticketAtual?.senha }}</span>
       <span class="seta">⟶</span>
-      <span class="guiche-destino">Guichê {{ guicheTransferenciaDestino?.guiche || '05' }} <span>({{ guicheTransferenciaDestino?.nome || 'Gustavo C.' }})</span></span>
+      <span class="guiche-destino">{{ formatarTituloGuiche(guicheTransferenciaDestino?.guiche || '05') }} <span>({{ guicheTransferenciaDestino?.nome || 'Gustavo C.' }})</span></span>
     </div>
     <button class="btn-voltar-console" (click)="encerrarTransferencia()">
       Voltar ao Console

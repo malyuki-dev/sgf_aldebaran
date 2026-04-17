@@ -85,7 +85,7 @@
         
         <!-- Header do Card: Número + Badge Status -->
         <div class="card-header">
-          <span class="guiche-numero">GUICHÊ {{ guiche.numero }}</span>
+          <span class="guiche-numero">{{ formatarTituloGuiche(guiche.numero) }}</span>
           <span class="status-badge" 
                 [class.badge-ocupado]="guiche.ocupado"
                 [class.badge-disponivel]="!guiche.ocupado">

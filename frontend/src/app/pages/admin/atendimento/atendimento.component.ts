@@ -39,6 +39,18 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   };
   private filialSub?: any;
 
+  formatarTituloGuiche(numero: string | number): string {
+    if (!numero) return '';
+    const limpo = String(numero).trim();
+    if (/^Guich[êe]/i.test(limpo)) {
+      return limpo.toUpperCase();
+    }
+    if (!isNaN(Number(limpo))) {
+      return `GUICHÊ ${limpo}`;
+    }
+    return limpo.toUpperCase();
+  }
+
   constructor(
     private api: ApiService,
     private filialService: FilialService,

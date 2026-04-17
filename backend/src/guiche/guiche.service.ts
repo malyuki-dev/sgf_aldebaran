@@ -9,7 +9,37 @@ export class GuicheService {
     private notificacaoService: NotificacaoService,
   ) { }
 
+  private normalizarDadosGuiche(data: any): any {
+    const normalizarString = (val: any) => {
+      if (val === undefined || val === null) return val;
+      return String(val)
+        .replace(/^Guich[êe]\s*/i, '')
+        .trim();
+    };
+
+    if ('numero' in data) {
+      data.numero = normalizarString(data.numero);
+    }
+    if ('nome' in data) {
+      data.nome = normalizarString(data.nome);
+    }
+
+    if (data.numero && !data.nome) data.nome = data.numero;
+    if (data.nome && !data.numero) data.numero = data.nome;
+
+    if ('numero' in data && 'nome' in data) {
+      data.nome = data.numero;
+    }
+
+    if (('numero' in data && data.numero === '') || ('nome' in data && data.nome === '')) {
+      throw new BadRequestException('Número/Nome do guichê não pode ser vazio');
+    }
+
+    return data;
+  }
+
   async create(data: any) {
+    data = this.normalizarDadosGuiche(data);
     const guiche = await this.prisma.guiche.create({
       data: {
         numero: data.numero,
@@ -47,7 +77,10 @@ export class GuicheService {
           },
         },
         atendimentos: {
-          where: { fimAtendimento: null },
+          where: {
+            fimAtendimento: null,
+            senha: { status: { in: ['CHAMADO', 'EM_ATENDIMENTO'] } }
+          },
           orderBy: { inicioAtendimento: 'desc' },
           take: 1,
           include: {
@@ -75,7 +108,8 @@ export class GuicheService {
   }
 
   async update(id: number, data: any) {
-    const { id: _, filial, criadoEm, deletadoEm, ...updateData } = data;
+    const { id: _, filial, criadoEm, deletadoEm, ...updateDataRaw } = data;
+    const updateData = this.normalizarDadosGuiche(updateDataRaw);
 
     // Ensure filial_id is numeric if provided
     if (updateData.filial_id) updateData.filial_id = +updateData.filial_id;

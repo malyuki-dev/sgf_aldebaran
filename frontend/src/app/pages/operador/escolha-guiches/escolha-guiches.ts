@@ -138,13 +138,13 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
     this.filialService.getFiliais().subscribe({
       next: (data) => {
         this.filiais = data;
-        
+
         // Inicializa com a filial salva se existir
         const savedId = this.filialService.getSelectedFilialId();
         if (savedId) {
           this.filialSelecionada = savedId.toString();
         }
-        
+
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -245,6 +245,18 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
   trocarIdioma(idioma: string) {
     this.idiomaAtivo = idioma;
     console.log('Idioma alterado para:', idioma);
+  }
+
+  formatarTituloGuiche(numero: string): string {
+    const limpo = String(numero).trim();
+    if (/^Guich[êe]/i.test(limpo)) {
+      return limpo.toUpperCase();
+    }
+    // Se for apenas número, adiciona GUICHÊ, senão mantém o texto como veio
+    if (!isNaN(Number(limpo))) {
+      return `GUICHÊ ${limpo}`;
+    }
+    return limpo.toUpperCase();
   }
 
   logout() {

@@ -15,24 +15,26 @@ export class FilaService {
     private prisma: PrismaService,
     private notificacaoService: NotificacaoService,
     private notificacaoGateway: NotificacaoGateway,
-  ) {}
+  ) { }
 
   // Totem ticket generation logic
   async solicitarSenhaTotem(
     tipoRaw: string,
-    nomeCategoria: string,
+    nomeCategoria?: string,
     filialId?: number,
+    categoriaId?: number,
+    qtdeGarrafoes?: number,
   ) {
-    const servico = await this.prisma.servico.findFirst({
-      where: {
-        nome: nomeCategoria,
-        ...(filialId ? { filial_id: +filialId } : {}),
-      },
+    const filialNormalizada = filialId ? +filialId : null;
+    const servico = await this.buscarServicoValidoParaTotem({
+      categoriaId,
+      nomeCategoria,
+      filialId: filialNormalizada,
     });
 
     if (!servico) {
       throw new BadRequestException(
-        `Servico '${nomeCategoria}' nao cadastrado para esta unidade.`,
+        `Servico '${nomeCategoria || categoriaId}' nao cadastrado para esta unidade.`,
       );
     }
 
@@ -43,26 +45,32 @@ export class FilaService {
       (tipoRaw || '').toLowerCase() === 'preferencial'
         ? 'Preferencial'
         : 'Convencional';
-    const prefixo = tipoFormatado === 'Preferencial' ? 'P' : 'C';
+    const prefixoTipo = tipoFormatado === 'Preferencial' ? 'P' : 'C';
+    const codigoCategoria = this.obterCodigoCategoria(
+      servico.prefixo,
+      servico.sigla,
+    );
 
     const totalHoje = await this.prisma.senha.count({
       where: {
         dataCriacao: { gte: startOfToday },
-        filial_id: filialId ? +filialId : null,
+        filial_id: filialNormalizada,
+        servico_id: servico.id,
       },
     });
 
     const sequencial = (totalHoje + 1).toString().padStart(3, '0');
-    const numeroDisplay = `${prefixo}-${servico.sigla}${sequencial}`;
+    const numeroDisplay = `${prefixoTipo}-${codigoCategoria}${sequencial}`;
 
     const novaSenha = await this.prisma.senha.create({
       data: {
         numeroDisplay,
         status: 'AGUARDANDO',
-        filial_id: filialId ? +filialId : null,
+        filial_id: filialNormalizada,
         servico_id: servico.id,
         tipoOrigem: 'TOTEM',
         tipo: tipoFormatado,
+        qtdeGarrafoes: qtdeGarrafoes || 0,
       },
     });
 
@@ -77,24 +85,36 @@ export class FilaService {
   }
 
   async validarCheckin(codigo: string, filialId?: number) {
-    if (!codigo) throw new BadRequestException('Codigo obrigatorio.');
+    const codigoNormalizado = this.normalizarCodigoCheckin(codigo);
+    if (!codigoNormalizado)
+      throw new BadRequestException('Codigo obrigatorio.');
 
-    const agendamento = await this.prisma.agendamento.findUnique({
-      where: { codigo },
-      include: { servico: true },
-    });
+    const agendamento = await this.buscarAgendamentoPorCodigoCheckin(
+      codigoNormalizado,
+    );
 
     if (!agendamento) {
       return { valido: false, mensagem: 'Agendamento nao encontrado.' };
     }
-    if (agendamento.status === 'REALIZADO') {
+    if (agendamento.status === 'CANCELADO') {
+      return { valido: false, mensagem: 'Agendamento cancelado.' };
+    }
+    if (agendamento.status === 'CONFIRMADO') {
       return { valido: false, mensagem: 'Check-in ja realizado.' };
     }
+    if (agendamento.status === 'REALIZADO') {
+      return { valido: false, mensagem: 'Atendimento ja finalizado.' };
+    }
+
+    const filialEfetiva =
+      filialId !== undefined && filialId !== null
+        ? filialId
+        : (agendamento.filial_id ?? null);
 
     const configBonus = await this.prisma.configuracao.findFirst({
       where: {
         chave: 'BONUS_PRIORIDADE_AGENDAMENTO',
-        filial_id: filialId || null,
+        filial_id: filialEfetiva,
       },
     });
     const bonus = Number(configBonus?.valor) || 2;
@@ -104,7 +124,7 @@ export class FilaService {
     const count = await this.prisma.senha.count({
       where: {
         servico_id: agendamento.servico.id,
-        filial_id: filialId || undefined,
+        filial_id: filialEfetiva,
         dataCriacao: { gt: hoje },
       },
     });
@@ -113,12 +133,16 @@ export class FilaService {
     const configMod = await this.prisma.configuracao.findFirst({
       where: {
         chave: 'MODIFICADOR_AGENDAMENTO',
-        filial_id: filialId || null,
+        filial_id: filialEfetiva,
       },
     });
     const mod = configMod?.valor || 'A';
+    const codigoCategoria = this.obterCodigoCategoria(
+      agendamento.servico.prefixo,
+      agendamento.servico.sigla,
+    );
 
-    const numeroDisplay = `C-${agendamento.servico.sigla}${mod}${numeroSeq}`;
+    const numeroDisplay = `C-${codigoCategoria}${mod}${numeroSeq}`;
 
     const senhaGerada = await this.prisma.senha.create({
       data: {
@@ -128,14 +152,14 @@ export class FilaService {
         tipoOrigem: 'AGENDAMENTO',
         prioridade: (agendamento.servico.prioridadePeso || 0) + bonus,
         servico: { connect: { id: agendamento.servico.id } },
-        filial: filialId ? { connect: { id: filialId } } : undefined,
+        filial: filialEfetiva ? { connect: { id: filialEfetiva } } : undefined,
         agendamento: { connect: { id: agendamento.id } },
       },
     });
 
     await this.prisma.agendamento.update({
       where: { id: agendamento.id },
-      data: { status: 'REALIZADO' },
+      data: { status: 'CONFIRMADO' },
     });
 
     await this.notificacaoService.criar({
@@ -311,7 +335,12 @@ export class FilaService {
     }
 
     const ocupado = await this.prisma.agendamento.findFirst({
-      where: { data: dados.data, hora: dados.hora },
+      where: {
+        data: dados.data,
+        hora: dados.hora,
+        filial_id: fId,
+        status: { not: 'CANCELADO' },
+      },
     });
     if (ocupado) throw new BadRequestException('Horario ocupado.');
 
@@ -321,8 +350,10 @@ export class FilaService {
         documento: dados.documento,
         data: dados.data,
         hora: dados.hora,
-        status: 'CONFIRMADO',
-        codigo: dados.codigo,
+        status: 'PENDENTE',
+        codigo: dados.codigo
+          ? String(dados.codigo).trim().toUpperCase()
+          : null,
         servico: { connect: { id: Number(dados.servico_id) } },
         filial: fId ? { connect: { id: fId } } : undefined,
       },
@@ -350,8 +381,9 @@ export class FilaService {
 
   async excluirAgendamento(id: number) {
     await this.buscarAgendamento(id);
-    return await this.prisma.agendamento.delete({
+    return await this.prisma.agendamento.update({
       where: { id },
+      data: { status: 'CANCELADO' },
     });
   }
 
@@ -368,7 +400,11 @@ export class FilaService {
     const count = await this.prisma.senha.count({
       where: { servico_id: servicoId, dataCriacao: { gt: hoje } },
     });
-    const numeroDisplay = `${servico.sigla}-${(count + 1)
+    const codigoCategoria = this.obterCodigoCategoria(
+      servico.prefixo,
+      servico.sigla,
+    );
+    const numeroDisplay = `${codigoCategoria}-${(count + 1)
       .toString()
       .padStart(3, '0')}`;
 
@@ -392,12 +428,16 @@ export class FilaService {
     return senha;
   }
 
-  async chamarProximo(guicheId: number) {
+  async chamarProximo(guicheId: number, repetir = false) {
     const guicheInfo = await this.prisma.guiche.findUnique({
       where: { id: guicheId },
     });
 
     if (!guicheInfo) throw new NotFoundException('Guiche nao encontrado!');
+
+    if (repetir) {
+      return this.rechamarSenhaAtual(guicheId, guicheInfo.numero?.toString());
+    }
 
     const proxima = await this.prisma.senha.findFirst({
       where: {
@@ -435,6 +475,11 @@ export class FilaService {
       },
     });
 
+    await this.prisma.guiche.update({
+      where: { id: guicheId },
+      data: { atendimentoAtualCodigo: senhaAtualizada.numeroDisplay },
+    });
+
     this.notificacaoGateway.broadcastTicket({
       ticketId: senhaAtualizada.numeroDisplay,
       category: senhaAtualizada.servico?.nome || 'Servico',
@@ -445,12 +490,70 @@ export class FilaService {
     return senhaAtualizada;
   }
 
+  private async rechamarSenhaAtual(guicheId: number, guicheNumero?: string) {
+    const atendimentoAberto = await this.prisma.atendimento.findFirst({
+      where: {
+        guiche: guicheId,
+        fimAtendimento: null,
+        senha: {
+          status: { in: ['CHAMADO', 'EM_ATENDIMENTO'] },
+        },
+      },
+      orderBy: { id: 'desc' },
+      include: {
+        senha: { include: { agendamento: true, servico: true } },
+      },
+    });
+
+    if (!atendimentoAberto?.senha) {
+      throw new NotFoundException('Nenhuma senha ativa para rechamada neste guiche.');
+    }
+
+    const senhaAtual = atendimentoAberto.senha;
+
+    this.notificacaoGateway.broadcastTicket({
+      ticketId: senhaAtual.numeroDisplay,
+      category: senhaAtual.servico?.nome || 'Servico',
+      guicheOrDoca: guicheNumero || guicheId.toString(),
+      calledAt: new Date(),
+    });
+
+    return senhaAtual;
+  }
+
+  private async encerrarAtendimentoAbertoPorSenha(senhaId: number) {
+    const atendimentosAbertos = await this.prisma.atendimento.findMany({
+      where: { senha_id: senhaId, fimAtendimento: null },
+      select: { id: true, guiche: true },
+    });
+
+    if (atendimentosAbertos.length > 0) {
+      await this.prisma.atendimento.updateMany({
+        where: { id: { in: atendimentosAbertos.map(a => a.id) } },
+        data: { fimAtendimento: new Date() },
+      });
+
+      const guichesIds = atendimentosAbertos
+        .map(a => a.guiche)
+        .filter(id => id !== null) as number[];
+
+      if (guichesIds.length > 0) {
+        await this.prisma.guiche.updateMany({
+          where: { id: { in: guichesIds } },
+          data: { atendimentoAtualCodigo: null },
+        });
+      }
+    }
+  }
+
   async iniciarAtendimento(senhaId: number) {
-    return await this.prisma.senha.update({
+    const atualizado = await this.prisma.senha.update({
       where: { id: senhaId },
       data: { status: 'EM_ATENDIMENTO' },
       include: { agendamento: true, servico: true },
     });
+    this.notificacaoGateway.broadcastRefresh();
+    return atualizado;
   }
 
   async finalizarAtendimento(senhaId: number) {
@@ -459,19 +562,36 @@ export class FilaService {
       data: { status: 'FINALIZADO' },
     });
 
-    await this.prisma.atendimento.updateMany({
-      where: { senha_id: senhaId, fimAtendimento: null },
-      data: { fimAtendimento: new Date() },
-    });
+    if (senha.agendamento_id) {
+      await this.prisma.agendamento.update({
+        where: { id: senha.agendamento_id },
+        data: { status: 'REALIZADO' },
+      });
+    }
+
+    await this.encerrarAtendimentoAbertoPorSenha(senhaId);
+    this.notificacaoGateway.broadcastRefresh();
 
     return senha;
   }
 
   async naoCompareceu(senhaId: number) {
-    return await this.prisma.senha.update({
+    const senha = await this.prisma.senha.update({
       where: { id: senhaId },
       data: { status: 'CANCELADO' },
     });
+
+    if (senha.agendamento_id) {
+      await this.prisma.agendamento.update({
+        where: { id: senha.agendamento_id },
+        data: { status: 'CANCELADO' },
+      });
+    }
+
+    await this.encerrarAtendimentoAbertoPorSenha(senhaId);
+    this.notificacaoGateway.broadcastRefresh();
+
+    return senha;
   }
 
   async listarProximas(guicheId: number) {
@@ -492,10 +612,54 @@ export class FilaService {
   }
 
   async listarPainel() {
-    return await this.prisma.senha.findMany({
-      where: { status: 'CHAMADO' },
-      orderBy: { id: 'desc' },
-      take: 5,
+    // Buscar os últimos 20 atendimentos para extrair senhas únicas recém-chamadas
+    const recentes = await this.prisma.atendimento.findMany({
+      orderBy: { inicioAtendimento: 'desc' },
+      take: 20,
+      include: {
+        senha: {
+          include: { servico: true }
+        },
+        guiche_rel: true
+      }
+    });
+
+    const senhasUnicas: any[] = [];
+    const seen = new Set();
+    for (const atd of recentes) {
+      if (atd.senha && !seen.has(atd.senha.id)) {
+        seen.add(atd.senha.id);
+        senhasUnicas.push(atd);
+      }
+      if (senhasUnicas.length === 5) break;
+    }
+
+    return senhasUnicas.map(atendimento => {
+      const senha = atendimento.senha;
+      const guicheRel = atendimento.guiche_rel;
+
+      const limpo = String(guicheRel?.numero || guicheRel?.nome || '').trim();
+      let numeroGuiche = '--';
+      if (limpo) {
+        if (/^(Guich[êe]|Baia|Doca)/i.test(limpo)) {
+          numeroGuiche = limpo.toUpperCase();
+        } else {
+          const servNome = (senha.servico?.nome || '').toLowerCase();
+          const isCarga = servNome.includes('caminh') || servNome.includes('retirada') || servNome.includes('carga') || servNome.includes('doca') || servNome.includes('baia');
+          numeroGuiche = isCarga ? `BAIA ${limpo}` : `GUICHÊ ${limpo}`;
+        }
+      }
+
+      return {
+        id: senha.id,
+        numero: senha.numeroDisplay,
+        senha: senha.numeroDisplay,
+        categoria: senha.servico?.nome || 'Servico',
+        servico: senha.servico,
+        guiche: numeroGuiche,
+        guicheNumero: numeroGuiche,
+        dataCriacao: senha.dataCriacao,
+      };
     });
   }
 
@@ -636,5 +800,88 @@ export class FilaService {
         guiche_rel: { select: { numero: true, nome: true } },
       },
     });
+  }
+
+  private obterCodigoCategoria(prefixo?: string | null, sigla?: string | null): string {
+    const base = (prefixo?.trim() || sigla?.trim() || 'XX').toUpperCase();
+    const codigo = base.replace(/[^A-Z0-9]/g, '');
+    return codigo || 'XX';
+  }
+
+  private normalizarCodigoCheckin(codigoRaw: string): string {
+    const normalizado = String(codigoRaw || '').trim().toUpperCase();
+    if (!normalizado) return '';
+    return normalizado.startsWith('#')
+      ? normalizado.substring(1)
+      : normalizado;
+  }
+
+  private async buscarAgendamentoPorCodigoCheckin(codigoNormalizado: string) {
+    if (codigoNormalizado.startsWith('AGENDAMENTO:')) {
+      const id = Number(codigoNormalizado.replace('AGENDAMENTO:', '').trim());
+      if (Number.isFinite(id) && id > 0) {
+        return this.prisma.agendamento.findUnique({
+          where: { id },
+          include: { servico: true },
+        });
+      }
+    }
+
+    return this.prisma.agendamento.findFirst({
+      where: {
+        OR: [
+          { codigo: codigoNormalizado },
+          { codigo: codigoNormalizado.toLowerCase() },
+          { codigo: codigoNormalizado.toUpperCase() },
+        ],
+      },
+      include: { servico: true },
+    });
+  }
+
+  private async buscarServicoValidoParaTotem(params: {
+    categoriaId?: number;
+    nomeCategoria?: string;
+    filialId?: number | null;
+  }) {
+    const { categoriaId, nomeCategoria, filialId } = params;
+    const whereBase = { deletadoEm: null, ativo: true };
+
+    if (categoriaId) {
+      const servicoPorId = await this.prisma.servico.findFirst({
+        where: {
+          ...whereBase,
+          id: +categoriaId,
+          ...(filialId !== null
+            ? { OR: [{ filial_id: filialId }, { filial_id: null }] }
+            : {}),
+        },
+      });
+      if (servicoPorId) return servicoPorId;
+    }
+
+    if (!nomeCategoria) return null;
+
+    const candidatos = await this.prisma.servico.findMany({
+      where: {
+        ...whereBase,
+        nome: nomeCategoria,
+        ...(filialId !== null
+          ? { OR: [{ filial_id: filialId }, { filial_id: null }] }
+          : {}),
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    if (!candidatos.length) return null;
+    if (filialId !== null) {
+      return (
+        candidatos.find((s) => s.filial_id === filialId) ||
+        candidatos.find((s) => s.filial_id === null) ||
+        candidatos[0]
+      );
+    }
+
+    return candidatos[0];
   }
 }

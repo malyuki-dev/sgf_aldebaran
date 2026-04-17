@@ -827,6 +827,7 @@
   z-index: 1000;
   animation: slideInRight 0.3s ease-out forwards;
   min-width: 290px;
+  overflow: hidden;
 }
 
 .toast-container::after {
@@ -834,14 +835,20 @@
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 100%;
+  width: 0;
   height: 3px;
   background: #22c55e;
+  animation: toastProgress 3s linear forwards;
 }
 
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastProgress {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
 .toast-check {
@@ -1588,8 +1595,13 @@
   display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.2s;
 }
 .btn-finalizar { background: transparent; border: 1px solid #cbd5e1; color: #94a3b8; }
-.btn-finalizar:not([disabled]):hover { background: #f1f5f9; color: #1e293b; border-color: #94a3b8; }
-.btn-finalizar:not([disabled]) img { filter: none !important; }
+.btn-finalizar:not([disabled]) {
+  background: #10b981; /* Verde do Figma quando ativo */
+  color: #ffffff;
+  border-color: #10b981;
+}
+.btn-finalizar:not([disabled]):hover { background: #059669; border-color: #059669; color: #ffffff; }
+.btn-finalizar:not([disabled]) img { filter: brightness(0) invert(1) !important; }
 .btn-finalizar[disabled] img { filter: grayscale(1) opacity(0.5); }
 .btn-finalizar img { width: 14px; }
 
