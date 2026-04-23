@@ -7,7 +7,7 @@ export default defineConfig({
     seed: 'tsx prisma/seed-admin.ts',
   },
   datasource: {
-    url: process.env.DATABASE_URL!,
-    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL!,
+    url: process.env.DATABASE_URL ?? '',
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });

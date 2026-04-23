@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface GuicheOperador {
@@ -11,6 +11,7 @@ export interface GuicheOperador {
   operador: string | null;
   logado: string | null;
   codigoAtendimento: string | null;
+  situacaoAtendimento?: 'CHAMANDO' | 'ATENDENDO' | null;
 }
 
 @Injectable({
@@ -27,15 +28,51 @@ export class GuicheService {
 
   listOperatorGuiches(filialId?: number): Observable<GuicheOperador[]> {
     const params = filialId ? `?filialId=${filialId}` : '';
-    return this.http.get<GuicheOperador[]>(`${this.apiUrl}/operador${params}`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .get<any[]>(`${this.apiUrl}/operador${params}`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(map((lista) => lista.map((item) => this.mapToOperadorGuiche(item))));
   }
 
   getCurrentOperatorGuiche(): Observable<GuicheOperador | null> {
-    return this.http.get<GuicheOperador | null>(`${this.apiUrl}/operador/atual`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .get<any | null>(`${this.apiUrl}/operador/atual`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(map((item) => (item ? this.mapToOperadorGuiche(item) : null)));
+  }
+
+  private mapToOperadorGuiche(item: any): GuicheOperador {
+    const statusTexto = (item?.status ?? '').toString().toUpperCase();
+    const ocupado = Boolean(item?.operadorAtualId) || statusTexto === 'OCUPADO';
+
+    const atendimentoAtual = Array.isArray(item?.atendimentos) ? item.atendimentos[0] : null;
+    const statusSenha = (atendimentoAtual?.senha?.status ?? '').toString().toUpperCase();
+    const situacaoAtendimento =
+      statusSenha === 'CHAMADO'
+        ? 'CHAMANDO'
+        : statusSenha === 'EM_ATENDIMENTO'
+          ? 'ATENDENDO'
+          : null;
+
+    const logado = item?.loginOperadorEm
+      ? new Date(item.loginOperadorEm).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      : null;
+
+    return {
+      id: Number(item?.id),
+      numero: String(item?.numero ?? item?.nome ?? item?.id ?? ''),
+      ocupado,
+      status: ocupado ? 'OCUPADO' : 'DISPONIVEL',
+      operador: item?.operadorAtual?.nome ?? null,
+      logado,
+      codigoAtendimento: atendimentoAtual?.senha?.numeroDisplay ?? item?.atendimentoAtualCodigo ?? null,
+      situacaoAtendimento,
+    };
   }
 
   selectGuiche(guicheId: number): Observable<GuicheOperador> {
