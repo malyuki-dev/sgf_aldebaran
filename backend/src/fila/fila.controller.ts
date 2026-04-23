@@ -1,26 +1,32 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
+  Patch,
+  Post,
   Query,
-  UseGuards,
   Request,
+  UseGuards,
 } from '@nestjs/common';
-import { FilaService } from './fila.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+import { FilaService } from './fila.service';
 
 @Controller('fila')
 export class FilaController {
   constructor(private readonly filaService: FilaService) {}
 
-  // Totem e Check-in
   @Post('totem/senha')
-  solicitarSenhaTotem(@Body() body: { tipo: string; categoria: string; filialId?: number }) {
-    return this.filaService.solicitarSenhaTotem(body.tipo, body.categoria, body.filialId);
+  solicitarSenhaTotem(
+    @Body() body: { tipo: string; categoria: string; filialId?: number },
+  ) {
+    return this.filaService.solicitarSenhaTotem(
+      body.tipo,
+      body.categoria,
+      body.filialId,
+    );
   }
 
   @Post('checkin/validar')
@@ -28,13 +34,11 @@ export class FilaController {
     return this.filaService.validarCheckin(body.codigo, body.filialId);
   }
 
-  // Dashboard
   @Get('dashboard-stats')
   getDashboardStats() {
     return this.filaService.getDashboardData();
   }
 
-  // Agendamento
   @Get('agendamento/horarios')
   getHorarios(
     @Query('data') data: string,
@@ -51,9 +55,16 @@ export class FilaController {
     return this.filaService.criarAgendamento(body);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('agendamento')
-  listarAgendamentos(@Query('filialId') filialId?: string) {
-    return this.filaService.listarAgendamentos(filialId ? +filialId : undefined);
+  listarAgendamentos(
+    @Request() req: AuthenticatedRequest,
+    @Query('filialId') filialId?: string,
+  ) {
+    return this.filaService.listarAgendamentos(
+      filialId ? +filialId : undefined,
+      req.user,
+    );
   }
 
   @Get('agendamento/:id')
@@ -61,12 +72,15 @@ export class FilaController {
     return this.filaService.buscarAgendamento(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('agendamento/:id')
-  excluirAgendamento(@Param('id') id: string) {
-    return this.filaService.excluirAgendamento(+id);
+  excluirAgendamento(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
+    return this.filaService.excluirAgendamento(+id, req.user);
   }
 
-  // Serviços CRUD
   @Post('servicos')
   criarServico(@Body() body: { nome: string; sigla: string }) {
     return this.filaService.criarServico(body.nome, body.sigla);
@@ -87,7 +101,6 @@ export class FilaController {
     return this.filaService.excluirServico(+id);
   }
 
-  // Operação de Fila
   @Post('solicitar_senha')
   solicitarSenha(@Body() body: { servico_id: number }) {
     return this.filaService.solicitarSenha(body.servico_id);
@@ -101,7 +114,6 @@ export class FilaController {
   @UseGuards(JwtAuthGuard)
   @Get('operador/proximas')
   async listarProximas(@Request() req: any) {
-    // Busca os guiches do operador para saber a filial
     const guicheId = Number(req.headers['x-guiche-id']);
     if (!guicheId) return [];
     return this.filaService.listarProximas(guicheId);
@@ -137,7 +149,6 @@ export class FilaController {
     return this.filaService.consultarPosicao(+id);
   }
 
-  // Atendimento
   @Patch('atendimento/:id/justificar')
   justificarDemora(
     @Param('id') id: string,

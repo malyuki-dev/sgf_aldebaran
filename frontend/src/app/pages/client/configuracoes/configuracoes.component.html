@@ -1,0 +1,126 @@
+<section class="client-settings-page" aria-labelledby="client-settings-title">
+  <div class="settings-shell">
+    <header class="settings-header">
+      <div>
+        <p class="page-eyebrow">Portal do Cliente</p>
+        <h2 id="client-settings-title">Configurações</h2>
+        <p class="page-description">
+          Ajuste preferências da sua conta e acompanhe opções legais do portal.
+        </p>
+      </div>
+    </header>
+
+    <div
+      class="feedback-banner"
+      *ngIf="feedback"
+      [class.feedback-banner--error]="feedback.type === 'error'"
+      role="status"
+    >
+      <lucide-icon
+        [img]="feedback.type === 'success' ? icons.success : icons.error"
+        size="18"
+      ></lucide-icon>
+      <span>{{ feedback.message }}</span>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <lucide-icon [img]="icons.loader" size="24" class="spin"></lucide-icon>
+      <span>Carregando configurações...</span>
+    </div>
+
+    <div class="settings-content" *ngIf="!loading">
+      <div class="settings-grid">
+        <app-settings-section-card title="Preferências" eyebrow="Preferências">
+          <app-settings-toggle-item
+            label="Modo Escuro"
+            description="Alterna a aparência do Portal do Cliente neste dispositivo."
+            [checked]="settings.darkMode"
+            [disabled]="saving"
+            (checkedChange)="updateDarkMode($event)"
+          ></app-settings-toggle-item>
+
+          <app-settings-toggle-item
+            label="Notificações"
+            description="Controla o recebimento de avisos do portal quando disponível."
+            [checked]="settings.notificationsEnabled"
+            [disabled]="saving"
+            (checkedChange)="updateNotifications($event)"
+          ></app-settings-toggle-item>
+        </app-settings-section-card>
+
+        <app-settings-section-card title="Legal" eyebrow="Documentos">
+          <app-settings-link-item
+            title="Termos de Uso"
+            description="Consulte os termos e condições de uso do Portal do Cliente."
+            (itemClick)="openLegalDocument('terms')"
+          ></app-settings-link-item>
+
+          <app-settings-link-item
+            title="Política de Privacidade"
+            description="Entenda como seus dados são coletados, utilizados e protegidos pelo portal."
+            (itemClick)="openLegalDocument('privacy')"
+          ></app-settings-link-item>
+        </app-settings-section-card>
+      </div>
+
+      <app-settings-danger-zone
+        [deleting]="deleting"
+        (deleteRequested)="requestDeleteAccount()"
+      ></app-settings-danger-zone>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showDeleteModal" role="presentation">
+    <section
+      class="delete-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-account-title"
+      aria-describedby="delete-account-description"
+    >
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Fechar modal"
+        [disabled]="deleting"
+        (click)="closeDeleteModal()"
+      >
+        <lucide-icon [img]="icons.close" size="18"></lucide-icon>
+      </button>
+
+      <div class="modal-icon" aria-hidden="true">
+        <lucide-icon [img]="icons.trash" size="28"></lucide-icon>
+      </div>
+
+      <h3 id="delete-account-title">Excluir minha conta?</h3>
+      <p id="delete-account-description">
+        Esta confirmação envia a solicitação de exclusão para a API. Depois de concluída,
+        sua sessão será encerrada.
+      </p>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="btn-cancel"
+          [disabled]="deleting"
+          (click)="closeDeleteModal()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-danger"
+          [disabled]="deleting"
+          (click)="confirmDeleteAccount()"
+        >
+          <lucide-icon
+            [img]="deleting ? icons.loader : icons.trash"
+            size="18"
+            [class.spin]="deleting"
+          ></lucide-icon>
+          <span>{{ deleting ? 'Excluindo...' : 'Sim, excluir conta' }}</span>
+        </button>
+      </div>
+    </section>
+  </div>
+</section>

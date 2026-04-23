@@ -34,7 +34,7 @@
         Abrir Voucher / Check-in
       </button>
 
-      <button class="btn-cancel" (click)="cancelarAgendamento()">Cancelar este agendamento</button>
+      <button class="btn-cancel" *ngIf="proximoAgendamento && proximoAgendamento.podeCancelar" (click)="cancelarAgendamento()">Cancelar este agendamento</button>
     </div>
 
     <!-- MENSAGEM QUANDO NÃO HÁ AGENDAMENTOS -->

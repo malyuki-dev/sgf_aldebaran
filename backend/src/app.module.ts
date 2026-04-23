@@ -18,6 +18,7 @@ import { GuicheModule } from './guiche/guiche.module';
 import { MobileProfileModule } from './mobile-profile/mobile-profile.module';
 import { NotificacaoModule } from './notificacao/notificacao.module';
 import { TaskManagementModule } from './task-management/task-management.module';
+import { AgendamentoModule } from './agendamento/agendamento.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { TaskManagementModule } from './task-management/task-management.module';
     MobileProfileModule,
     NotificacaoModule,
     TaskManagementModule,
+    AgendamentoModule,
   ],
   controllers: [],
   providers: [],

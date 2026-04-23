@@ -48,7 +48,7 @@
           </div>
           <div class="info">
             <div class="title-row">
-              <h3>{{ a.servicoNome }}</h3>
+              <h3>{{ a.categoriaNome }}</h3>
               <div class="status-badge" [ngClass]="a.status.toLowerCase()">
                 {{ a.status }}
               </div>
@@ -59,13 +59,15 @@
             </div>
             <div class="detail">
               <lucide-angular [img]="icons.clock" size="16"></lucide-angular>
-              <span>{{ a.hora }} - {{ a.horarioFim }}</span>
+              <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
             </div>
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-outline" (click)="cancelarAgendamento(a.id)">Cancelar</button>
-          <button class="btn-primary" [routerLink]="['/client/agendar']" [queryParams]="{ re: a.id }">Reagendar</button>
+          <button class="btn-outline" [disabled]="cancelandoId === a.id || !a.podeCancelar" (click)="cancelarAgendamento(a.id)">
+            {{ cancelandoId === a.id ? 'Cancelando...' : 'Cancelar' }}
+          </button>
+          <button class="btn-primary" [disabled]="!a.podeReagendar" [routerLink]="['/client/agendar']" [queryParams]="{ re: a.id }">Reagendar</button>
         </div>
       </div>
 
@@ -88,7 +90,7 @@
           </div>
           <div class="info">
             <div class="title-row">
-              <h3>{{ a.servicoNome }}</h3>
+              <h3>{{ a.categoriaNome }}</h3>
               <div class="status-badge" [ngClass]="a.status.toLowerCase()">
                 {{ a.status === 'REALIZADO' ? 'Concluído' : a.status }}
               </div>
@@ -99,7 +101,7 @@
             </div>
             <div class="detail">
               <lucide-angular [img]="icons.clock" size="16"></lucide-angular>
-              <span>{{ a.hora }} - {{ a.horarioFim }}</span>
+              <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
             </div>
             
             <button class="btn-evaluate" *ngIf="a.status === 'REALIZADO' || a.status === 'CONCLUIDO'">

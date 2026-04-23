@@ -196,6 +196,11 @@ $status-expirado: #64748B;
       background: white;
       border: 2px solid #E2E8F0;
       color: #94A3B8;
+
+      &:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
       
       &:hover { background: #F8FAFC; border-color: #CBD5E1; color: #64748B; }
     }
@@ -205,6 +210,13 @@ $status-expirado: #64748B;
       color: white;
       border: none;
       box-shadow: 0 6px 15px rgba(2, 132, 199, 0.2);
+
+      &:disabled {
+        opacity: 0.55;
+        cursor: default;
+        transform: none;
+        box-shadow: none;
+      }
 
       &:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3); }
     }
@@ -349,4 +361,4 @@ $status-expirado: #64748B;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }

@@ -51,12 +51,18 @@ $border: #E5E7EB;
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
     padding: 12px 16px;
     border-radius: 10px;
     text-decoration: none;
     color: $text-dark;
     font-weight: 500;
+    white-space: nowrap;
     transition: all 0.2s;
+
+    lucide-angular {
+      flex-shrink: 0;
+    }
 
     &:hover { background: #F3F4F6; }
     

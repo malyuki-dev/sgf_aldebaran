@@ -1,28 +1,58 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
-import { LucideAngularModule, Menu, Bell, FileText, ChevronRight, HelpCircle, Plus, Calendar, MapPin, Clock, X, QrCode, ArrowRight, Star } from 'lucide-angular';
+import { Router, RouterLink } from '@angular/router';
+import {
+  ArrowRight,
+  Bell,
+  Calendar,
+  ChevronRight,
+  Clock,
+  FileText,
+  HelpCircle,
+  LucideAngularModule,
+  MapPin,
+  Menu,
+  Plus,
+  QrCode,
+  Star,
+  X,
+} from 'lucide-angular';
 import { ApiService } from '../../../services/api.service';
 import { ClientMenuComponent } from '../components/client-menu/client-menu.component';
+
+interface ClientAppointmentView {
+  id: number;
+  categoriaNome: string;
+  filialNome: string;
+  data: string;
+  horaInicio: string;
+  horaFim: string;
+  status: string;
+  podeCancelar: boolean;
+  podeReagendar: boolean;
+  dia: string;
+  mes: string;
+}
 
 @Component({
   selector: 'app-client-appointments',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, ClientMenuComponent, RouterLink],
   templateUrl: './client-appointments.component.html',
-  styleUrls: ['./client-appointments.component.scss']
+  styleUrls: ['./client-appointments.component.scss'],
 })
 export class ClientAppointmentsComponent implements OnInit {
-  menuAberto: boolean = false;
+  menuAberto = false;
   activeTab: 'proximos' | 'historico' = 'proximos';
   loading = false;
-  
-  proximos: any[] = [];
-  historico: any[] = [];
+  cancelandoId: number | null = null;
 
-  readonly icons = { 
-    menu: Menu, 
-    bell: Bell, 
+  proximos: ClientAppointmentView[] = [];
+  historico: ClientAppointmentView[] = [];
+
+  readonly icons = {
+    menu: Menu,
+    bell: Bell,
     file: FileText,
     chevron: ChevronRight,
     help: HelpCircle,
@@ -33,15 +63,28 @@ export class ClientAppointmentsComponent implements OnInit {
     x: X,
     qrcode: QrCode,
     arrowRight: ArrowRight,
-    star: Star
+    star: Star,
   };
 
-  mesesAbrev = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+  private readonly mesesAbrev = [
+    'JAN',
+    'FEV',
+    'MAR',
+    'ABR',
+    'MAI',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SET',
+    'OUT',
+    'NOV',
+    'DEZ',
+  ];
 
   constructor(
-    private apiService: ApiService,
-    private cdr: ChangeDetectorRef,
-    private router: Router
+    private readonly apiService: ApiService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly router: Router,
   ) {}
 
   ngOnInit() {
@@ -49,75 +92,47 @@ export class ClientAppointmentsComponent implements OnInit {
   }
 
   carregarAgendamentos() {
-    console.log('Iniciando carregarAgendamentos...');
     this.loading = true;
-    
-    // Failsafe timeout
-    setTimeout(() => {
-      if (this.loading) {
-        console.warn('Timeout ao carregar agendamentos. Forçando parada do loading.');
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    }, 8000);
 
-    const userJson = localStorage.getItem('usuario_sgf');
-    if (!userJson) {
-      console.log('Nenhum usuário logado encontrado em localStorage.');
-      this.loading = false;
-      this.router.navigate(['/login']);
-      return;
-    }
+    this.apiService
+      .get<ClientAppointmentView[]>('/agendamentos', {
+        meus: 'true',
+        status: 'active',
+      })
+      .subscribe({
+        next: (proximos) => {
+          this.proximos = this.formatarAgendamentos(proximos || []);
 
-    const user = JSON.parse(userJson);
-    console.log('Usuário logado:', user);
-
-    this.apiService.get<any[]>('/fila/agendamento').subscribe({
-      next: (data) => {
-        console.log('Dados brutos recebidos da API:', data);
-        const agora = new Date();
-        const meusAgendamentos = (data || []).filter(a => 
-          a.documento === user.email || a.nomeCliente === user.nome
-        );
-        console.log('Agendamentos filtrados para o usuário:', meusAgendamentos);
-
-        // Mapeia e Formata
-        const formatado = meusAgendamentos.map(a => {
-          const dataObj = new Date(a.data + 'T12:00:00');
-          return {
-            ...a,
-            dia: dataObj.getDate().toString().padStart(2, '0'),
-            mes: this.mesesAbrev[dataObj.getMonth()],
-            servicoNome: a.servico?.nome || 'Serviço',
-            filialNome: 'Matriz - Centro', 
-            horarioFim: this.calcularHorarioFim(a.hora)
-          };
-        });
-
-        // Próximos: PENDENTE/CONFIRMADO e Data >= Hoje
-        this.proximos = formatado.filter(a => 
-          (a.status === 'PENDENTE' || a.status === 'CONFIRMADO') && 
-          new Date(a.data + 'T23:59:59') >= agora
-        ).sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
-
-        // Histórico: Restante
-        this.historico = formatado.filter(a => 
-          a.status === 'CANCELADO' || a.status === 'REALIZADO' || a.status === 'CONCLUIDO' ||
-          new Date(a.data + 'T23:59:59') < agora
-        ).sort((a, b) => b.data.localeCompare(a.data) || b.hora.localeCompare(a.hora));
-
-        console.log('Próximos:', this.proximos);
-        console.log('Histórico:', this.historico);
-
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Erro na requisição à API:', err);
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+          this.apiService
+            .get<ClientAppointmentView[]>('/agendamentos', {
+              meus: 'true',
+              status: 'history',
+            })
+            .subscribe({
+              next: (historico) => {
+                this.historico = this.formatarAgendamentos(historico || []);
+                this.loading = false;
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.error('Erro ao carregar histórico:', err);
+                this.loading = false;
+                if (err.status === 401) {
+                  this.router.navigate(['/login']);
+                }
+                this.cdr.detectChanges();
+              },
+            });
+        },
+        error: (err) => {
+          console.error('Erro ao carregar próximos agendamentos:', err);
+          this.loading = false;
+          if (err.status === 401) {
+            this.router.navigate(['/login']);
+          }
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   toggleTab(tab: 'proximos' | 'historico') {
@@ -125,24 +140,41 @@ export class ClientAppointmentsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  calcularHorarioFim(horaInicio: string): string {
-    if (!horaInicio) return '';
-    const [h, m] = horaInicio.split(':').map(Number);
-    let totalMin = h * 60 + m + 30;
-    const fh = Math.floor(totalMin / 60);
-    const fm = totalMin % 60;
-    return `${fh.toString().padStart(2, '0')}:${fm.toString().padStart(2, '0')}`;
-  }
-
   cancelarAgendamento(id: number) {
-    if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
-      this.apiService.delete(`/fila/agendamento/${id}`).subscribe(() => {
-        this.carregarAgendamentos();
-      });
+    if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+      return;
     }
+
+    this.cancelandoId = id;
+    this.apiService.patch(`/agendamentos/${id}/cancelar`, {}).subscribe({
+      next: () => {
+        this.cancelandoId = null;
+        this.carregarAgendamentos();
+      },
+      error: (err) => {
+        this.cancelandoId = null;
+        const message =
+          err.error?.message || 'Não foi possível cancelar este agendamento.';
+        alert(message);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   toggleMenu() {
     this.menuAberto = !this.menuAberto;
+  }
+
+  private formatarAgendamentos(
+    agendamentos: ClientAppointmentView[],
+  ): ClientAppointmentView[] {
+    return agendamentos.map((agendamento) => {
+      const dataObj = new Date(`${agendamento.data}T12:00:00`);
+      return {
+        ...agendamento,
+        dia: dataObj.getDate().toString().padStart(2, '0'),
+        mes: this.mesesAbrev[dataObj.getMonth()] || '',
+      };
+    });
   }
 }

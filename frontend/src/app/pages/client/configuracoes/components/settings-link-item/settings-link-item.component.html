@@ -1,0 +1,10 @@
+<button type="button" class="settings-link-item" (click)="itemClick.emit()">
+  <span class="item-copy">
+    <span class="item-title">{{ title }}</span>
+    <span class="item-description" *ngIf="description">{{ description }}</span>
+  </span>
+
+  <span class="item-chevron" aria-hidden="true">
+    <lucide-icon [img]="icons.chevron" size="18"></lucide-icon>
+  </span>
+</button>

@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificacaoService } from '../notificacao/notificacao.service';
 import { Ticket } from '@prisma/client';
 import { NotificacaoGateway } from '../notificacao/notificacao.gateway';
+import { AgendamentoService } from '../agendamento/agendamento.service';
+import type { AuthenticatedUser } from '../common/interfaces/authenticated-request.interface';
 
 @Injectable()
 export class FilaService {
@@ -15,6 +17,7 @@ export class FilaService {
     private prisma: PrismaService,
     private notificacaoService: NotificacaoService,
     private notificacaoGateway: NotificacaoGateway,
+    private agendamentoService: AgendamentoService,
   ) {}
 
   // Totem ticket generation logic
@@ -329,11 +332,20 @@ export class FilaService {
     });
   }
 
-  async listarAgendamentos(filialId?: number) {
+  async listarAgendamentos(
+    filialId?: number,
+    authUser?: AuthenticatedUser,
+  ) {
+    const where: any = {
+      filial_id: filialId ? filialId : undefined,
+    };
+
+    if (authUser?.tipo === 'CLIENTE') {
+      where.documento = authUser.email;
+    }
+
     return await this.prisma.agendamento.findMany({
-      where: {
-        filial_id: filialId ? filialId : undefined,
-      },
+      where,
       orderBy: [{ data: 'asc' }, { hora: 'asc' }],
       include: { servico: true, filial: true },
     });
@@ -348,7 +360,14 @@ export class FilaService {
     return agendamento;
   }
 
-  async excluirAgendamento(id: number) {
+  async excluirAgendamento(id: number, authUser?: AuthenticatedUser) {
+    if (authUser?.tipo === 'CLIENTE') {
+      return this.agendamentoService.cancelarMeuAgendamento(
+        String(authUser.userId),
+        id,
+      );
+    }
+
     await this.buscarAgendamento(id);
     return await this.prisma.agendamento.delete({
       where: { id },

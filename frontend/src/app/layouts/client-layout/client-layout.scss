@@ -162,6 +162,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
     padding: 10px 16px;
     margin: 0 12px 4px 12px;
     border-radius: 10px;
@@ -172,10 +173,18 @@
     font-size: 0.9rem;
     transition: all 0.2s;
 
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     lucide-icon {
       color: #94a3b8;
       width: 20px;
       height: 20px;
+      flex-shrink: 0;
       transition: transform 0.2s;
     }
 

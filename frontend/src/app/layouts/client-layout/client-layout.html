@@ -14,9 +14,15 @@
         <div class="menu-group-title" *ngIf="sidebarOpen && group.title">{{ group.title }}</div>
         <ng-container *ngFor="let item of group.items">
           <div *ngIf="item.divided" class="menu-divider-line"></div>
-          <a [routerLink]="item.path" routerLinkActive="active" class="menu-item" [ngClass]="item.class || ''">
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: shouldMatchExactly(item.path) }"
+            class="menu-item"
+            [ngClass]="item.class || ''"
+          >
             <lucide-icon [img]="icons[item.icon]"></lucide-icon>
-            <span *ngIf="sidebarOpen">{{ item.label }}</span>
+            <span *ngIf="sidebarOpen">{{ getMenuLabel(item.path, item.label) }}</span>
           </a>
         </ng-container>
       </ng-container>

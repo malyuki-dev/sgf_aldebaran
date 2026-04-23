@@ -54,14 +54,9 @@ export const routes: Routes = [
       {
         path: 'configuracoes',
         loadComponent: () =>
-          import('./pages/client/placeholder/client-placeholder.component').then(
-            (m) => m.ClientPlaceholderComponent,
+          import('./pages/client/configuracoes/configuracoes.component').then(
+            (m) => m.ClientConfiguracoesComponent,
           ),
-        data: {
-          title: 'Configuracoes',
-          description:
-            'Espaco reservado para preferencias do cliente, notificacoes e demais opcoes da conta.',
-        },
       },
       { path: 'suporte', component: SuporteComponent },
     ],

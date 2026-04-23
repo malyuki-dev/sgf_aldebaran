@@ -58,10 +58,19 @@ export class ClientLayoutComponent implements OnInit {
         { path: '/client/agendar', label: 'Agendar', icon: 'calendarPlus' },
         { path: '/client/meus-agendamentos', label: 'Meus Agendamentos', icon: 'history' },
         { path: '/client/perfil', label: 'Perfil', icon: 'user' },
+        { path: '/client/configuracoes', label: 'Configurações', icon: 'settings' },
         { path: '/client/suporte', label: 'Ajuda e Suporte', icon: 'help', class: 'highlight-yellow', divided: true }
       ]
     }
   ];
+
+  getMenuLabel(path: string, label: string): string {
+    return path === '/client/configuracoes' ? 'Configurações' : label;
+  }
+
+  shouldMatchExactly(path: string): boolean {
+    return path !== '/client/perfil';
+  }
 
   constructor(
     private router: Router,
