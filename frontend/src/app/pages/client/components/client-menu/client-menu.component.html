@@ -9,23 +9,27 @@
     </div>
 
     <nav class="menu-nav">
-      <a routerLink="/client/home" routerLinkActive="active" (click)="fechar()" class="nav-item">
+      <a routerLink="/client/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fechar()" class="nav-item">
         <lucide-angular [img]="icons.home" size="20"></lucide-angular>
         Início
       </a>
-      <a routerLink="/client/agendar" routerLinkActive="active" (click)="fechar()" class="nav-item">
+      <a routerLink="/client/agendar" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fechar()" class="nav-item">
         <lucide-angular [img]="icons.calendar" size="20"></lucide-angular>
         Agendar
       </a>
-      <a routerLink="/client/agendamentos" routerLinkActive="active" (click)="fechar()" class="nav-item">
+      <a routerLink="/client/meus-agendamentos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fechar()" class="nav-item">
         <lucide-angular [img]="icons.file" size="20"></lucide-angular>
         Meus Agendamentos
       </a>
-      <a class="nav-item">
+      <a routerLink="/client/perfil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" (click)="fechar()" class="nav-item">
         <lucide-angular [img]="icons.user" size="20"></lucide-angular>
         Minha Conta
       </a>
-      <a class="nav-item">
+      <a routerLink="/client/configuracoes" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fechar()" class="nav-item">
+        <lucide-angular [img]="icons.settings" size="20"></lucide-angular>
+        Configurações
+      </a>
+      <a routerLink="/client/suporte" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fechar()" class="nav-item">
         <lucide-angular [img]="icons.help" size="20"></lucide-angular>
         Ajuda e Suporte
       </a>

@@ -1,7 +1,29 @@
 <div class="page-container">
-
-  <div class="page-header">
-    <h1>Dashboard</h1>
+  
+  <!-- Seletor de Filial (Glassmorphism) -->
+  <div class="filial-selector-wrapper">
+    <div class="filial-selector-glass">
+      <div class="selector-content">
+        <div class="selector-info">
+          <lucide-icon [img]="icons.building" size="18" class="selector-icon"></lucide-icon>
+          <div class="selector-text">
+            <span class="selector-label">Filial atual</span>
+            <span class="selector-value">{{ selectedFilialName || 'Todas as Unidades' }}</span>
+          </div>
+        </div>
+        <div class="selector-action">
+          <select [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select-modern">
+            <option [ngValue]="null">🌍 Configurações Gerais (Global)</option>
+            <option *ngFor="let f of filiais" [ngValue]="f.id">
+              🏢 {{ f.nome }}
+            </option>
+          </select>
+          <div class="select-arrow">
+            <lucide-icon [img]="icons.chevronDown" size="16"></lucide-icon>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="dashboard-grid" *ngIf="!loading">
@@ -66,7 +88,12 @@
         </div>
         <!-- Simple color mapping based broadly on typeId -->
         <span class="tag"
-          [ngClass]="{'cyan-tag': item.tipoId === 'Caminhão' || item.tipoId === 'Retirada Pesada', 'gray-tag': item.tipoId !== 'Caminhão' && item.tipoId !== 'Retirada Pesada'}">
+          [ngClass]="{
+            'cyan-tag': item.tipoId === 'Caminhão', 
+            'teal-tag': item.tipoId === 'Retirada Pesada',
+            'blue-tag': item.tipoId === 'Sistema',
+            'gray-tag': !['Caminhão', 'Retirada Pesada', 'Sistema'].includes(item.tipoId)
+          }">
           {{ item.tipoId }}
         </span>
       </div>

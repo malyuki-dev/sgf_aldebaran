@@ -1,0 +1,103 @@
+<div class="perfil-page">
+  <div class="page-top">
+    <div class="header-titles">
+      <h1>Meu Perfil</h1>
+    </div>
+    <div class="page-actions">
+      <button class="btn-ghost" routerLink="/supervisor/dashboard">Voltar</button>
+      <button class="btn-solid-blue" (click)="salvar()">Salvar Alterações</button>
+    </div>
+  </div>
+
+  <div class="perfil-content">
+    <div class="perfil-card">
+      <div class="card-left photo-section">
+        <label class="photo-container">
+           <img *ngIf="fotoUrl" [src]="fotoUrl" alt="Foto de Perfil" class="profile-img">
+           <div class="photo-placeholder" *ngIf="!fotoUrl">
+              <lucide-icon [img]="icons.user" size="64" color="#cbd5e1"></lucide-icon>
+           </div>
+           
+           <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">
+        </label>
+        <span class="change-photo-link" (click)="fileInput.click()">Mudar Foto</span>
+      </div>
+
+      <div class="card-right form-section">
+        <form [formGroup]="perfilForm">
+          
+          <div class="form-block">
+            <h3>Informações Pessoais</h3>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label>Nome Completo</label>
+                <input type="text" formControlName="nome" placeholder="Digite seu nome">
+              </div>
+              <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" formControlName="email">
+              </div>
+              <div class="form-group">
+                <label>Telefone</label>
+                <input type="text" formControlName="telefone" placeholder="(00) 00000-0000">
+              </div>
+              <div class="form-group full-width">
+                <label>Departamento</label>
+                <input type="text" formControlName="departamento" placeholder="Ex: Logística">
+              </div>
+            </div>
+          </div>
+
+          <hr class="form-divider">
+
+          <div class="form-block">
+            <h3>Segurança</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Senha Atual</label>
+                <div class="input-with-icon">
+                  <input type="password" formControlName="senhaAtual" placeholder="••••••••">
+                  <lucide-icon [img]="icons.lock" size="16" class="field-icon-left"></lucide-icon>
+                  <lucide-icon [img]="icons.eye" size="16" class="field-icon-action text-sec"></lucide-icon>
+                </div>
+              </div>
+              <!-- Empty spacer -->
+              <div></div>
+              
+              <div class="form-group">
+                <label>Nova Senha</label>
+                <div class="input-with-icon">
+                  <input type="password" formControlName="novaSenha" placeholder="••••••••">
+                  <lucide-icon [img]="icons.lock" size="16" class="field-icon-left"></lucide-icon>
+                  <lucide-icon [img]="icons.eye" size="16" class="field-icon-action text-sec"></lucide-icon>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Confirmar Nova Senha</label>
+                <div class="input-with-icon">
+                  <input type="password" formControlName="confirmarSenha" placeholder="••••••••">
+                  <lucide-icon [img]="icons.lock" size="16" class="field-icon-left"></lucide-icon>
+                  <lucide-icon [img]="icons.eye" size="16" class="field-icon-action text-sec"></lucide-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Sucesso -->
+  <div class="modal-backdrop" *ngIf="successModal">
+    <div class="modal-c success-modal">
+      <div class="s-icon bg-green-light">
+        <lucide-icon [img]="icons.check" size="48" color="#22c55e"></lucide-icon>
+      </div>
+      <h2>Sucesso!</h2>
+      <p>Perfil atualizado com sucesso.</p>
+      
+      <button class="btn-solid-blue w-full" (click)="fecharModal()">Continuar</button>
+    </div>
+  </div>
+</div>

@@ -1,42 +1,69 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, ParseIntPipe, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import { MotoristaService } from './motorista.service';
 import { Prisma } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('motoristas')
+@UseGuards(JwtAuthGuard)
 export class MotoristaController {
-    constructor(private readonly motoristaService: MotoristaService) { }
+  constructor(private readonly motoristaService: MotoristaService) {}
 
-    @Post()
-    async create(@Body() createMotoristaDto: Prisma.motoristaCreateInput) {
-        try {
-            return await this.motoristaService.create(createMotoristaDto);
-        } catch (error: any) {
-            throw new HttpException(error.message || 'Erro Interno', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+  @Post()
+  async create(@Body() createMotoristaDto: Prisma.motoristaCreateInput) {
+    try {
+      return await this.motoristaService.create(createMotoristaDto);
+    } catch (error: any) {
+      throw new HttpException(
+        error.message || 'Erro Interno',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
+  }
 
-    @Get()
-    findAll(@Query('q') q?: string) {
-        return this.motoristaService.findAll(q);
-    }
+  @Get()
+  findAll(@Query('q') q?: string, @Query('filialId') filialId?: string) {
+    return this.motoristaService.findAll(q, filialId ? +filialId : undefined);
+  }
 
-    @Get('check')
-    check(@Query('cpf') cpf: string, @Query('cnh') cnh: string) {
-        return this.motoristaService.checkExists(cpf, cnh);
-    }
+  @Get('check')
+  check(@Query('cpf') cpf: string, @Query('cnh') cnh: string) {
+    return this.motoristaService.checkExists(cpf, cnh);
+  }
 
-    @Get(':id')
-    findOne(@Param('id', ParseIntPipe) id: number) {
-        return this.motoristaService.findOne(id);
-    }
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.motoristaService.findOne(id);
+  }
 
-    @Put(':id')
-    update(@Param('id', ParseIntPipe) id: number, @Body() updateMotoristaDto: Prisma.motoristaUpdateInput) {
-        return this.motoristaService.update(id, updateMotoristaDto);
-    }
+  @Put(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateMotoristaDto: Prisma.motoristaUpdateInput,
+  ) {
+    return this.motoristaService.update(id, updateMotoristaDto);
+  }
 
-    @Delete(':id')
-    remove(@Param('id', ParseIntPipe) id: number) {
-        return this.motoristaService.softDelete(id);
-    }
+  @Patch(':id/status')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.motoristaService.toggleStatus(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.motoristaService.softDelete(id);
+  }
 }

@@ -1,16 +1,108 @@
-<div class="atendimento-container">
-  <h1>Painel de Atendimento</h1>
-  <div class="cards-grid">
-    <div class="card control">
-      <label>SEU GUICHÊ</label>
-      <div class="guiche">Guichê 01</div>
-      <button class="btn-primary" (click)="chamarProximo()" [disabled]="loading">
-        <lucide-icon [img]="icons.megaphone"></lucide-icon> {{ loading ? 'Chamando...' : 'Chamar Próximo' }}
-      </button>
+<div class="crud-page animate-up">
+  <!-- Header / Guiche Config -->
+  <div class="list-card-header cockpit-header">
+    <div class="titles">
+      <h2>Painel de Atendimento</h2>
+      <p>Gerencie a fila de senhas e realize atendimentos</p>
     </div>
-    <div class="card display">
-      <span class="status">{{ senhaAtual ? 'EM ATENDIMENTO' : 'AGUARDANDO' }}</span>
-      <div class="senha">{{ senhaAtual || '---' }}</div>
+    
+    <div class="guiche-selector">
+      <lucide-icon [img]="icons.monitor" size="18"></lucide-icon>
+      <select [(ngModel)]="selectedGuicheId" (change)="salvarGuiche()" class="guiche-select">
+        <option *ngFor="let g of guiches" [value]="g.id">Guichê {{ g.numero }} - {{ g.nome || 'Padrão' }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="cockpit-grid">
+    <!-- Main Station: Left Column -->
+    <div class="station-card">
+      <div class="station-status" [ngClass]="statusAtendimento">
+        <div class="status-indicator"></div>
+        <span>{{ statusAtendimento === 'IDLE' ? 'Disponível' : (statusAtendimento === 'EM_ATENDIMENTO' ? 'Em Atendimento' : 'Chamando...') }}</span>
+      </div>
+
+      <div class="station-body" *ngIf="statusAtendimento === 'IDLE' || statusAtendimento === 'CHAMANDO'">
+        <div class="empty-view">
+          <div class="icon-halo larger">
+            <lucide-icon [img]="icons.megaphone" size="64" strokeWidth="1.5"></lucide-icon>
+          </div>
+          <h3>Próximo na fila</h3>
+          <p>Clique no botão abaixo para chamar a próxima senha disponível.</p>
+          <button class="btn-primary-lg" (click)="chamarProximo()" [disabled]="loading || !selectedGuicheId">
+            <lucide-icon [img]="loading ? icons.clock : icons.megaphone" size="24"></lucide-icon>
+            {{ loading ? 'CHAMANDO...' : 'CHAMAR PRÓXIMO' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="station-body active-atend" *ngIf="statusAtendimento === 'EM_ATENDIMENTO' && senhaAtual">
+        <div class="ticket-display">
+          <span class="ticket-label">SENHA ATUAL</span>
+          <h1 class="ticket-number">{{ senhaAtual.numeroDisplay }}</h1>
+          <div class="ticket-type">
+            <lucide-icon [img]="icons.check" size="16"></lucide-icon>
+            {{ senhaAtual.tipo || 'Convencional' }} • {{ senhaAtual.servico?.nome || 'Serviço Geral' }}
+          </div>
+        </div>
+
+        <div class="timer-box">
+          <lucide-icon [img]="icons.clock" size="20"></lucide-icon>
+          <span class="timer-val">{{ formatTime(tempoAtendimento) }}</span>
+          <span class="timer-label">TEMPO EM ATENDIMENTO</span>
+        </div>
+
+        <div class="station-actions">
+          <button class="btn-outline" (click)="chamarNovamente()">
+            <lucide-icon [img]="icons.retry" size="18"></lucide-icon>
+            RE-CHAMAR
+          </button>
+          
+          <button class="btn-success-ok" (click)="finalizarAtendimento()">
+            <lucide-icon [img]="icons.success" size="18"></lucide-icon>
+            FINALIZAR ATENDIMENTO
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats and History: Right Column -->
+    <div class="side-info">
+      <!-- Last Tickets -->
+      <div class="info-card">
+        <div class="card-title">
+          <lucide-icon [img]="icons.history" size="18"></lucide-icon>
+          Histórico da Sessão
+        </div>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let h of historicoSessao">
+            <div class="h-number">{{ h.numeroDisplay }}</div>
+            <div class="h-info">
+              <span>{{ h.servico?.nome }}</span>
+              <small>{{ h.horaChamada | date:'HH:mm:ss' }}</small>
+            </div>
+            <lucide-icon [img]="icons.success" size="14" class="text-success"></lucide-icon>
+          </div>
+          <div class="empty-mini" *ngIf="historicoSessao.length === 0">
+            Nenhum atendimento realizado nesta sessão.
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA / Info -->
+      <div class="info-card alert-card">
+        <div class="card-title">
+          <lucide-icon [img]="icons.alert" size="18"></lucide-icon>
+          Status da Fila
+        </div>
+        <div class="alert-content">
+          <div class="queue-stat">
+            <span class="q-label">Aguardando no total</span>
+            <span class="q-val">--</span>
+          </div>
+          <p class="sugestao">Mantenha o fluxo constante para evitar alertas de SLA (> 20min).</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

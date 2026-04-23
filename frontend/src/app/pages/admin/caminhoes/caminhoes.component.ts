@@ -1,9 +1,8 @@
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-// We fix the import to point to the correct environment structure we will assume if not existent, or just omit if no env is generated yet. 
-// Assuming the backend runs on 3000 since we saw NestJS. Let's use a standard default approach or environment
+import { ApiService } from '../../../services/api.service';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Truck, UserCircle, Hash, Briefcase, Users, User, CheckCircle, Check } from 'lucide-angular';
 
 @Component({
@@ -20,6 +19,7 @@ export class CaminhoesComponent implements OnInit {
     motoristas: any[] = []; // for dropdown
     filtro = '';
     loading = false;
+    selectedFilialId: number | null = null;
 
     // Modal state
     showModal = false;
@@ -28,33 +28,47 @@ export class CaminhoesComponent implements OnInit {
 
     // Form Model
     caminhaoForm = {
-        id: null,
+        id: null as number | null,
         placa: '',
         modelo: '',
         transportadora: '',
         capacidade: '',
         status: 'ATIVO',
         observacoes: '',
-        motorista_id: null
+        motorista_id: null as number | null,
+        filial_id: null as number | null
     };
 
-    private apiUrl = `http://localhost:3000/caminhoes`;
-    private motoristasUrl = `http://localhost:3000/motoristas`;
-
-    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
+    constructor(
+        private api: ApiService, 
+        private cdr: ChangeDetectorRef,
+        private route: ActivatedRoute
+    ) { }
 
     ngOnInit(): void {
-        this.carregarDados();
-        this.carregarMotoristas();
+        this.route.queryParamMap.subscribe(params => {
+            const fid = params.get('filialId');
+            this.selectedFilialId = fid ? Number(fid) : null;
+            this.carregarDados();
+            this.carregarMotoristas();
+        });
     }
 
     carregarDados() {
         this.loading = true;
-        const url = this.filtro ? `${this.apiUrl}?q=${this.filtro}` : this.apiUrl;
-
-        this.http.get<any[]>(url).subscribe({
+        const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+        this.api.get<any[]>(`/caminhoes${filialQuery}`).subscribe({
             next: (data) => {
-                this.caminhoes = data;
+                if (this.filtro) {
+                    const termo = this.filtro.toLowerCase();
+                    this.caminhoes = data.filter(c => 
+                        c.placa.toLowerCase().includes(termo) ||
+                        c.modelo.toLowerCase().includes(termo) ||
+                        c.transportadora.toLowerCase().includes(termo)
+                    );
+                } else {
+                    this.caminhoes = data;
+                }
                 this.loading = false;
                 this.cdr.detectChanges();
             },
@@ -65,8 +79,23 @@ export class CaminhoesComponent implements OnInit {
         });
     }
 
+    checkPlaca() {
+        if (this.isEditing) return;
+        const placa = this.caminhaoForm.placa;
+        if (placa && (placa.length >= 7)) {
+            this.api.get<{exists: boolean}>(`/caminhoes/check`, {
+                placa
+            }).subscribe(res => {
+                if (res.exists) {
+                    alert('Placa já cadastrada no sistema!');
+                }
+            });
+        }
+    }
+
     carregarMotoristas() {
-        this.http.get<any[]>(this.motoristasUrl).subscribe({
+        const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+        this.api.get<any[]>(`/motoristas${filialQuery}`).subscribe({
             next: (data) => {
                 this.motoristas = data;
                 this.cdr.detectChanges();
@@ -82,7 +111,7 @@ export class CaminhoesComponent implements OnInit {
     abrirModalNovo() {
         this.isEditing = false;
         this.caminhaoForm = {
-            id: null, placa: '', modelo: '', transportadora: '', capacidade: '', status: 'ATIVO', observacoes: '', motorista_id: null
+            id: null, placa: '', modelo: '', transportadora: '', capacidade: '', status: 'ATIVO', observacoes: '', motorista_id: null, filial_id: this.selectedFilialId
         };
         this.showModal = true;
     }
@@ -90,6 +119,7 @@ export class CaminhoesComponent implements OnInit {
     abrirModalEditar(cam: any) {
         this.isEditing = true;
         this.caminhaoForm = { ...cam };
+        if (this.caminhaoForm.filial_id === undefined) this.caminhaoForm.filial_id = null;
         this.showModal = true;
     }
 
@@ -111,19 +141,16 @@ export class CaminhoesComponent implements OnInit {
             return;
         }
 
-        // Convert string to number if needed for motorista_id
-        const payload: any = {
-            ...this.caminhaoForm,
+        const { id, ...payloadData } = this.caminhaoForm;
+        const payload = {
+            ...payloadData,
+            filial_id: this.caminhaoForm.filial_id ? Number(this.caminhaoForm.filial_id) : null,
+            motorista_id: this.caminhaoForm.motorista_id ? Number(this.caminhaoForm.motorista_id) : null,
             observacoes: this.caminhaoForm.observacoes || ''
         };
-        if (payload.motorista_id) {
-            payload.motorista_id = Number(payload.motorista_id);
-        } else {
-            payload.motorista_id = null;
-        }
 
         if (this.isEditing) {
-            this.http.put(`${this.apiUrl}/${this.caminhaoForm.id}`, payload).subscribe({
+            this.api.patch(`/caminhoes/${this.caminhaoForm.id}`, payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.showSuccessModal = true;
@@ -133,7 +160,7 @@ export class CaminhoesComponent implements OnInit {
                 error: (err) => alert('Erro ao atualizar: ' + (err.error?.message || 'Erro desconhecido'))
             });
         } else {
-            this.http.post(this.apiUrl, payload).subscribe({
+            this.api.post('/caminhoes', payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.showSuccessModal = true;
@@ -145,12 +172,13 @@ export class CaminhoesComponent implements OnInit {
         }
     }
 
-    excluir(id: number) {
-        if (confirm('Tem certeza que deseja inativar este caminhão?')) {
-            this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-                next: () => this.carregarDados(),
-                error: (err) => alert('Erro ao inativar')
-            });
-        }
+    alternarStatus(id: number) {
+        this.api.patch(`/caminhoes/${id}/status`, {}).subscribe({
+            next: () => {
+                this.carregarDados();
+                this.cdr.detectChanges();
+            },
+            error: (err) => alert('Erro ao alterar status')
+        });
     }
 }

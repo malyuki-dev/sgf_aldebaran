@@ -1,0 +1,43 @@
+<div class="setup-container">
+    <div class="setup-card animate-pop">
+        <div class="setup-header">
+            <div class="icon-circle">
+                <lucide-icon [img]="icons.building" size="32" color="white"></lucide-icon>
+            </div>
+            <h2>Configuração de Unidade</h2>
+            <p>Selecione em qual filial este Totem está localizado.</p>
+        </div>
+
+        <div class="setup-body">
+            <div class="filial-grid">
+                <div *ngFor="let f of filiais" 
+                     class="filial-item" 
+                     [class.selected]="selectedFilialId === f.id"
+                     (click)="selectedFilialId = f.id">
+                    <div class="check-mark" *ngIf="selectedFilialId === f.id">
+                        <lucide-icon [img]="icons.check" size="14"></lucide-icon>
+                    </div>
+                    <span class="filial-name">{{ f.nome }}</span>
+                    <span class="filial-address">{{ f.endereco || 'Sem endereço cadastrado' }}</span>
+                </div>
+            </div>
+
+            <div *ngIf="loading" class="loading-state">
+                Carregando unidades...
+            </div>
+
+            <div *ngIf="!loading && filiais.length === 0" class="error-state">
+                Nenhuma filial ativa encontrada no sistema.
+            </div>
+        </div>
+
+        <div class="setup-footer">
+            <button class="btn-confirm" 
+                    [disabled]="!selectedFilialId || loading" 
+                    (click)="confirmarConfiguracao()">
+                Confirmar Configuração
+                <lucide-icon [img]="icons.arrow" size="18"></lucide-icon>
+            </button>
+        </div>
+    </div>
+</div>

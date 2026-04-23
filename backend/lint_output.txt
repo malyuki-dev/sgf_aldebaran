@@ -1,0 +1,364 @@
+
+> backend@0.0.1 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/auth/auth.controller.ts
+  28:52  error  Unsafe member access .email on an `any` value  @typescript-eslint/no-unsafe-member-access
+  28:66  error  Unsafe member access .login on an `any` value  @typescript-eslint/no-unsafe-member-access
+  42:41  error  Unsafe member access .nome on an `any` value   @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/auth/auth.service.ts
+   25:16  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   25:28  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   25:39  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   25:51  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   32:48  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+   32:53  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   69:16  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   69:28  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   76:48  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+   76:53  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   98:16  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   98:29  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   98:40  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   98:51  error    Unsafe member access .documento on an `any` value                                                 @typescript-eslint/no-unsafe-member-access
+  103:34  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  105:32  error    Unsafe member access .documento on an `any` value                                                 @typescript-eslint/no-unsafe-member-access
+  110:41  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+  110:47  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  114:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  114:21  error    Unsafe member access .nome on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  115:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  115:22  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  116:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  116:20  error    Unsafe member access .documento on an `any` value                                                 @typescript-eslint/no-unsafe-member-access
+  159:13  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  160:13  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  160:30  error    Unsafe member access .sub on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+  166:18  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  171:14  error    'error' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/auth/jwt.strategy.ts
+  19:3   error  Async method 'validate' has no 'await' expression  @typescript-eslint/require-await
+  20:14  error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  20:30  error  Unsafe member access .sub on an `any` value        @typescript-eslint/no-unsafe-member-access
+  20:35  error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  20:50  error  Unsafe member access .email on an `any` value      @typescript-eslint/no-unsafe-member-access
+  20:57  error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  20:71  error  Unsafe member access .tipo on an `any` value       @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/caminhao/caminhao.controller.ts
+  30:9   warning  Unsafe argument of type `any` assigned to a parameter of type `string | Record<string, any>`  @typescript-eslint/no-unsafe-argument
+  30:15  error    Unsafe member access .message on an `any` value                                               @typescript-eslint/no-unsafe-member-access
+  48:9   warning  Unsafe argument of type `any` assigned to a parameter of type `string | Record<string, any>`  @typescript-eslint/no-unsafe-argument
+  48:15  error    Unsafe member access .message on an `any` value                                               @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/caminhao/caminhao.service.ts
+  19:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  19:13  error  'id' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  22:16  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  22:34  error  Unsafe member access .placa on an `any` value    @typescript-eslint/no-unsafe-member-access
+  30:7   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  82:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  83:11  error  '_' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  84:7   error  'motorista' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  85:7   error  'criadoEm' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  86:7   error  'deletadoEm' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  90:20  error  Unsafe member access .placa on an `any` value    @typescript-eslint/no-unsafe-member-access
+  91:25  error  Unsafe member access .placa on an `any` value    @typescript-eslint/no-unsafe-member-access
+  96:7   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/cliente/client.controller.ts
+  9:3  error  'Delete' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/cliente/client.service.ts
+   21:14  error    Unsafe member access .tipo on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   22:17  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+   24:23  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   24:33  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+   26:17  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   28:23  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   28:34  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   31:59  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   36:16  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   36:28  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   40:15  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   40:29  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   44:41  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+   44:46  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   48:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   48:20  error    Unsafe member access .nome on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   49:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   49:21  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   51:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   51:20  error    Unsafe member access .tipo on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   52:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   52:19  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+   53:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   53:20  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   54:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   54:24  error    Unsafe member access .telefone on an `any` value                                                  @typescript-eslint/no-unsafe-member-access
+   82:14  error    Unsafe member access .tipo on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   83:17  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+   85:23  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   85:33  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+   87:17  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   89:23  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   89:34  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   92:59  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   97:14  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+   99:18  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   99:30  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  105:11  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  105:34  error    Unsafe member access .senha on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  106:41  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+  110:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  110:20  error    Unsafe member access .nome on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  111:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  111:21  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  113:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  113:20  error    Unsafe member access .tipo on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  114:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  114:19  error    Unsafe member access .cpf on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+  115:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  115:20  error    Unsafe member access .cnpj on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  116:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  116:24  error    Unsafe member access .telefone on an `any` value                                                  @typescript-eslint/no-unsafe-member-access
+  183:11  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  188:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  189:19  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  190:20  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  191:21  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  203:11  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  203:13  error    'senha' is assigned a value but never used                                                        @typescript-eslint/no-unused-vars
+  207:7   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  253:14  error    Unsafe call of an `any` typed value                                                               @typescript-eslint/no-unsafe-call
+  253:20  error    Unsafe member access .OR on an `any` value                                                        @typescript-eslint/no-unsafe-member-access
+  254:15  error    Unsafe call of an `any` typed value                                                               @typescript-eslint/no-unsafe-call
+  254:21  error    Unsafe member access .OR on an `any` value                                                        @typescript-eslint/no-unsafe-member-access
+  255:16  error    Unsafe call of an `any` typed value                                                               @typescript-eslint/no-unsafe-call
+  255:22  error    Unsafe member access .OR on an `any` value                                                        @typescript-eslint/no-unsafe-member-access
+  257:15  error    Unsafe member access .OR on an `any` value                                                        @typescript-eslint/no-unsafe-member-access
+  259:59  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/configuracao/configuracao.controller.ts
+   5:3   error    'Patch' is defined but never used                                                   @typescript-eslint/no-unused-vars
+  24:11  error    Unsafe assignment of an `any` value                                                 @typescript-eslint/no-unsafe-assignment
+  24:30  error    Unsafe member access .query on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+  33:11  error    Unsafe assignment of an `any` value                                                 @typescript-eslint/no-unsafe-assignment
+  33:30  error    Unsafe member access .query on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+  38:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  38:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/configuracao/configuracao.service.ts
+   53:5   error  Unsafe return of a value of type `any[]`  @typescript-eslint/no-unsafe-return
+  108:15  error  Unsafe assignment of an `any` value       @typescript-eslint/no-unsafe-assignment
+  112:35  error  Unsafe assignment of an `any` value       @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/dashboard/dashboard.service.ts
+   33:7   error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   45:7   error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   55:13  error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   56:13  error  Unsafe member access .atendimento on an `any` value  @typescript-eslint/no-unsafe-member-access
+   56:30  error  Unsafe member access .atendimento on an `any` value  @typescript-eslint/no-unsafe-member-access
+   57:15  error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   57:24  error  Unsafe call of an `any` typed value                  @typescript-eslint/no-unsafe-call
+   57:26  error  Unsafe member access .atendimento on an `any` value  @typescript-eslint/no-unsafe-member-access
+   58:15  error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   58:25  error  Unsafe call of an `any` typed value                  @typescript-eslint/no-unsafe-call
+   58:27  error  Unsafe member access .dataCriacao on an `any` value  @typescript-eslint/no-unsafe-member-access
+   72:7   error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+  129:7   error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+  136:7   error  Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/fila/fila.service.ts
+  160:7   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  225:7   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  296:23  error    Unsafe member access .filial_id on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  296:48  error    Unsafe member access .filial_id on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  311:38  warning  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+  311:44  error    Unsafe member access .hora on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  319:16  error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  319:28  error    Unsafe member access .data on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  319:34  error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  319:46  error    Unsafe member access .hora on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  325:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  325:28  error    Unsafe member access .nome on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  326:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  326:26  error    Unsafe member access .documento on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  327:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  327:21  error    Unsafe member access .data on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  328:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  328:21  error    Unsafe member access .hora on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  330:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  330:23  error    Unsafe member access .codigo on an `any` value                          @typescript-eslint/no-unsafe-member-access
+  331:48  error    Unsafe member access .servico_id on an `any` value                      @typescript-eslint/no-unsafe-member-access
+  442:3   error    Async method 'avaliarAtendimento' has no 'await' expression             @typescript-eslint/require-await
+  592:9   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/filial/dto/create-filial.dto.ts
+  4:3  error  'IsEmail' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/filial/filial.controller.ts
+  67:11  error  Unsafe assignment of an `any` value           @typescript-eslint/no-unsafe-assignment
+  71:41  error  Unsafe member access .nome on an `any` value  @typescript-eslint/no-unsafe-member-access
+  75:5   error  Unsafe return of a value of type `any`        @typescript-eslint/no-unsafe-return
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/filial/filial.service.ts
+  90:43  error  Unsafe member access .nome on an `any` value  @typescript-eslint/no-unsafe-member-access
+  95:5   error  Unsafe return of a value of type `any`        @typescript-eslint/no-unsafe-return
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/gateway/redis-io.adapter.ts
+  14:15  error  'app' is defined but never used                  @typescript-eslint/no-unused-vars
+  41:35  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  47:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  57:5   error  Unsafe call of an `any` typed value              @typescript-eslint/no-unsafe-call
+  57:12  error  Unsafe member access .adapter on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/guiche/guiche.controller.ts
+  30:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  30:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  58:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  58:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  73:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  73:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/guiche/guiche.service.ts
+  15:9   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  15:22  error  Unsafe member access .numero on an `any` value     @typescript-eslint/no-unsafe-member-access
+  16:9   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  16:20  error  Unsafe member access .nome on an `any` value       @typescript-eslint/no-unsafe-member-access
+  17:9   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  17:22  error  Unsafe member access .status on an `any` value     @typescript-eslint/no-unsafe-member-access
+  18:9   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  18:21  error  Unsafe member access .ativo on an `any` value      @typescript-eslint/no-unsafe-member-access
+  19:26  error  Unsafe member access .filial_id on an `any` value  @typescript-eslint/no-unsafe-member-access
+  57:11  error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  57:17  error  '_' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  57:20  error  'filial' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  57:28  error  'criadoEm' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  57:38  error  'deletadoEm' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  60:20  error  Unsafe member access .filial_id on an `any` value  @typescript-eslint/no-unsafe-member-access
+  60:42  error  Unsafe member access .filial_id on an `any` value  @typescript-eslint/no-unsafe-member-access
+  60:66  error  Unsafe member access .filial_id on an `any` value  @typescript-eslint/no-unsafe-member-access
+  64:7   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/log/log.service.ts
+  29:11  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  34:13  error    Unsafe member access .OR on an `any` value                                              @typescript-eslint/no-unsafe-member-access
+  35:19  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  36:24  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  37:23  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  38:30  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  42:16  error    Unsafe member access .filialId on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  43:13  error    Unsafe member access .filial_id on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+  43:38  error    Unsafe member access .filialId on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  43:64  error    Unsafe member access .filialId on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  45:15  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  45:21  error    Unsafe member access .acao on an `any` value                                            @typescript-eslint/no-unsafe-member-access
+  47:13  error    Unsafe member access .criadoEm on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  48:21  error    Unsafe member access .criadoEm on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  48:45  warning  Unsafe argument of type `any` assigned to a parameter of type `string | number | Date`  @typescript-eslint/no-unsafe-argument
+  50:34  warning  Unsafe argument of type `any` assigned to a parameter of type `string | number | Date`  @typescript-eslint/no-unsafe-argument
+  52:15  error    Unsafe member access .criadoEm on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  57:41  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  59:9   error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/main.ts
+  42:1  warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/motorista/motorista.controller.ts
+  31:9   warning  Unsafe argument of type `any` assigned to a parameter of type `string | Record<string, any>`  @typescript-eslint/no-unsafe-argument
+  31:15  error    Unsafe member access .message on an `any` value                                               @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/motorista/motorista.service.ts
+   19:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   19:13  error  'id' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   22:16  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   22:32  error  Unsafe member access .cpf on an `any` value      @typescript-eslint/no-unsafe-member-access
+   29:16  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   29:32  error  Unsafe member access .cnh on an `any` value      @typescript-eslint/no-unsafe-member-access
+   36:7   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   85:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   86:11  error  '_' is assigned a value but never used           @typescript-eslint/no-unused-vars
+   87:7   error  'caminhoes' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   88:7   error  'criadoEm' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   89:7   error  'deletadoEm' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   94:20  error  Unsafe member access .cpf on an `any` value      @typescript-eslint/no-unsafe-member-access
+   95:25  error  Unsafe member access .cpf on an `any` value      @typescript-eslint/no-unsafe-member-access
+  100:7   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/notificacao/notificacao.gateway.ts
+  33:11  error    Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  46:7   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  48:7   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  50:7   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  87:29  error    Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/servico/servico.controller.ts
+  30:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  30:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  56:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  56:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  69:7   warning  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`  @typescript-eslint/no-unsafe-argument
+  69:11  error    Unsafe member access .user on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/servico/servico.service.ts
+  15:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  15:32  error  Unsafe member access .nome on an `any` value            @typescript-eslint/no-unsafe-member-access
+  16:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  17:28  error  Unsafe member access .sigla on an `any` value           @typescript-eslint/no-unsafe-member-access
+  18:11  error  Unsafe call of an `any` typed value                     @typescript-eslint/no-unsafe-call
+  18:11  error  Unsafe call of an `any` typed value                     @typescript-eslint/no-unsafe-call
+  18:28  error  Unsafe member access .nome on an `any` value            @typescript-eslint/no-unsafe-member-access
+  18:50  error  Unsafe member access .toUpperCase on an `any` value     @typescript-eslint/no-unsafe-member-access
+  19:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  19:35  error  Unsafe member access .prefixo on an `any` value         @typescript-eslint/no-unsafe-member-access
+  20:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  20:32  error  Unsafe member access .tipo on an `any` value            @typescript-eslint/no-unsafe-member-access
+  21:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  21:31  error  Unsafe member access .cor on an `any` value             @typescript-eslint/no-unsafe-member-access
+  22:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  22:42  error  Unsafe member access .prioridadePeso on an `any` value  @typescript-eslint/no-unsafe-member-access
+  23:9   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  24:28  error  Unsafe member access .ativo on an `any` value           @typescript-eslint/no-unsafe-member-access
+  24:67  error  Unsafe member access .ativo on an `any` value           @typescript-eslint/no-unsafe-member-access
+  55:11  error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+  56:11  error  '_' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  57:7   error  'criadoEm' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  58:7   error  'deletadoEm' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  59:7   error  'agendamento' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  60:7   error  'senha' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  66:7   error  Unsafe assignment of an `any` value                     @typescript-eslint/no-unsafe-assignment
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/usuario/usuario.controller.ts
+  79:30  error  Invalid type "string | string[]" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+/home/maly/Transferências/sgf_aldebaran/backend/src/usuario/usuario.service.ts
+   19:11  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   22:23  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   22:34  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   29:41  warning  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+   33:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   35:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   36:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   37:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   38:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+   38:22  error    Unsafe member access .ativo on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  126:11  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  132:16  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  132:27  error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  145:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  145:21  error    Unsafe member access .nome on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  146:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  146:22  error    Unsafe member access .email on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  147:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  147:22  error    Unsafe member access .login on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  148:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  148:23  error    Unsafe member access .perfil on an `any` value                                                    @typescript-eslint/no-unsafe-member-access
+  149:9   error    Unsafe assignment of an `any` value                                                               @typescript-eslint/no-unsafe-assignment
+  149:22  error    Unsafe member access .ativo on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+
+✖ 305 problems (282 errors, 23 warnings)
+

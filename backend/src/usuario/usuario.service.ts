@@ -1,16 +1,25 @@
-import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { NotificacaoService } from '../notificacao/notificacao.service';
 
 @Injectable()
 export class UsuarioService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private notificacaoService: NotificacaoService,
+  ) {}
 
   async criar(dados: any) {
     const { login, senha, nome, email, perfil } = dados;
 
     const existe = await this.prisma.usuario.findFirst({
-      where: { OR: [{ login }, { email }] }
+      where: { OR: [{ login }, { email }] },
     });
 
     if (existe) {
@@ -19,13 +28,15 @@ export class UsuarioService {
 
     const senhaHash = await bcrypt.hash(senha, 12);
 
-    return await this.prisma.usuario.create({
+    const novoUsuario = await this.prisma.usuario.create({
       data: {
         login,
         senha: senhaHash,
         nome,
         email,
         perfil: perfil || 'OPERADOR',
+        ativo: dados.ativo ?? true,
+        filial_id: dados.filial_id ? +dados.filial_id : null,
       },
       select: {
         id: true,
@@ -34,9 +45,23 @@ export class UsuarioService {
         email: true,
         perfil: true,
         ativo: true,
-        criadoEm: true
-      }
+        criadoEm: true,
+        filial_id: true,
+      },
     });
+
+    // Criar notificação para novo operador
+    if (novoUsuario.perfil === 'OPERADOR') {
+      await this.notificacaoService.criar({
+        titulo: 'Novo operador cadastrado',
+        mensagem: `${novoUsuario.nome} foi adicionado ao sistema como Operador.`,
+        rota: '/admin/cadastros',
+        icon: 'userPlus',
+        iconClass: 'blue-icon',
+      });
+    }
+
+    return novoUsuario;
   }
 
   async validarLogin(login: string, senha: string) {
@@ -57,13 +82,16 @@ export class UsuarioService {
       id: usuario.id,
       nome: usuario.nome,
       perfil: usuario.perfil,
-      acesso: true
+      acesso: true,
     };
   }
 
-  async findAll() {
+  async findAll(filialId?: number) {
     return await this.prisma.usuario.findMany({
-      where: { deletadoEm: null }, // Optionally handle soft-deleted
+      where: {
+        deletadoEm: null,
+        filial_id: filialId ? filialId : undefined,
+      },
       select: {
         id: true,
         nome: true,
@@ -72,9 +100,10 @@ export class UsuarioService {
         perfil: true,
         ativo: true,
         criadoEm: true,
-        atualizadoEm: true
+        atualizadoEm: true,
+        filial_id: true,
       },
-      orderBy: { id: 'asc' }
+      orderBy: { id: 'asc' },
     });
   }
 
@@ -89,8 +118,9 @@ export class UsuarioService {
         perfil: true,
         ativo: true,
         criadoEm: true,
-        atualizadoEm: true
-      }
+        atualizadoEm: true,
+        filial_id: true,
+      },
     });
 
     if (!usuario) throw new NotFoundException('Usuário não encontrado');
@@ -100,14 +130,32 @@ export class UsuarioService {
   async update(id: number, dados: any) {
     await this.findOne(id); // Check existence
 
-    return await this.prisma.usuario.update({
+    const { login, email } = dados;
+
+    // Check if login or email is already taken by another user
+    const existe = await this.prisma.usuario.findFirst({
+      where: {
+        id: { not: id },
+        OR: [{ login }, { email: email || undefined }],
+      },
+    });
+
+    if (existe) {
+      throw new BadRequestException(
+        'Login ou E-mail já estão em uso por outro usuário.',
+      );
+    }
+
+    const usuario = await this.prisma.usuario.update({
       where: { id },
       data: {
         nome: dados.nome,
         email: dados.email,
         login: dados.login,
         perfil: dados.perfil,
-        atualizadoEm: new Date()
+        ativo: dados.ativo,
+        filial_id: dados.filial_id ? +dados.filial_id : null,
+        atualizadoEm: new Date(),
       },
       select: {
         id: true,
@@ -116,8 +164,19 @@ export class UsuarioService {
         email: true,
         perfil: true,
         ativo: true,
-      }
+        filial_id: true,
+      },
     });
+
+    // Notificação de alteração de usuário
+    await this.notificacaoService.criar({
+      titulo: 'Usuário Atualizado',
+      mensagem: `Dados do usuário ${usuario.nome} foram alterados.`,
+      icon: 'userPlus',
+      rota: '/admin/cadastros',
+    });
+
+    return usuario;
   }
 
   async toggleStatus(id: number) {
@@ -125,7 +184,7 @@ export class UsuarioService {
     return await this.prisma.usuario.update({
       where: { id },
       data: { ativo: !usuario.ativo, atualizadoEm: new Date() },
-      select: { id: true, ativo: true }
+      select: { id: true, ativo: true },
     });
   }
 
@@ -136,7 +195,27 @@ export class UsuarioService {
     return await this.prisma.usuario.update({
       where: { id },
       data: { senha: senhaHash, atualizadoEm: new Date() },
-      select: { id: true, nome: true }
+      select: { id: true, nome: true },
+    });
+  }
+
+  async updateFoto(id: number, fotoUrl: string) {
+    await this.findOne(id);
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { fotoPerfil: fotoUrl, atualizadoEm: new Date() },
+      select: { id: true, nome: true, fotoPerfil: true },
+    });
+  }
+
+  async softDelete(id: number) {
+    await this.findOne(id);
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: { 
+        deletadoEm: new Date(),
+        ativo: false 
+      },
     });
   }
 }

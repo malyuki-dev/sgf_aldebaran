@@ -18,6 +18,9 @@
       <div class="heading-group">
         <h1>Bem-vindo</h1>
         <p>Selecione uma opção para iniciar o atendimento</p>
+        <div class="filial-indicator" *ngIf="filialNome">
+             📍 Unidade: <strong>{{ filialNome }}</strong>
+        </div>
       </div>
 
       <div class="cards-row">
@@ -52,4 +55,9 @@
       </div>
     </div>
   </main>
+
+  <footer class="totem-footer">
+    <p>© 2026 Aldebaran SGF - Todos os direitos reservados</p>
+  </footer>
+
 </div>

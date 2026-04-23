@@ -57,22 +57,24 @@
                             <span class="tb-title">{{ c.transportadora || 'Frota Própria' }}</span>
                         </td>
                         <td>
-                            <span class="badge" [ngClass]="{
-                                'badge-ativo': c.status === 'ATIVO',
-                                'badge-inativo': c.status === 'INATIVO',
-                                'badge-manutencao': c.status === 'MANUTENCAO'
+                            <div class="status-badge" [ngClass]="{
+                                'active': c.status === 'ATIVO',
+                                'inactive': c.status === 'INATIVO',
+                                'maintenance': c.status === 'MANUTENCAO'
                             }">
-                                {{ c.status === 'ATIVO' ? 'Ativo' : (c.status === 'INATIVO' ? 'Inativo' : 'Manutenção')
-                                }}
-                            </span>
+                                <lucide-icon [img]="c.status === 'ATIVO' ? icons.checkCircle : (c.status === 'INATIVO' ? icons.x : icons.truck)" size="14"></lucide-icon>
+                                {{ c.status === 'ATIVO' ? 'Ativo' : (c.status === 'INATIVO' ? 'Inativo' : 'Manutenção') }}
+                            </div>
                         </td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit" (click)="abrirModalEditar(c)" title="Editar">
                                     <lucide-icon [img]="icons.edit2" size="14"></lucide-icon>
                                 </button>
-                                <button class="btn-delete" (click)="excluir(c.id)" title="Excluir">
-                                    <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
+                                <button class="btn-toggle" [ngClass]="c.status === 'ATIVO' ? 'deactivate' : 'activate'" 
+                                    (click)="alternarStatus(c.id)"
+                                    [title]="c.status === 'ATIVO' ? 'Inativar' : 'Ativar'">
+                                    <lucide-icon [img]="c.status === 'ATIVO' ? icons.trash2 : icons.checkCircle" size="14"></lucide-icon>
                                 </button>
                             </div>
                         </td>
@@ -112,7 +114,8 @@
                     <div class="form-group flex-1">
                         <label>Placa *</label>
                         <input type="text" [(ngModel)]="caminhaoForm.placa" [disabled]="isEditing"
-                            placeholder="ABC-1234 ou ABC1D23" style="text-transform: uppercase;">
+                            (blur)="checkPlaca()"
+                            placeholder="ABC-1234" style="text-transform: uppercase;">
                         <span *ngIf="isEditing"
                             style="font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: block;">A placa não
                             pode ser alterada.</span>

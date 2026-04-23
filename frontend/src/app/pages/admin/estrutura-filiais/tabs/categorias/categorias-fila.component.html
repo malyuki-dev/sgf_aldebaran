@@ -1,0 +1,161 @@
+<div class="list-card animate-up">
+    <div class="list-card-header">
+        <div class="titles">
+            <h2>Categorias de Fila</h2>
+            <p>Configure os tipos de atendimento e prioridades</p>
+        </div>
+        <button class="btn-primary" (click)="abrirModalCategoria()">
+            <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+            Nova Categoria
+        </button>
+    </div>
+
+    <div class="card-content-padding">
+        <div class="categories-grid">
+    <div class="category-card fade-in" *ngFor="let c of categorias">
+        <div class="card-inner">
+            <!-- Header section: Icon + Info + Badge -->
+            <div class="card-top">
+                <div class="category-icon-box" [style.background-color]="c.cor || '#0099ab'">
+                    <lucide-icon
+                        [img]="c.nome?.toLowerCase().includes('caminhão') ? icons.truck : (c.nome?.toLowerCase().includes('cliente') ? icons.zap : icons.box)"
+                        size="24" color="white"></lucide-icon>
+                </div>
+                <div class="category-header-info">
+                    <div class="name-status">
+                        <h3>{{ c.nome }}</h3>
+                        <span class="badge" [class.badge-ativo-soft]="c.ativo" [class.badge-inativo-soft]="!c.ativo">
+                            {{ c.ativo ? 'Ativo' : 'Inativo' }}
+                        </span>
+                    </div>
+                    <span class="prefix">{{ c.prefixo || 'No prefix' }}</span>
+                </div>
+            </div>
+
+            <!-- Type Section -->
+            <div class="card-middle">
+                <p class="tipo" *ngIf="c.tipo">Tipo:{{ c.tipo }}</p>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="category-actions">
+                <button class="btn-edit-fill" (click)="abrirModalCategoria(c)">
+                    <lucide-icon [img]="icons.edit" size="16"></lucide-icon>
+                    Editar
+                </button>
+                <button class="btn-toggle-fill" [class.btn-activate]="!c.ativo" [class.btn-deactivate]="c.ativo"
+                    (click)="toggleStatusCategoria(c)">
+                    <lucide-icon [img]="icons.power" size="16"></lucide-icon>
+                    {{ c.ativo ? 'Desativar' : 'Ativar' }}
+                </button>
+                <button class="btn-delete-card" (click)="excluirCategoria(c.id)">
+                    <lucide-icon [img]="icons.trash" size="16"></lucide-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nova/Editar Categoria -->
+<div class="modal-overlay" *ngIf="showCategoriaModal">
+    <div class="modal-card category-modal">
+        <div class="modal-header category-gradient-header">
+            <h3>{{ editandoCategoria ? 'Editar Categoria' : 'Nova Categoria' }}</h3>
+            <button class="btn-close" (click)="fecharModalCategoria()">
+                <lucide-icon [img]="icons.x" size="20" color="white"></lucide-icon>
+            </button>
+        </div>
+
+        <div class="modal-body p-8">
+            <div class="form-row-premium">
+                <label>Nome da Categoria</label>
+                <input type="text" [(ngModel)]="formCategoria.nome" placeholder="Ex: Caminhão">
+            </div>
+
+            <div class="form-row-premium">
+                <label>Prefixo (Nome em Inglês)</label>
+                <input type="text" [(ngModel)]="formCategoria.prefixo" placeholder="Ex: Truck">
+            </div>
+
+            <div class="form-row-premium">
+                <label>Tipo (Opcional)</label>
+                <input type="text" [(ngModel)]="formCategoria.tipo" placeholder="Ex: Fácil Cobrança">
+            </div>
+
+            <div class="form-row-premium">
+                <label>Cor</label>
+                <div class="input-with-icon">
+                    <input type="text" [(ngModel)]="formCategoria.cor" placeholder="#00b8d4">
+                    <input type="color" [(ngModel)]="formCategoria.cor" class="hidden-picker">
+                </div>
+            </div>
+
+            <div class="form-row-premium">
+                <label>Status</label>
+                <div class="status-input">
+                    <input type="text" [value]="formCategoria.ativo ? 'Ativo' : 'Inativo'" readonly
+                        style="background: #f8fafc; border-radius: 8px 0 0 8px;">
+                    <button class="status-btn" (click)="formCategoria.ativo = !formCategoria.ativo">
+                        Mudar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filial Selection (Mandatory) -->
+            <div class="form-row-premium mt-4">
+                <label>Filial Vinculada <span class="required-mark">*</span></label>
+                <select [(ngModel)]="formCategoria.filial_id">
+                   <option [ngValue]="null">Todas as Unidades (Global)</option>
+                   <option *ngFor="let f of filiais" [ngValue]="f.id">
+                        {{ f.nome }}
+                   </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-footer no-border">
+            <button class="btn-cancel-flat" (click)="fecharModalCategoria()">Cancelar</button>
+            <button class="btn-submit-gradient" (click)="salvarCategoria()" [disabled]="loading">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmação de Exclusão -->
+<div class="modal-overlay refined-overlay" *ngIf="showConfirmDelete">
+    <div class="modal-card mini-modal refined-card">
+        <div class="modal-body text-center">
+            <div class="refined-icon-box alert-circle">
+                <lucide-icon [img]="icons.power" size="32" color="#ef4444"></lucide-icon>
+            </div>
+            <h2 class="refined-title">Deseja excluir?</h2>
+            <p class="refined-desc">
+                A categoria <strong>{{ categoriaParaExcluir?.nome }}</strong>
+                será removida permanentemente do sistema.
+            </p>
+
+            <div class="refined-actions">
+                <button class="btn-refined-outline" (click)="fecharConfirmacao()">Cancelar</button>
+                <button class="btn-refined-danger" (click)="confirmarExclur()">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sucesso -->
+<div class="modal-overlay refined-overlay" *ngIf="showSuccessModal">
+    <div class="modal-card mini-modal refined-card">
+        <div class="modal-body text-center">
+            <div class="refined-icon-box success-circle">
+                <lucide-icon [img]="icons.check" size="32" color="#22c55e"></lucide-icon>
+            </div>
+            <h2 class="refined-title">Sucesso!</h2>
+            <p class="refined-desc">Os dados foram salvos corretamente.</p>
+
+            <div class="refined-actions mt-4">
+                <button class="btn-refined-teal" (click)="fecharSucesso()">OK, Entendi</button>
+            </div>
+        </div>
+    </div>
+</div>

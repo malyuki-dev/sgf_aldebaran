@@ -8,9 +8,9 @@ import { TotemService, Ticket } from '../../../services/totem.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './totem-senha.component.html',
-  // --- AQUI ESTÁ A MÁGICA: O ESTILO DENTRO DO COMPONENTE ---
+  // Component-specific styles
   styles: [`
-    /* ESTILO GERAL */
+    /* General layout styles */
     :host {
       display: block;
       width: 100%;

@@ -1,7 +1,8 @@
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ApiService } from '../../../services/api.service';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule, Search, Plus, Filter, User, Users, Building, Phone, Edit2, AlertCircle, X, ShieldAlert, Check, Calendar, Trash2, CheckCircle } from 'lucide-angular';
 import { DatePipe } from '@angular/common';
 
@@ -36,25 +37,30 @@ export class ClientesComponent implements OnInit {
     telefone: '',
     endereco: '',
     ativo: true,
-    senha: '' // Default password placeholder logic is handled in backend, but we can allow admin to set one.
+    senha: '',
+    filial_id: null as number | null
   };
+  selectedFilialId: number | null = null;
 
-  private apiUrl = `http://localhost:3000/clientes`;
-
-  constructor(private http: HttpClient, private datePipe: DatePipe, private cdr: ChangeDetectorRef) { }
+    constructor(
+    private api: ApiService, 
+    private datePipe: DatePipe, 
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
-    this.carregarClientes();
-  }
-
-  private getHeaders() {
-    const token = localStorage.getItem('token') || '';
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    this.route.queryParamMap.subscribe(params => {
+        const fid = params.get('filialId');
+        this.selectedFilialId = fid ? Number(fid) : null;
+        this.carregarClientes();
+    });
   }
 
   carregarClientes() {
     this.loading = true;
-    this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).subscribe({
+    const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+    this.api.get<any[]>(`/clientes${filialQuery}`).subscribe({
       next: (data) => {
         let filtrados = data;
 
@@ -86,9 +92,24 @@ export class ClientesComponent implements OnInit {
     });
   }
 
+  checkDocumento() {
+    const cpf = this.clienteForm.tipo === 'PF' ? this.clienteForm.cpf : '';
+    const cnpj = this.clienteForm.tipo === 'PJ' ? this.clienteForm.cnpj : '';
+    
+    if ((this.clienteForm.tipo === 'PF' && cpf.length === 11) || (this.clienteForm.tipo === 'PJ' && cnpj.length === 14)) {
+      this.api.get<{exists: boolean}>(`/clientes/check`, {
+        cpf, cnpj
+      }).subscribe(res => {
+        if (res.exists) {
+            alert(`${this.clienteForm.tipo === 'PF' ? 'CPF' : 'CNPJ'} já cadastrado no sistema!`);
+        }
+      });
+    }
+  }
+
   abrirModalNovo() {
     this.isEditing = false;
-    this.clienteForm = { id: null, nome: '', email: '', tipo: 'PF', cpf: '', cnpj: '', telefone: '', endereco: '', ativo: true, senha: '' };
+    this.clienteForm = { id: null, nome: '', email: '', tipo: 'PF', cpf: '', cnpj: '', telefone: '', endereco: '', ativo: true, senha: '', filial_id: this.selectedFilialId };
     this.showModal = true;
   }
 
@@ -131,7 +152,8 @@ export class ClientesComponent implements OnInit {
       tipo: this.clienteForm.tipo,
       telefone: this.clienteForm.telefone,
       endereco: this.clienteForm.endereco,
-      ativo: this.clienteForm.ativo
+      ativo: this.clienteForm.ativo,
+      filial_id: this.clienteForm.filial_id ? Number(this.clienteForm.filial_id) : null
     };
     if (this.clienteForm.tipo === 'PF') payload.cpf = this.clienteForm.cpf;
     if (this.clienteForm.tipo === 'PJ') payload.cnpj = this.clienteForm.cnpj;
@@ -142,7 +164,7 @@ export class ClientesComponent implements OnInit {
     }
 
     if (this.isEditing) {
-      this.http.put(`${this.apiUrl}/${this.clienteForm.id}`, payload, { headers: this.getHeaders() })
+      this.api.patch(`/clientes/${this.clienteForm.id}`, payload)
         .subscribe({
           next: () => {
             this.showModal = false;
@@ -153,7 +175,7 @@ export class ClientesComponent implements OnInit {
           error: (err) => this.handleError(err, 'Erro ao atualizar.')
         });
     } else {
-      this.http.post(this.apiUrl, payload, { headers: this.getHeaders() })
+      this.api.post('/clientes', payload)
         .subscribe({
           next: () => {
             this.showModal = false;
@@ -166,14 +188,15 @@ export class ClientesComponent implements OnInit {
     }
   }
 
-  alternarStatus(id: number) {
-    if (confirm('Tem certeza que deseja alterar o status (Inativar/Ativar) deste cliente?')) {
-      this.http.patch(`${this.apiUrl}/${id}/status`, {}, { headers: this.getHeaders() })
-        .subscribe({
-          next: () => this.carregarClientes(),
-          error: (err) => console.error('Erro ao alterar status', err)
-        });
-    }
+  alternarStatus(id: string) {
+    this.api.patch(`/clientes/${id}/status`, {})
+      .subscribe({
+        next: () => {
+            this.carregarClientes();
+            this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Erro ao alterar status', err)
+      });
   }
 
   private handleError(err: any, defaultMsg: string) {

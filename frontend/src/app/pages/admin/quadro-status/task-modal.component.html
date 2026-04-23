@@ -1,0 +1,65 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ task ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
+      <button class="btn-close" (click)="close.emit()">
+        <lucide-icon [name]="icons.x" size="20"></lucide-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" formControlName="titulo" placeholder="Ex: Resolver erro de login">
+      </div>
+
+      <div class="form-group">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" formControlName="descricao" rows="4" placeholder="Detalhes da tarefa..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="status_id">Status</label>
+          <select id="status_id" formControlName="status_id">
+            <option *ngFor="let s of statusList" [value]="s.id">{{ s.nome }}</option>
+          </select>
+        </div>
+
+        <div class="form-group half">
+          <label for="prioridade">Prioridade</label>
+          <select id="prioridade" formControlName="prioridade">
+            <option *ngFor="let p of priorities" [value]="p.value">{{ p.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="responsavel_id">Responsável</label>
+          <input type="number" id="responsavel_id" formControlName="responsavel_id" placeholder="ID do Usuário">
+          <span class="hint">ID do Usuário (será melhorado futuramente)</span>
+        </div>
+
+        <div class="form-group half">
+          <label for="dataEntrega">Data de Entrega</label>
+          <input type="date" id="dataEntrega" formControlName="dataEntrega">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" *ngIf="task" class="btn-danger" (click)="deleteTask()" [disabled]="loading">
+          <lucide-icon [name]="icons.trash" size="18"></lucide-icon>
+          Excluir
+        </button>
+        <div class="action-group">
+          <button type="button" class="btn-secondary" (click)="close.emit()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="taskForm.invalid || loading">
+            <lucide-icon [name]="icons.save" size="18"></lucide-icon>
+            {{ loading ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

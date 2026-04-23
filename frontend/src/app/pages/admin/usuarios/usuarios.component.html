@@ -30,8 +30,7 @@
                         <th>Nome</th>
                         <th>E-mail</th>
                         <th>Função</th>
-                        <th>Filial</th>
-                        <th>Idioma</th>
+                        <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -60,15 +59,26 @@
                                 {{ u.perfil }}
                             </span>
                         </td>
-                        <td>Matriz - Centro</td>
-                        <td>PT</td>
+                        <td>
+                            <div class="status-badge" [ngClass]="u.ativo ? 'active' : 'inactive'">
+                                <lucide-icon [img]="u.ativo ? icons.checkCircle : icons.userX" size="14"></lucide-icon>
+                                {{ u.ativo ? 'Ativo' : 'Inativo' }}
+                            </div>
+                        </td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit" (click)="abrirModalEditar(u)" title="Editar">
                                     <lucide-icon [img]="icons.edit2" size="14"></lucide-icon>
                                 </button>
-                                <button class="btn-delete" (click)="alternarStatus(u.id, u.ativo)"
-                                    [title]="u.ativo ? 'Inativar' : 'Reativar'">
+                                <button class="btn-reset" (click)="abrirModalRedefinirSenha(u)" title="Redefinir Senha">
+                                    <lucide-icon [img]="icons.shield" size="14"></lucide-icon>
+                                </button>
+                                <button class="btn-toggle" [ngClass]="u.ativo ? 'deactivate' : 'activate'" 
+                                    (click)="alternarStatus(u.id, u.ativo)"
+                                    [title]="u.ativo ? 'Inativar' : 'Ativar'">
+                                    <lucide-icon [img]="u.ativo ? icons.userX : icons.checkCircle" size="14"></lucide-icon>
+                                </button>
+                                <button class="btn-delete" (click)="excluirUsuario(u.id, u.nome)" title="Excluir Permanentemente">
                                     <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
                                 </button>
                             </div>
@@ -132,6 +142,15 @@
                         <option value="OPERADOR">OPERADOR - Acesso apenas ao painel de atendimento</option>
                         <option value="SUPERVISOR">SUPERVISOR - Acesso ao dashboard e monitoramento</option>
                         <option value="ADMIN">ADMINISTRADOR - Acesso total ao sistema e cadastros</option>
+                    </select>
+                </div>
+
+                <!-- Filial Selection (Mandatory) -->
+                <div class="form-group">
+                    <label>Filial de Atuação *</label>
+                    <select [(ngModel)]="usuarioForm.filial_id" [disabled]="!!selectedFilialId && !isEditing">
+                        <option [ngValue]="null">Geral (Todas as Unidades / Sem Filial)</option>
+                        <option *ngFor="let fil of filiais" [ngValue]="fil.id">{{ fil.nome }}</option>
                     </select>
                 </div>
             </div>

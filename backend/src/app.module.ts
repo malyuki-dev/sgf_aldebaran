@@ -1,21 +1,34 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { FilaModule } from './fila/fila.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { ClienteModule } from './cliente/client.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module'; // <--- Importe o Módulo
+import { PrismaModule } from './prisma/prisma.module';
 import { MotoristaModule } from './motorista/motorista.module';
 import { CaminhaoModule } from './caminhao/caminhao.module';
 import { ServicoModule } from './servico/servico.module';
 import { ConfiguracaoModule } from './configuracao/configuracao.module';
 import { LogModule } from './log/log.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FilialModule } from './filial/filial.module';
+import { GuicheModule } from './guiche/guiche.module';
+import { MobileProfileModule } from './mobile-profile/mobile-profile.module';
+import { NotificacaoModule } from './notificacao/notificacao.module';
+import { TaskManagementModule } from './task-management/task-management.module';
+import { AgendamentoModule } from './agendamento/agendamento.module';
 
 @Module({
   imports: [
-    PrismaModule, // <--- Adicione aqui
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     AuthModule,
-    // Se esses módulos não existirem ou derem erro, comente-os por enquanto:
     FilaModule,
     UsuarioModule,
     ClienteModule,
@@ -25,8 +38,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ConfiguracaoModule,
     LogModule,
     DashboardModule,
+    FilialModule,
+    GuicheModule,
+    MobileProfileModule,
+    NotificacaoModule,
+    TaskManagementModule,
+    AgendamentoModule,
   ],
   controllers: [],
-  providers: [], // <--- Remova o PrismaService daqui
+  providers: [],
 })
 export class AppModule {}

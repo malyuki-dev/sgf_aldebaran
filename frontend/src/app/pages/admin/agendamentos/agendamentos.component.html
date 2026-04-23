@@ -1,35 +1,209 @@
-<div class="page-container">
-  <h1>Agenda do Dia</h1>
-  <div class="card">
-    <div *ngIf="loading">Carregando...</div>
-    <table *ngIf="!loading">
-      <thead>
-        <tr>
-          <th>DATA / HORA</th>
-          <th>CLIENTE</th>
-          <th>SERVIÇO</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let ag of agendamentos">
-          <td>
-            <div style="display:flex; flex-direction:column;">
-              <strong><lucide-icon [img]="icons.clock" size="14"></lucide-icon> {{ ag.hora }}</strong>
-              <span style="font-size:0.8rem; color:#888">{{ formatarData(ag.data) }}</span>
+<div class="crud-page animate-up">
+  <div class="list-card">
+    <div class="list-card-header">
+      <div class="titles">
+        <h2>Agendamentos</h2>
+        <p>Gerencie as reservas e horários marcados</p>
+      </div>
+      <button class="btn-primary" (click)="abrirModal()">
+        <lucide-icon [img]="icons.plus" size="18"></lucide-icon>
+        Novo Agendamento
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="list-card-search">
+      <div class="search-row">
+        <div class="search-input-wrapper flex-2">
+          <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
+          <input type="text" placeholder="Buscar por cliente ou documento..." [(ngModel)]="filtroBusca" (input)="aplicarFiltros()">
+        </div>
+        
+        <div class="filter-group">
+          <lucide-icon [img]="icons.calendar" size="16"></lucide-icon>
+          <input type="date" [(ngModel)]="filtroData" (change)="aplicarFiltros()">
+        </div>
+
+        <div class="filter-group">
+          <lucide-icon [img]="icons.filter" size="16"></lucide-icon>
+          <select [(ngModel)]="filtroStatus" (change)="aplicarFiltros()">
+            <option value="TODOS">Todos os Status</option>
+            <option value="CONFIRMADO">Confirmados</option>
+            <option value="REALIZADO">Realizados</option>
+            <option value="CANCELADO">Cancelados</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="skeleton-loader" *ngIf="loading" style="padding: 2rem;">
+      <div class="spinner"></div>
+      <p>Carregando agendamentos...</p>
+    </div>
+
+    <!-- Tabela -->
+    <div class="table-responsive" *ngIf="!loading && agendamentosFiltrados.length > 0">
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th>Cliente</th>
+            <th>Serviço</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ag of agendamentosFiltrados" [class.inactive]="ag.status === 'CANCELADO'">
+            <td>
+              <div class="time-cell">
+                <div class="date-badge">
+                  <span class="day">{{ formatarData(ag.data).split('/')[0] }}</span>
+                  <span class="month">{{ formatarData(ag.data).split('/')[1] }}/{{ formatarData(ag.data).split('/')[2] }}</span>
+                </div>
+                <div class="time-info">
+                  <strong><lucide-icon [img]="icons.clock" size="12"></lucide-icon> {{ ag.hora }}</strong>
+                  <span>Código: {{ ag.codigo }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="client-info">
+                <strong>{{ ag.nomeCliente }}</strong>
+                <span>{{ ag.documento || 'Sem documento' }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="service-tag">
+                {{ ag.servico?.nome || 'N/A' }}
+              </div>
+            </td>
+            <td>
+              <div class="status-badge" [ngClass]="getStatusClass(ag.status)">
+                <lucide-icon [img]="ag.status === 'REALIZADO' ? icons.check : (ag.status === 'CANCELADO' ? icons.x : icons.clock)" size="14"></lucide-icon>
+                {{ ag.status }}
+              </div>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-cancel" *ngIf="ag.status === 'CONFIRMADO'" (click)="cancelar(ag.id)" title="Cancelar Agendamento">
+                  <lucide-icon [img]="icons.trash" size="14"></lucide-icon>
+                </button>
+                <button class="btn-view" title="Ver Detalhes">
+                  <lucide-icon [img]="icons.file" size="14"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && agendamentosFiltrados.length === 0">
+      <div class="icon-circle empty">
+        <lucide-icon [img]="icons.calendar" size="40"></lucide-icon>
+      </div>
+      <h3>Nenhum agendamento encontrado</h3>
+      <p>Tente ajustar os filtros ou crie um novo agendamento.</p>
+    </div>
+
+    <div class="list-card-footer" *ngIf="!loading && agendamentosFiltrados.length > 0">
+      <span>Exibindo {{ agendamentosFiltrados.length }} agendamento(s)</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Novo Agendamento -->
+<div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+  <div class="modal-content large animate-pop" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <lucide-icon [img]="icons.plus" size="20"></lucide-icon>
+        Novo Agendamento
+      </h2>
+      <button class="close-btn" (click)="showModal = false">
+        <lucide-icon [img]="icons.x"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <!-- Coluna Esquerda: Dados -->
+        <div class="form-column">
+          <div class="form-group">
+            <label>CLIENTE *</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.user" size="16"></lucide-icon>
+              <input type="text" [(ngModel)]="form.nome" placeholder="Nome completo do cliente">
             </div>
-          </td>
-          <td>
-            <div style="display:flex; flex-direction:column;">
-              <strong><lucide-icon [img]="icons.user" size="14"></lucide-icon> {{ ag.nomeCliente }}</strong>
-              <span style="font-size:0.8rem; color:#888">{{ ag.documento }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>DOCUMENTO (CPF/CNPJ)</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.file" size="16"></lucide-icon>
+              <input type="text" [(ngModel)]="form.documento" placeholder="000.000.000-00">
             </div>
-          </td>
-          <td>{{ ag.servico?.nome }}</td>
-          <td><span class="badge">{{ ag.status }}</span></td>
-        </tr>
-        <tr *ngIf="agendamentos.length === 0"><td colspan="4">Nenhum agendamento.</td></tr>
-      </tbody>
-    </table>
+          </div>
+
+          <div class="form-group">
+            <label>SERVIÇO *</label>
+            <select [(ngModel)]="form.servico_id" class="custom-select">
+              <option value="">Selecione um serviço...</option>
+              <option *ngFor="let s of servicos" [value]="s.id">{{ s.nome }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>DATA DO AGENDAMENTO *</label>
+            <div class="input-with-icon">
+              <lucide-icon [img]="icons.calendar" size="16"></lucide-icon>
+              <input type="date" [(ngModel)]="form.data" (change)="buscarHorarios()" [min]="form.data">
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Horários -->
+        <div class="form-column slots-column">
+          <label>HORÁRIOS DISPONÍVEIS *</label>
+          
+          <div class="slots-loader" *ngIf="loadingHorarios">
+            <div class="mini-spinner"></div>
+            <span>Buscando horários...</span>
+          </div>
+
+          <div class="slots-grid" *ngIf="!loadingHorarios">
+            <button 
+              *ngFor="let slot of horariosDisponiveis" 
+              type="button"
+              class="slot-btn" 
+              [class.active]="form.hora === slot.hora"
+              [disabled]="!slot.disponivel"
+              (click)="selecionarHora(slot.hora)"
+            >
+              {{ slot.hora }}
+            </button>
+            <div *ngIf="horariosDisponiveis.length === 0 && !loadingHorarios" class="no-slots">
+              Nenhum horário disponível para esta data.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card" *ngIf="form.hora && form.data">
+        <lucide-icon [img]="icons.alert" size="18"></lucide-icon>
+        <p>Agendamento confirmado para <strong>{{ formatarData(form.data) }}</strong> às <strong>{{ form.hora }}</strong>.</p>
+        <div class="code-box">Código: {{ form.codigo }}</div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="salvar()" [disabled]="!form.hora || !form.nome || !form.servico_id">
+        <lucide-icon [img]="icons.check" size="18"></lucide-icon>
+        Confirmar Reserva
+      </button>
+    </div>
   </div>
 </div>

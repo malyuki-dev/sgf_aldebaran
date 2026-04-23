@@ -1,0 +1,22 @@
+<section class="danger-zone" aria-labelledby="danger-zone-title">
+  <div class="danger-copy">
+    <span class="danger-icon" aria-hidden="true">
+      <lucide-icon [img]="icons.alert" size="20"></lucide-icon>
+    </span>
+    <div>
+      <p class="danger-eyebrow">Zona de perigo</p>
+      <h3 id="danger-zone-title">Excluir minha conta</h3>
+      <p>Esta acao deve remover o acesso ao Portal do Cliente quando a API estiver integrada.</p>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="danger-button"
+    [disabled]="deleting"
+    (click)="deleteRequested.emit()"
+  >
+    <lucide-icon [img]="icons.trash" size="18"></lucide-icon>
+    <span>{{ deleting ? 'Excluindo...' : 'Excluir minha conta' }}</span>
+  </button>
+</section>

@@ -1,93 +1,532 @@
-<div class="guiche-container">
-    <!-- Cabecalho Superior do Operador -->
-    <header class="operator-header">
-        <div class="header-left">
-            <div class="guiche-badge">
-                <lucide-angular [img]="icons.hash" class="mr-1"></lucide-angular>
-                Guichê {{ numeroGuiche }}
-            </div>
-            <div class="operator-info">
-                <h3>{{ nomeOperador }}</h3>
-                <span class="status online">Disponível</span>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="fila-live">
-                <lucide-angular [img]="icons.users"></lucide-angular>
-                <strong>{{ filaAguardando }}</strong> na fila
-            </div>
-            <button class="btn btn-logout" routerLink="/">Sair</button>
-        </div>
-    </header>
+<div class="console-operador">
+  <!-- TOP HEADER -->
+  <header class="header-top">
+    <div class="header-left">
+      <img src="assets/logo-aldebaran.png" alt="Aldebaran" class="logo">
+    </div>
+    
+    <div class="header-center">
+      <!-- Filial Selector -->
+      <div class="control-group">
+        <label>Filial</label>
+        <select class="dropdown" [(ngModel)]="filialSelecionada" (change)="onFilialChange()">
+          <option *ngFor="let f of filiais" [value]="f.id">{{ f.nome }}</option>
+        </select>
+      </div>
 
-    <main class="main-content">
+      <!-- Language Selector -->
+      <div class="control-group">
+        <label>Language</label>
+        <div class="language-toggle">
+          <button [class.active]="idiomaAtivo === 'PT'" (click)="trocarIdioma('PT')">PT</button>
+          <button [class.active]="idiomaAtivo === 'EN'" (click)="trocarIdioma('EN')">EN</button>
+        </div>
+      </div>
+    </div>
 
-        <!-- ESTADO 1: GUICHÊ LIVRE (Sem ticket atual) -->
-        <div *ngIf="!ticketAtual" class="estado-livre fade-in">
-            <div class="livre-content">
-                <div class="pulse-ring">
-                    <lucide-angular [img]="icons.play" class="play-icon"></lucide-angular>
+    <div class="header-right">
+      <!-- Meus Atendimentos Badge -->
+      <button class="badge-button atendimentos" (click)="navegarPara('meus-atendimentos')">
+        <img src="assets/icon (2).svg" class="icon" alt="" />
+        <span>Meus Atendimentos</span>
+        <div class="badge-count" *ngIf="badgeMeusAtendimentosCount > 0">{{ badgeMeusAtendimentosCount }}</div>
+      </button>
+
+      <!-- Agendamentos Badge -->
+      <button class="badge-button agendamentos" (click)="navegarPara('agendamentos')">
+        <img src="assets/Icon (4).svg" class="icon" alt="" />
+        <span>Agendamentos</span>
+        <div class="badge-count" *ngIf="badgeAgendamentosCount > 0">{{ badgeAgendamentosCount }}</div>
+      </button>
+
+      <!-- Operator Profile -->
+      <div class="operator-profile">
+        <div class="profile-info">
+          <p class="name">{{ nomeOperador }}</p>
+          <p class="guiche">Guichê {{ numeroGuiche }}</p>
+        </div>
+        <div class="avatar">
+          <img src="assets/Icon (7).svg" class="icon" alt="" />
+        </div>
+        <button type="button" class="logout-btn" (click)="sair()" title="Sair">
+          <img src="assets/Icon.svg" class="icon" alt="" />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="main-container">
+    <!-- LEFT SECTION: Operational Area -->
+    <div class="left-section">
+      <!-- Call Buttons -->
+      <div class="call-buttons">
+        <button class="btn-call-primary" (click)="chamarProximo()" [disabled]="!numeroGuiche">
+          <div class="btn-call-wrap">
+            <img src="assets/Icon (3).svg" class="icon" alt="" />
+            <span>Chamar Próximo</span>
+          </div>
+        </button>
+        <button class="btn-call-secondary" [class.active]="ticketAtual" (click)="rechamar()">
+          <div class="btn-call-wrap"><img src="assets/Frame.svg" class="icon" alt="" /><span>Chamar Novamente</span></div>
+        </button>
+      </div>
+
+      <!-- Current Status Card -->
+      <div class="status-card" [class.has-ticket]="ticketAtual">
+        <!-- Status Vazio -->
+        <ng-container *ngIf="!ticketAtual">
+            <div class="time-idle">
+              <span class="idle-label">Tempo ocioso de atendimento:</span>
+              <img src="assets/Icon (9).svg" class="icon" alt="" />
+              <span class="time">{{ tempoOciosoText }}</span>
+            </div>
+            <div class="guiche-disponivel">
+              <div class="checkmark">
+                <img src="assets/Vector (2).svg" class="icon check-icon" alt="" />
+              </div>
+              <h3>Guichê Disponível</h3>
+              <p>Clique em "Chamar Próximo" para iniciar um novo atendimento.</p>
+            </div>
+        </ng-container>
+
+        <!-- Status Atendimento (Idêntico ao Figma) -->
+        <div *ngIf="ticketAtual" class="ticket-display">
+            <!-- Top Header Ticket -->
+            <div class="ticket-header">
+              <div class="ticket-title-group">
+                <p class="ticket-label">Atendendo</p>
+                <h2 class="ticket-number">{{ ticketAtual.senha }}</h2>
+              </div>
+              
+              <div class="ticket-actions-group">
+                <div *ngIf="ticketAtual.status === 'CHAMADO'" class="badge-aguardando">
+                  Aguardando <br> <span>presença no guichê</span>
                 </div>
-                <h2>Guichê Livre</h2>
-                <p>Aperte o botão abaixo ou pressione Espaço para chamar a próxima senha do painel.</p>
-
-                <button class="btn-chamada-mega" (click)="chamarProximo()">
-                    CHAMAR PRÓXIMO
+                <button *ngIf="ticketAtual.status === 'CHAMADO'" class="btn-iniciar" (click)="iniciarAtendimento()">
+                  <img src="assets/Icon (13).svg" />
+                  Iniciar Atendimento
                 </button>
+                <div *ngIf="ticketAtual.status === 'EM_ATENDIMENTO'" class="badge-em-atendimento">
+                  <div class="dot-pulse"></div>
+                  <span>Em Atendimento</span>
+                  <img src="assets/Icon (9).svg" alt="" />
+                  <span>{{ tempoAtendimento }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dados do cliente / Pedido -->
+            <div class="ticket-info-grid">
+              <div class="info-card">
+                <p class="info-label">Categoria</p>
+                <p class="info-value">{{ ticketAtual.servico }}</p>
+              </div>
+              <div class="info-card">
+                <p class="info-label">Cliente</p>
+                <div class="info-value info-value-client" [class.ghost]="!ticketAtual.clienteSelecionado">
+                  <span>{{ ticketAtual.clienteSelecionado ? ticketAtual.cliente : 'Sem Cadastro' }}</span>
+                  <img *ngIf="ticketAtual.clienteSelecionado" src="assets/Icon (15).svg" class="client-eye-icon" alt="Visualizar cadastro" />
+                </div>
+              </div>
+              <div class="info-card">
+                <p class="info-label">Espera</p>
+                <p class="info-value">8 minutos</p>
+              </div>
+              <div class="info-card highlight-card">
+                <div class="garrafoes-label">Quantidade de Garrafões 20 L <img src="assets/Vector (1).svg" /></div>
+                <div class="garrafoes-count">
+                  <img src="assets/Group 52.svg" class="control-btn" (click)="decrementarGarrafoes()" />
+                  <span class="count">{{ quantidadeGarrafoes }}</span>
+                  <img src="assets/Group 52 (1).svg" class="control-btn" (click)="incrementarGarrafoes()" />
+                </div>
+              </div>
+            </div>
+
+            <div class="classificacao-atendimento" *ngIf="ticketAtual.status === 'EM_ATENDIMENTO'">
+              <label for="classificacaoAtendimento">Classificação do Atendimento</label>
+              <div class="classificacao-select-wrap">
+                <select id="classificacaoAtendimento" class="classificacao-select" [(ngModel)]="classificacaoSelecionada">
+                  <option value="" disabled>Selecione o tipo/motivação</option>
+                  <option *ngFor="let opcao of classificacoesAtendimento" [value]="opcao">{{ opcao }}</option>
+                </select>
+                <span class="classificacao-chevron">▾</span>
+              </div>
+            </div>
+
+            <!-- Botões de Ação do Ticket -->
+            <div class="ticket-footer-actions">
+              <p class="acoes-label">Ações</p>
+              <div class="acoes-grid">
+                <button class="btn-acao btn-finalizar" [disabled]="ticketAtual.status !== 'EM_ATENDIMENTO'" (click)="finalizarAtendimento()">
+                  <img src="assets/Icon (14).svg" /> Finalizar
+                </button>
+                <button class="btn-acao btn-transferir" (click)="abrirModalTransferir()">
+                  <img src="assets/Icon (12).svg" /> Transferir
+                </button>
+                <button class="btn-acao btn-ausente" (click)="naoCompareceu()">
+                  <img src="assets/Icon (11).svg" /> Não Compareceu
+                </button>
+              </div>
             </div>
         </div>
+      </div>
 
-        <!-- ESTADO 2: TICKET CHAMADO / EM ATENDIMENTO -->
-        <div *ngIf="ticketAtual" class="estado-atendimento fade-in">
-
-            <!-- Dados do Ticket (Topo) -->
-            <section class="ticket-card">
-                <div class="ticket-header" [class.em-atendimento]="ticketAtual.status === 'EM_ATENDIMENTO'">
-                    <div class="tag-servico">{{ ticketAtual.servico }}</div>
-                    <h1 class="senha-numero">{{ ticketAtual.senha }}</h1>
-                    <span class="status-badge">{{ ticketAtual.status }}</span>
-                </div>
-
-                <div class="cliente-details">
-                    <div class="detail-row">
-                        <lucide-angular [img]="icons.user"></lucide-angular>
-                        <span><strong>Cliente:</strong> {{ ticketAtual.cliente }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <lucide-angular [img]="icons.briefcase"></lucide-angular>
-                        <span><strong>Documento:</strong> {{ ticketAtual.documento }}</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Grade de Acões (Rodapé do Ticket) -->
-            <section class="action-grid">
-
-                <!-- Ações Iniciais (Logo após chamar antes de começar a atender) -->
-                <ng-container *ngIf="ticketAtual.status === 'CHAMADO'">
-                    <button class="btn-action btn-iniciar" (click)="iniciarAtendimento()">
-                        <lucide-angular [img]="icons.play"></lucide-angular>
-                        Iniciar Atendimento
-                    </button>
-                    <button class="btn-action btn-rechamar" (click)="rechamar()">
-                        <lucide-angular [img]="icons.recall"></lucide-angular>
-                        Rechamar Painel
-                    </button>
-                    <button class="btn-action btn-ausente" (click)="naoCompareceu()">
-                        <lucide-angular [img]="icons.alert"></lucide-angular>
-                        Ausente (No-show)
-                    </button>
-                </ng-container>
-
-                <!-- Ação Secundária (Após o atendimento iniciar) -->
-                <ng-container *ngIf="ticketAtual.status === 'EM_ATENDIMENTO'">
-                    <button class="btn-action btn-concluir" (click)="finalizarAtendimento()">
-                        <lucide-angular [img]="icons.check"></lucide-angular>
-                        Finalizar Atendimento
-                    </button>
-                </ng-container>
-
-            </section>
+      <!-- Search Box -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <img src="assets/Icon (10).svg" class="search-icon" alt="" />
+          <input
+            type="text"
+            placeholder="Consultar Cadastro (CPF, Placa ou Nome)..."
+            class="search-input"
+            [(ngModel)]="termoBuscaCliente"
+            (input)="atualizarBuscaCliente()"
+            (focus)="atualizarBuscaCliente()">
         </div>
-    </main>
+        <div *ngIf="mostrarSugestoesCliente" class="search-results">
+          <button
+            *ngFor="let cliente of clientesFiltrados"
+            type="button"
+            class="search-result-item"
+            (click)="selecionarCliente(cliente)">
+            <div class="search-result-main">
+              <img src="assets/Icon (5).svg" class="search-result-icon" alt="" />
+              <span class="search-result-name">{{ cliente.nome }}</span>
+            </div>
+            <div class="search-result-sub">{{ cliente.documento }}</div>
+            <span class="search-result-action">Selecionar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards -->
+      <div class="quick-actions">
+        <button class="quick-action-card" (click)="abrirModalCadastro('caminhao')">
+          <div class="card-icon caminhao">
+            <img src="assets/Icon (6).svg" class="icon" alt="" />
+          </div>
+          <div class="card-content">
+            <h4>Cadastrar Caminhão</h4>
+            <p>Placa • Modelo • Motorista</p>
+          </div>
+        </button>
+
+        <button class="quick-action-card" (click)="abrirModalCadastro('cliente')">
+          <div class="card-icon cliente">
+            <img src="assets/Icon (5).svg" class="icon" alt="" />
+          </div>
+          <div class="card-content">
+            <h4>Cadastrar Cliente</h4>
+            <p>Individual • Empresa • Caminhoneiro</p>
+          </div>
+        </button>
+
+        <button class="quick-action-card" (click)="abrirModalCadastro('pagamento')">
+          <div class="card-icon pagamento">
+            <img src="assets/Icon (8).svg" class="icon" alt="" />
+          </div>
+          <div class="card-content">
+            <h4>Registrar Pagamento</h4>
+            <p>Manual • Dinheiro • Cartão • PIX</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT SECTION: Next Queue -->
+    <aside class="right-section">
+      <h3 class="sidebar-title">Próximas Senhas</h3>
+      <div class="queue-counter">{{ filaProximas.length }}</div>
+      
+      <div class="queue-list">
+        <div *ngFor="let ticket of filaProximas" class="queue-item">
+          <div class="queue-item-header">
+            <span class="ticket-code">{{ ticket.codigo }}<img *ngIf="ticket.codigo.startsWith('CR')" src="assets/Icon (1).svg" class="icon-fast" alt="" /></span>
+            <span class="ticket-time">
+              <img src="assets/Icon (9).svg" class="icon" alt="" />
+              {{ ticket.tempo }}
+            </span>
+          </div>
+          <p class="ticket-service">{{ ticket.servico }}</p>
+          <div class="queue-item-footer">
+            <span class="queue-position">
+              <img src="assets/Vector (1).svg" class="icon queue-icon-img" alt="" />
+              {{ ticket.posicao }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
 </div>
+
+<!-- MODALS OVELAYS -->
+
+<!-- Toast Rechamada -->
+<div *ngIf="mostrarToastRechamar" class="toast-container">
+  <span class="toast-check">✓</span>
+  <div class="toast-content">
+    <h4>Senha {{ ticketAtual?.senha }} chamada novamente</h4>
+    <p>Alerta sonoro enviado ao painel.</p>
+  </div>
+  <button (click)="mostrarToastRechamar = false" class="toast-close">✕</button>
+</div>
+
+<!-- Modal Não Compareceu -->
+<div *ngIf="modalAberto === 'nao-compareceu'" class="modal-overlay">
+  <div class="modal-content modal-nao-compareceu">
+    <div class="modal-body">
+      <div><img src="assets/Group.svg" class="nao-compareceu-icon"></div>
+      <h3>Marcar como "Não Compareceu"?</h3>
+      <p>A senha <span>{{ ticketAtual?.senha }}</span> será removida da fila de atendimento.<br>Essa ação não pode ser desfeita.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-danger" (click)="confirmarNaoCompareceu()">Sim, Encerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Transferir -->
+<div *ngIf="modalAberto === 'transferir'" class="modal-overlay">
+  <div class="modal-content modal-transferir">
+    <div class="transferir-header">
+      <h3>Transferir Atendimento <span class="tag-senha">{{ ticketAtual?.senha }}</span></h3>
+      <button class="close-btn" (click)="fecharModal()">✕</button>
+    </div>
+    <div class="transferir-body">
+      <div class="transferir-grupo">
+        <label>Motivo da Transferência</label>
+        <select class="select-motivo">
+          <option>Problema Operacional (Máquina Lenta)</option>
+          <option>Ausência Temporária</option>
+          <option>Dúvida / Ajuda</option>
+        </select>
+      </div>
+
+      <div class="transferir-grupo">
+        <label>
+          <span>Selecione o Guichê de Destino</span>
+          <span class="link-azul">Mostrar Apenas Disponíveis</span>
+        </label>
+        <div class="guiches-grid">
+          <div *ngFor="let g of guichesLista" 
+               class="guiche-card" 
+               [class.fechado]="g.status === 'FECHADO'"
+               [class.disponivel]="g.status === 'DISPONÍVEL'"
+               [class.ocupado]="g.status === 'OCUPADO'"
+               [class.selecionado]="guicheTransferenciaSelecionado === g.id"
+               (click)="g.status !== 'FECHADO' && selecionarGuicheTransferencia(g.id)">
+            <ng-container *ngIf="g.status !== 'FECHADO'">
+              <div class="guiche-header">
+                <span>Guichê {{ g.guiche }}</span>
+                <span class="badge-status" [class.disponivel]="g.status === 'DISPONÍVEL'">{{ g.status }}</span>
+              </div>
+              <div class="guiche-operador">
+                <img src="assets/Icon (7).svg" class="guiche-avatar" />
+                {{ g.nome }}
+              </div>
+              <div *ngIf="g.status === 'OCUPADO'" class="guiche-footer">Atendendo: {{ g.atendimento }}</div>
+              <div *ngIf="g.status === 'DISPONÍVEL'" class="guiche-footer disponivel">Selecionar</div>
+              <div *ngIf="guicheTransferenciaSelecionado === g.id" class="guiche-selected-check">
+                ✓
+              </div>
+            </ng-container>
+            <ng-container *ngIf="g.status === 'FECHADO'">
+              <div class="guiche-fechado-title">Guichê {{ g.guiche }}</div>
+              <div class="guiche-fechado-subtitle">Fechado</div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkbox-grupo">
+        <input type="checkbox" id="retornarFila">
+        <label for="retornarFila">Retornar senha para a fila geral (Sem operador específico)</label>
+      </div>
+    </div>
+    <div class="modal-footer-transferir">
+      <button class="btn-cancel btn-transferir-cancel" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-primary btn-transferir-confirm" (click)="confirmarTransferencia()" [disabled]="!guicheTransferenciaSelecionado">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Transferir Sucesso -->
+<div *ngIf="modalAberto === 'transferir-sucesso'" class="modal-overlay">
+  <div class="modal-content modal-transferencia-sucesso">
+    <div class="sucesso-icon-wrap" aria-hidden="true">
+      <span class="sucesso-icon-check">✓</span>
+    </div>
+    <h3>Transferência<br>Concluída!</h3>
+    <div class="success-flux">
+      <span class="senha">{{ ticketAtual?.senha }}</span>
+      <span class="seta">⟶</span>
+      <span class="guiche-destino">Guichê {{ guicheTransferenciaDestino?.guiche || '05' }} <span>({{ guicheTransferenciaDestino?.nome || 'Gustavo C.' }})</span></span>
+    </div>
+    <button class="btn-voltar-console" (click)="encerrarTransferencia()">
+      Voltar ao Console
+    </button>
+  </div>
+</div>
+
+<!-- Modal Cadastrar Caminhão -->
+<div *ngIf="modalAberto === 'cadastro-caminhao'" class="modal-overlay">
+  <div class="modal-content modal-cadastro">
+    <div class="cadastro-header">
+      <h3><img src="assets/Icon (6).svg" alt="" /> Cadastrar Caminhão</h3>
+      <button class="close-btn" (click)="fecharModal()">✕</button>
+    </div>
+    <div class="cadastro-body">
+      <div class="form-group">
+        <label>Placa <span>*</span></label>
+        <input type="text" [(ngModel)]="formCaminhao.placa" placeholder="ABC - 1234" />
+      </div>
+      <div class="form-group">
+        <label>Modelo <span>*</span></label>
+        <input type="text" [(ngModel)]="formCaminhao.modelo" placeholder="Ex: Mercedes-Benz Atego 1719" />
+      </div>
+      <div class="form-group">
+        <label>Transportadora <span>*</span></label>
+        <input type="text" [(ngModel)]="formCaminhao.transportadora" placeholder="Ex: Transportadora ABC Ltda" />
+      </div>
+      <div class="form-group">
+        <label>Capacidade <span>*</span></label>
+        <input type="text" [(ngModel)]="formCaminhao.capacidade" placeholder="Ex: 10 toneladas" />
+      </div>
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea [(ngModel)]="formCaminhao.observacoes" placeholder="Informações adicionais sobre o veículo..."></textarea>
+      </div>
+    </div>
+    <div class="cadastro-footer">
+      <button class="btn-cancel btn-cadastro-cancel" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-primary btn-cadastro-save" (click)="salvarCadastroCaminhao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cadastrar Cliente (PF/PJ) -->
+<div *ngIf="modalAberto === 'cadastro-cliente'" class="modal-overlay">
+  <div class="modal-content modal-cadastro">
+    <div class="cadastro-header">
+      <h3><img src="assets/Icon (5).svg" alt="" /> Cadastrar Cliente</h3>
+      <button class="close-btn" (click)="fecharModal()">✕</button>
+    </div>
+    <div class="cadastro-body">
+      <div class="form-group">
+        <label>Tipo de Cliente <span>*</span></label>
+        <div class="tipo-cliente-tabs">
+          <button type="button" [class.active]="tipoClienteCadastro === 'PF'" (click)="tipoClienteCadastro = 'PF'">Individual</button>
+          <button type="button" [class.active]="tipoClienteCadastro === 'PJ'" (click)="tipoClienteCadastro = 'PJ'">Empresa</button>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="tipoClienteCadastro === 'PJ'">
+        <label>Nome da Empresa <span>*</span></label>
+        <input type="text" [(ngModel)]="formCliente.nomeEmpresa" placeholder="Ex: Transportadora ABC Ltda" />
+      </div>
+
+      <div class="form-group">
+        <label>{{ tipoClienteCadastro === 'PJ' ? 'Nome Completo' : 'Nome Completo' }} <span>*</span></label>
+        <input type="text" [(ngModel)]="formCliente.nome" [placeholder]="tipoClienteCadastro === 'PJ' ? 'Ex: João Silva (Responsável)' : 'Ex: Maria Santos'" />
+      </div>
+
+      <div class="form-group">
+        <label>CPF/CNPJ <span>*</span></label>
+        <input type="text" [(ngModel)]="formCliente.documento" [placeholder]="tipoClienteCadastro === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'" />
+      </div>
+
+      <div class="form-group">
+        <label>Telefone <span>*</span></label>
+        <input type="text" [(ngModel)]="formCliente.telefone" placeholder="(11) 98765-4321" />
+      </div>
+
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="text" [(ngModel)]="formCliente.email" placeholder="exemplo@email.com" />
+      </div>
+    </div>
+    <div class="cadastro-footer">
+      <button class="btn-cancel btn-cadastro-cancel" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-primary btn-cadastro-save" (click)="salvarCadastroCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Pagamento -->
+<div *ngIf="modalAberto === 'cadastro-pagamento'" class="modal-overlay">
+  <div class="modal-content modal-cadastro modal-pagamento">
+    <div class="cadastro-header">
+      <h3><img src="assets/Icon (8).svg" alt="" /> Registrar Pagamento Manual</h3>
+      <button class="close-btn" (click)="fecharModal()">✕</button>
+    </div>
+
+    <div class="pagamento-cliente-linha">
+      <span>Recebendo de: <strong>{{ ticketAtual?.cliente || 'João Silva' }}</strong></span>
+      <span>Ticket: <strong>{{ ticketAtual?.senha || 'RP042' }}</strong></span>
+    </div>
+
+    <div class="cadastro-body pagamento-body">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Valor (R$) <span>*</span></label>
+          <input type="text" [(ngModel)]="formPagamento.valor" placeholder="Ex: 150,00" />
+        </div>
+        <div class="form-group">
+          <label>Forma de Pagamento <span>*</span></label>
+          <select [(ngModel)]="formPagamento.formaPagamento">
+            <option value="" disabled>Selecione</option>
+            <option>Cartão de Crédito</option>
+            <option>Cartão de Débito</option>
+            <option>PIX</option>
+            <option>Dinheiro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Motivo / Categoria <span>*</span></label>
+          <input type="text" [(ngModel)]="formPagamento.motivo" placeholder="Venda de Produtos" />
+        </div>
+        <div class="form-group">
+          <label>Nº Pedido / NF / Doc <span>*</span></label>
+          <input type="text" [(ngModel)]="formPagamento.documento" placeholder="NF-e 12345" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea [(ngModel)]="formPagamento.observacoes" placeholder="Pagamento referente ao transporte de Mercadorias"></textarea>
+      </div>
+    </div>
+
+    <div class="cadastro-footer">
+      <button class="btn-cancel btn-cadastro-cancel" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-primary btn-cadastro-save" (click)="salvarPagamento()">Confirmar Pagamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sair -->
+<div *ngIf="modalAberto === 'sair'" class="modal-overlay">
+  <div class="modal-content logout-modal-redesign">
+    <div class="modal-body-centered">
+      <div class="logout-icon-glow">
+        <img src="assets/Icon.svg" class="glow-icon">
+      </div>
+      <h3 class="modal-title-bold">Finalizar Sessão?</h3>
+      <p class="modal-subtitle">Seu guichê será liberado para outros operadores e você retornará à tela de login.</p>
+    </div>
+    <div class="modal-actions-refined">
+      <button class="btn-cancel-glass" (click)="fecharModal()">Continuar Trabalhando</button>
+      <button class="btn-danger-solid" (click)="confirmarSair()">Encerrar e Sair</button>
+    </div>
+  </div>
+</div>
+
+
+
+  

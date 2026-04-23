@@ -50,15 +50,20 @@
                             <span class="tb-subtitle">{{ m.transportadora || 'Autônomo' }}</span>
                         </td>
                         <td>
-                            <span class="badge badge-ativo">Ativo</span>
+                            <div class="status-badge" [ngClass]="m.ativo ? 'active' : 'inactive'">
+                                <lucide-icon [img]="m.ativo ? icons.checkCircle : icons.user" size="14"></lucide-icon>
+                                {{ m.ativo ? 'Ativo' : 'Inativo' }}
+                            </div>
                         </td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit" (click)="abrirModalEditar(m)" title="Editar">
                                     <lucide-icon [img]="icons.edit2" size="14"></lucide-icon>
                                 </button>
-                                <button class="btn-delete" (click)="excluir(m.id)" title="Inativar">
-                                    <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
+                                <button class="btn-toggle" [ngClass]="m.ativo ? 'deactivate' : 'activate'" 
+                                    (click)="alternarStatus(m.id)"
+                                    [title]="m.ativo ? 'Inativar' : 'Ativar'">
+                                    <lucide-icon [img]="m.ativo ? icons.trash2 : icons.checkCircle" size="14"></lucide-icon>
                                 </button>
                             </div>
                         </td>
@@ -103,14 +108,14 @@
                     <div class="form-group flex-1">
                         <label>CPF *</label>
                         <input type="text" [(ngModel)]="motoristaForm.cpf" [disabled]="isEditing"
-                            placeholder="000.000.000-00" mask="000.000.000-00">
+                            (blur)="checkIdentidade()"
+                            placeholder="000.000.000-00">
                         <small *ngIf="isEditing"
-                            style="font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: block;">O CPF não pode
-                            ser alterado após o cadastro.</small>
+                            style="font-size: 0.75rem; color: #64748b; opacity: 0.7; margin-top: 4px; display: block;">ID persistente: {{ motoristaForm.cpf }}</small>
                     </div>
                     <div class="form-group flex-1">
                         <label>CNH *</label>
-                        <input type="text" [(ngModel)]="motoristaForm.cnh" placeholder="Número da carteira"
+                        <input type="text" [(ngModel)]="motoristaForm.cnh" (blur)="checkIdentidade()" placeholder="Número da carteira"
                             maxlength="11">
                     </div>
                 </div>
@@ -130,6 +135,15 @@
                     <label>Transportadora (Opcional)</label>
                     <input type="text" [(ngModel)]="motoristaForm.transportadora"
                         placeholder="Nome da transportadora ou Autônomo">
+                </div>
+
+                <div class="form-row mt-4">
+                    <div class="form-group flex-1">
+                        <div class="toggle-wrapper">
+                            <input type="checkbox" [(ngModel)]="motoristaForm.ativo" id="chkMotAtivo" />
+                            <label for="chkMotAtivo">Motorista ativo</label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

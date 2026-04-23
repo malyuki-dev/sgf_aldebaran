@@ -12,10 +12,9 @@
         <!-- Filial Dropdown -->
         <div class="filial-dropdown">
           <label>Filial</label>
-          <select [(ngModel)]="filialSelecionada" class="dropdown-select">
-            <option value="">Selecione...</option>
-            <option value="1">Filial 1</option>
-            <option value="2">Filial 2</option>
+          <select [(ngModel)]="filialSelecionada" (change)="onFilialChange()" class="dropdown-select">
+            <option value="">Selecione uma filial...</option>
+            <option *ngFor="let f of filiais" [value]="f.id">{{ f.nome }}</option>
           </select>
         </div>
 
@@ -67,13 +66,22 @@
       <p>Selecione um guichê disponível para iniciar o atendimento.</p>
     </div>
 
-    <div class="guiches-grid">
+    <div *ngIf="mensagemErro" class="alerta alerta-erro">
+      {{ mensagemErro }}
+    </div>
+
+    <div *ngIf="carregando" class="estado-auxiliar">Carregando guichês...</div>
+
+    <div *ngIf="!carregando && guiches.length === 0" class="estado-auxiliar">
+      Nenhum guichê cadastrado no momento. Solicite ao administrador o cadastro de guichês.
+    </div>
+
+    <div *ngIf="!carregando && guiches.length > 0" class="guiches-grid">
       <!-- Card para cada guichê -->
       <div *ngFor="let guiche of guiches" 
            class="guiche-card" 
            [class.ocupado]="guiche.ocupado"
-           [class.disponivel]="!guiche.ocupado"
-           (click)="selecionar(guiche)">
+           [class.disponivel]="!guiche.ocupado">
         
         <!-- Header do Card: Número + Badge Status -->
         <div class="card-header">
@@ -115,10 +123,16 @@
         <!-- Footer do Card: Código de Atendimento (ocupado) ou Botão Selecionar (disponível) -->
         <div class="card-footer">
           <div *ngIf="guiche.ocupado" class="atendimento-info">
-            <small>Atendendo</small>
-            <strong>{{ guiche.codigoAtendimento }}</strong>
+            <small>
+              {{ guiche.situacaoAtendimento === 'CHAMANDO' ? 'Chamando' : guiche.situacaoAtendimento === 'ATENDENDO' ? 'Atendendo' : 'Sem ticket' }}
+            </small>
+            <strong>{{ guiche.codigoAtendimento || '--' }}</strong>
           </div>
-          <button *ngIf="!guiche.ocupado" class="btn-selecionar">
+          <button
+            *ngIf="!guiche.ocupado"
+            class="btn-selecionar"
+            [disabled]="selecaoEmAndamentoId !== null"
+            (click)="selecionar(guiche)">
             Selecionar Guichê
           </button>
         </div>
@@ -126,7 +140,7 @@
     </div>
 
     <div class="logout">
-      <a href="#">Sair / Fazer Logout</a>
+      <a href="#" (click)="$event.preventDefault(); logout()">Sair / Fazer Logout</a>
     </div>
   </div>
 </div>

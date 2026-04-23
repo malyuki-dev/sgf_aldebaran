@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core'; // <--- 1. Importe o ChangeDetectorRef
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core'; // <--- 1. Importe o ChangeDetectorRef e OnInit
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,7 +12,7 @@ import { LucideAngularModule, Mail, Lock, AlertCircle } from 'lucide-angular';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
   credenciais = {
     email: '',
@@ -21,6 +21,7 @@ export class LoginComponent {
 
   erroLogin: boolean = false;
   carregando: boolean = false;
+  quantidadeFiliais: number = 0;
 
   readonly icons = {
     mail: Mail,
@@ -33,6 +34,23 @@ export class LoginComponent {
     private router: Router,
     private cd: ChangeDetectorRef // <--- 2. Injete o detector aqui
   ) { }
+
+  ngOnInit() {
+    this.carregarContagemFiliais();
+  }
+
+  carregarContagemFiliais() {
+    this.authService.getPublicBranchCount().subscribe({
+      next: (res: any) => {
+        this.quantidadeFiliais = res.count;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erro ao buscar contagem de filiais:', err);
+        this.quantidadeFiliais = 3; // Valor padrão em caso de erro
+      }
+    });
+  }
 
   fazerLogin() {
     if (!this.credenciais.email || !this.credenciais.senha) {
@@ -67,6 +85,7 @@ export class LoginComponent {
             break;
           case 'OPERADOR':
             this.router.navigate(['/operador/painel']);
+            this.router.navigate(['/operador/escolha-guiches']);
             break;
           case 'CLIENTE':
             this.router.navigate(['/client/home']);
@@ -79,19 +98,15 @@ export class LoginComponent {
         this.cd.detectChanges();
       },
       error: (erro: any) => {
-        // --- AQUI ESTÁ A CORREÇÃO DE VELOCIDADE ---
+        this.carregando = false;
+        this.erroLogin = true;
 
-        this.carregando = false; // 1. Destrava o botão imediatamente
-        this.erroLogin = true;   // 2. Ativa a mensagem vermelha na tela
-
-        // 3. Mostra o Prompt que você pediu se for erro de senha (401)
         if (erro.status === 401) {
           alert('Senha incorreta! Verifique suas credenciais.');
         } else {
           alert('Erro ao conectar. Tente novamente.');
         }
 
-        // 4. Força o Angular a atualizar a tela AGORA (sem delay)
         this.cd.detectChanges();
       }
     });

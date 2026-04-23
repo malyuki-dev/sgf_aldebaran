@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, X, Home, Calendar, FileText, UserCircle, HelpCircle, LogOut } from 'lucide-angular';
+import { LucideAngularModule, X, Home, Calendar, FileText, UserCircle, HelpCircle, LogOut, Settings } from 'lucide-angular';
 import { Router } from '@angular/router';
 
 @Component({
@@ -20,6 +20,7 @@ export class ClientMenuComponent {
     calendar: Calendar,
     file: FileText,
     user: UserCircle,
+    settings: Settings,
     help: HelpCircle,
     logout: LogOut
   };

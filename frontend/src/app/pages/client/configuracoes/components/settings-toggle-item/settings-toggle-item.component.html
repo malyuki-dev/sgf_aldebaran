@@ -1,0 +1,17 @@
+<label class="settings-toggle-item" [class.disabled]="disabled">
+  <span class="item-copy">
+    <span class="item-title">{{ label }}</span>
+    <span class="item-description" *ngIf="description">{{ description }}</span>
+  </span>
+
+  <input
+    type="checkbox"
+    [checked]="checked"
+    [disabled]="disabled"
+    [attr.aria-label]="label"
+    (change)="toggle()"
+  />
+  <span class="toggle-track" [class.on]="checked" aria-hidden="true">
+    <span class="toggle-thumb"></span>
+  </span>
+</label>

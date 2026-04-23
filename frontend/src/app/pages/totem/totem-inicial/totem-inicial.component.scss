@@ -137,6 +137,26 @@ header {
     font-weight: 400;
     margin: 0;
   }
+
+  .filial-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(13, 148, 136, 0.2);
+    border-radius: 12px;
+    color: #0d9488;
+    font-weight: 500;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+
+    strong {
+      color: #111827;
+      font-weight: 700;
+    }
+  }
 }
 
 /* --- CARDS (BOTÕES) --- */
@@ -148,7 +168,7 @@ header {
   width: 100%;
   padding: 10px;
   
-  // AQUI ESTÁ A MUDANÇA:
+  // Responsive layout logic
   // Empurra SOMENTE os cartões para baixo, longe do texto.
   // Se quiser mais longe, aumente para 100px. Se menos, diminua para 50px.
   margin-top: 80px; 
@@ -220,5 +240,41 @@ header {
     background-color: $primary-blue;
     border-radius: 10px;
     transition: width 0.4s ease;
+  }
+}
+
+.totem-footer {
+  width: 100%;
+  padding: 40px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: $text-gray;
+  }
+
+  .btn-setup-link {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #94a3b8;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f8fafc;
+      color: #64748b;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
   }
 }

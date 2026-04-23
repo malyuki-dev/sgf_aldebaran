@@ -3,7 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -13,27 +13,24 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService
-  ) { }
+    private jwtService: JwtService,
+  ) {}
 
-  // --- LOGIN ---
+  // User login logic
   async login(body: any) {
-    // 1. Tenta achar na tabela de Usuários (Staff Operacional/Admin)
     // O usuário pode tentar fazer login usando o email ou o username (login)
     const staff = await this.prisma.usuario.findFirst({
       where: {
-        OR: [
-          { email: body.email },
-          { login: body.email }
-        ],
+        OR: [{ email: body.email }, { login: body.email }],
         ativo: true,
-        deletadoEm: null
-      }
+        deletadoEm: null,
+      },
     });
 
     if (staff) {
       const senhaValida = await bcrypt.compare(body.senha, staff.senha);
-      if (!senhaValida) throw new UnauthorizedException('Credenciais incorretas.');
+      if (!senhaValida)
+        throw new UnauthorizedException('Credenciais incorretas.');
 
       // Extrai Iniciais (ex: "Carlos Admin" -> "CA", "Administrador" -> "AD")
       const nomes = (staff.nome || '').trim().split(' ');
@@ -46,48 +43,77 @@ export class AuthService {
         iniciais = nomes[0].toUpperCase();
       }
 
-      const payload = { sub: staff.id, email: staff.email, tipo: staff.perfil, iniciais };
+      const payload = {
+        sub: staff.id,
+        email: staff.email,
+        tipo: staff.perfil,
+        perfil: staff.perfil,
+        iniciais,
+        filial_id: staff.filial_id,
+      };
       return {
         token: this.jwtService.sign(payload),
-        usuario: { nome: staff.nome, email: staff.email, tipo: staff.perfil, iniciais }
+        usuario: {
+          nome: staff.nome,
+          email: staff.email,
+          tipo: staff.perfil,
+          perfil: staff.perfil,
+          iniciais,
+          id: staff.id,
+          filial_id: staff.filial_id,
+        },
       };
     }
 
-    // 2. Tenta achar na tabela de Clientes (Público) se não achou no Staff
+    // Internal customers table check
     const cliente = await this.prisma.clientes.findUnique({
-      where: { email: body.email }
+      where: { email: body.email },
     });
 
     if (cliente) {
-      if (cliente.deletedAt) throw new UnauthorizedException('Conta inativada.');
+      if (cliente.deletedAt)
+        throw new UnauthorizedException('Conta inativada.');
 
       const senhaValida = await bcrypt.compare(body.senha, cliente.senha);
-      if (!senhaValida) throw new UnauthorizedException('Credenciais incorretas.');
+      if (!senhaValida)
+        throw new UnauthorizedException('Credenciais incorretas.');
 
-      const payload = { sub: cliente.id, email: cliente.email, tipo: 'CLIENTE' };
+      const payload = {
+        sub: cliente.id,
+        email: cliente.email,
+        tipo: 'CLIENTE',
+      };
       return {
         token: this.jwtService.sign(payload),
-        usuario: { nome: cliente.nome, email: cliente.email, tipo: 'CLIENTE' }
+        usuario: {
+          id: cliente.id,
+          nome: cliente.nome,
+          email: cliente.email,
+          telefone: cliente.telefone,
+          tipo: 'CLIENTE',
+          perfil: 'CLIENTE',
+          cpf: cliente.cpf,
+          cnpj: cliente.cnpj,
+        },
       };
     }
 
     throw new UnauthorizedException('Credenciais incorretas.');
   }
 
-  // --- CADASTRO ---
+  // Customer registration
   async register(dados: any) {
     const existe = await this.prisma.clientes.findFirst({
       where: {
-        OR: [
-          { email: dados.email },
-          { cpf: dados.documento }
-        ]
-      }
+        OR: [{ email: dados.email }, { cpf: dados.documento }],
+      },
     });
 
     if (existe) {
-      if (existe.email === dados.email) throw new ConflictException('Este e-mail já está em uso.');
-      if (existe.cpf === dados.documento) throw new ConflictException('Este CPF/CNPJ já está cadastrado.');
+      if (existe.email === dados.email)
+        throw new ConflictException('Este e-mail já está em uso.');
+      if (existe.cpf === dados.documento)
+        throw new ConflictException('Este CPF/CNPJ já está cadastrado.');
     }
 
     // Hash da senha antes de armazenar
@@ -104,17 +130,17 @@ export class AuthService {
         id: true,
         nome: true,
         email: true,
-      }
+      },
     });
 
     return { message: 'Criado com sucesso', id: novo.id };
   }
 
-  // --- RECUPERAR SENHA ---
+  // Password recovery
   async recover(email: string) {
     const user = await this.prisma.clientes.findUnique({
       where: { email },
-      select: { id: true, email: true, nome: true }
+      select: { id: true, email: true, nome: true },
     });
 
     if (!user) {
@@ -124,10 +150,11 @@ export class AuthService {
     // Gera JWT com expiração curta para reset (15 min)
     const token = this.jwtService.sign(
       { sub: user.id, email: user.email },
-      { expiresIn: '15m' }
+      { expiresIn: '15m' },
     );
 
-    const link = `http://localhost:4200/reset-password?token=${token}`;
+    const frontendUrl = process.env['FRONT_URL'] || 'http://localhost:4200';
+    const link = `${frontendUrl}/reset-password?token=${token}`;
 
     // TODO: Implementar envio real de e-mail (usar nodemailer, SendGrid, etc.)
     console.log(`📧 Reset link para ${email}: ${link}`);
@@ -135,7 +162,7 @@ export class AuthService {
     return { message: 'Link de recuperação enviado.' };
   }
 
-  // --- REDEFINIR SENHA ---
+  // Password reset
   async resetPassword(token: string, novaSenha: string) {
     try {
       // Valida e decodifica o token JWT
@@ -147,11 +174,10 @@ export class AuthService {
 
       await this.prisma.clientes.update({
         where: { id: userId },
-        data: { senha: senhaHash }
+        data: { senha: senhaHash },
       });
 
       return { message: 'Senha alterada com sucesso!' };
-
     } catch (error) {
       throw new BadRequestException('Link inválido ou expirado.');
     }

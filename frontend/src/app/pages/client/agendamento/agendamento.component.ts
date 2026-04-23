@@ -1,63 +1,339 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { LucideAngularModule, Menu, Bell, ChevronLeft, ChevronRight, Minus, Plus, Check, MapPin, Package } from 'lucide-angular';
+import { LucideAngularModule, Menu, Bell, ChevronLeft, ChevronRight, Minus, Plus, Check, MapPin, Package, Droplets, ChevronDown, Calendar, Truck, ArrowRight, Home } from 'lucide-angular';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ApiService } from '../../../services/api.service';
+import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-agendamento',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './agendamento.component.html',
   styleUrls: ['./agendamento.component.scss']
 })
-export class AgendamentoComponent {
+export class AgendamentoComponent implements OnInit {
+  selectedLang: 'PT' | 'EN' = 'PT';
+  showSuccessModal = false;
+  hoje = new Date();
+  erroData: string | null = null;
 
   form = {
-    filial: 'Filial Norte',
-    categoria: 'Caminhão',
-    quantidade: 25,
-    data: 15,
-    hora: '10:00',
+    filialId: null as number | null,
+    servicoId: null as number | null,
+    quantidade: 1,
+    data: null as number | null,
+    hora: '08:00',
     obs: ''
   };
 
-  filiais = ['Filial Norte', 'Filial Sul', 'Matriz Centro'];
-  categorias = ['Caminhão', 'Carro Utilitário', 'Retirada Manual'];
+  filiais: any[] = [];
+  categorias: any[] = [];
 
-  // --- CORREÇÃO AQUI ---
-  // Trocamos os objetos vazios por 'null'. Assim o HTML não imprime nada.
-  diasCalendario: any[] = [
-    null, null, null, // Dias vazios antes do dia 1º (Qua)
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 
-    15, // Selecionado
-    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+  mesAtual: number = new Date().getMonth();
+  anoAtual: number = new Date().getFullYear();
+  mesesLabels = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  horarios = [
-    '08:00', '08:30', '09:00', '09:30',
-    '10:00', '10:30', '11:00', '11:30',
-    '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30'
-  ];
+  diasCalendario: (number | null)[] = [];
+
+  horariosDisponiveis: any[] = [];
+  diasHabilitados: number[] = [1, 2, 3, 4, 5]; // Padrão Seg-Sex
+  configCarregada = false;
+  loadingHorarios = false;
+
 
   readonly icons = {
-    menu: Menu, bell: Bell, left: ChevronLeft, right: ChevronRight,
-    minus: Minus, plus: Plus, check: Check, map: MapPin, box: Package
+    menu: Menu, 
+    bell: Bell, 
+    left: ChevronLeft, 
+    right: ChevronRight,
+    minus: Minus, 
+    plus: Plus, 
+    check: Check, 
+    map: MapPin, 
+    box: Package,
+    drop: Droplets,
+    chevronDown: ChevronDown,
+    calendar: Calendar,
+    truck: Truck,
+    arrowRight: ArrowRight,
+    home: Home
   };
+
+  constructor(
+    private api: ApiService,
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    this.hoje = new Date();
+    this.carregarDados();
+    this.configurarCalendarioAtual();
+    this.checkReschedule();
+  }
+
+  checkReschedule() {
+    const reId = this.route.snapshot.queryParamMap.get('re');
+    if (reId) {
+      this.api.get<any[]>('/fila/agendamento').subscribe(data => {
+        const ag = data.find(a => a.id === Number(reId));
+        if (ag) {
+          this.form.filialId = ag.filial_id || this.form.filialId;
+          this.form.servicoId = ag.servico_id || this.form.servicoId;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  carregarDados() {
+    this.api.get<any[]>('/filiais').pipe(
+      catchError(err => {
+        console.error('Erro ao carregar filiais', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.filiais = data || [];
+      if (this.filiais.length > 0) {
+        this.form.filialId = this.filiais[0].id;
+        this.carregarConfiguracoes();
+      }
+      this.cdr.detectChanges();
+    });
+
+    this.api.get<any[]>('/servicos').pipe(
+      catchError(err => {
+        console.error('Erro ao carregar categorias', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      console.log('Categorias recebidas:', data);
+      this.categorias = data || [];
+      if (this.categorias.length > 0) this.form.servicoId = this.categorias[0].id;
+      this.cdr.detectChanges();
+    });
+  }
+
+  carregarConfiguracoes() {
+    if (!this.form.filialId) return;
+    this.configCarregada = false;
+
+    this.api.get<any[]>(`/configuracoes/lista?filialId=${this.form.filialId}`).pipe(
+      catchError(err => {
+        console.error('Erro ao carregar configs', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      const configMap: any = {};
+      if (data && Array.isArray(data)) {
+        data.forEach(item => {
+          configMap[item.chave] = item.valor;
+        });
+      }
+
+      if (configMap.TOTEM_DIAS) {
+        try {
+          this.diasHabilitados = JSON.parse(configMap.TOTEM_DIAS);
+        } catch {
+          this.diasHabilitados = [1, 2, 3, 4, 5];
+        }
+      } else {
+        this.diasHabilitados = [1, 2, 3, 4, 5];
+      }
+      
+      this.configCarregada = true;
+
+      // Validação inicial
+      if (this.form.data && !this.isDiaHabilitado(this.form.data)) {
+        this.erroData = 'Esta filial não atende no dia selecionado.';
+      } else {
+        this.erroData = null;
+      }
+
+      this.atualizarHorarios();
+      this.cdr.detectChanges();
+    });
+  }
+
+  atualizarHorarios() {
+    if (!this.form.data || !this.form.filialId || this.erroData) {
+      this.horariosDisponiveis = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.loadingHorarios = true;
+    this.cdr.detectChanges();
+
+    const dataObj = new Date(this.anoAtual, this.mesAtual, this.form.data, 12, 0, 0);
+    const dataStr = dataObj.toISOString().split('T')[0];
+
+    this.api.get<any[]>(`/fila/agendamento/horarios?data=${dataStr}&filialId=${this.form.filialId}`).pipe(
+      catchError(err => {
+        console.error('Erro ao carregar horários', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.horariosDisponiveis = data || [];
+      this.loadingHorarios = false;
+      
+      const aindaDisponivel = this.horariosDisponiveis.find(h => h.hora === this.form.hora && h.disponivel);
+      if (!aindaDisponivel && this.horariosDisponiveis.length > 0) {
+        const primeiroLivre = this.horariosDisponiveis.find(h => h.disponivel);
+        if (primeiroLivre) this.form.hora = primeiroLivre.hora;
+      }
+      
+      this.cdr.detectChanges();
+    });
+  }
+
+  configurarCalendarioAtual() {
+    const hoje = new Date();
+    this.mesAtual = hoje.getMonth();
+    this.anoAtual = hoje.getFullYear();
+    this.form.data = hoje.getDate();
+    this.gerarCalendario();
+  }
+
+  gerarCalendario() {
+    const primeiroDiaMes = new Date(this.anoAtual, this.mesAtual, 1).getDay();
+    const ultimoDiaMes = new Date(this.anoAtual, this.mesAtual + 1, 0).getDate();
+    
+    this.diasCalendario = [];
+    
+    // Espaços vazios no início
+    for (let i = 0; i < primeiroDiaMes; i++) {
+      this.diasCalendario.push(null);
+    }
+    
+    // Dias do mês
+    for (let i = 1; i <= ultimoDiaMes; i++) {
+      this.diasCalendario.push(i);
+    }
+  }
 
   inc() { this.form.quantidade++; }
   dec() { if (this.form.quantidade > 1) this.form.quantidade--; }
 
   selecionarDia(dia: any) { 
-    if (dia) this.form.data = dia; 
+    if (!dia) return;
+    this.erroData = null;
+
+    if (this.isPassado(dia)) {
+      this.erroData = 'Não é possível selecionar uma data passada.';
+      return;
+    }
+
+    if (!this.isDiaHabilitado(dia)) {
+      this.erroData = 'Esta filial não atende no dia selecionado.';
+      return;
+    }
+
+    this.form.data = dia; 
+    this.atualizarHorarios();
+  }
+
+  isDiaHabilitado(dia: number | null): boolean {
+    if (!dia) return false;
+    const dataObj = new Date(this.anoAtual, this.mesAtual, dia, 12, 0, 0);
+    return this.diasHabilitados.includes(dataObj.getDay());
+  }
+
+  isPassado(dia: number | null): boolean {
+    if (!dia) return false;
+    
+    // Para simplificar a lógica de comparação, usamos apenas as datas às 12:00
+    const dataSelecionada = new Date(this.anoAtual, this.mesAtual, dia, 12, 0, 0);
+    const hojeApenasData = new Date(this.hoje.getFullYear(), this.hoje.getMonth(), this.hoje.getDate(), 12, 0, 0);
+    
+    return dataSelecionada < hojeApenasData;
   }
   
   selecionarHora(hora: string) { 
     this.form.hora = hora; 
   }
 
+  toggleLang(lang: 'PT' | 'EN') {
+    this.selectedLang = lang;
+  }
+
+  getFormattedDate(): string {
+    if (!this.form.data) return '';
+    const data = new Date(this.anoAtual, this.mesAtual, this.form.data);
+    const options: any = { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
+    return data.toLocaleDateString('pt-BR', options);
+  }
+
+  getFilialNome(): string {
+    const f = this.filiais.find(x => x.id === this.form.filialId);
+    return f ? f.nome : 'Filial';
+  }
+
+  getCategoriaNome(): string {
+    const c = this.categorias.find(x => x.id === this.form.servicoId);
+    return c ? c.nome : 'Categoria';
+  }
+
   confirmar() {
-    alert(`Agendamento Confirmado!\nDia: ${this.form.data}/01/2025\nHora: ${this.form.hora}\nQtd: ${this.form.quantidade}`);
+    // Fetch logged user data
+    const userJson = localStorage.getItem('usuario_sgf');
+    if (!userJson) {
+      alert('Usuário não identificado. Por favor, faça login novamente.');
+      this.router.navigate(['/login']);
+      return;
+    }
+    const user = JSON.parse(userJson);
+
+    // Format date for ISO standard
+    const dataObj = new Date(this.anoAtual, this.mesAtual, this.form.data || 1);
+    const dataFormatada = dataObj.toISOString().split('T')[0];
+
+    // Generate unique slot reference
+    const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Construct API payload
+    const payload = {
+      nome: user.nome,
+      documento: user.email, // Usando email como identificador (ou CPF se existir)
+      data: dataFormatada,
+      hora: this.form.hora,
+      servico_id: this.form.servicoId,
+      filial_id: this.form.filialId,
+      codigo: codigo
+    };
+
+    console.log('Enviando agendamento:', payload);
+
+    // Dispatch request
+    this.api.post<any>('/fila/agendamento', payload).subscribe({
+      next: (res) => {
+        console.log('Agendamento salvo com sucesso:', res);
+        this.showSuccessModal = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erro ao salvar agendamento:', err);
+        const msg = err.error?.message || 'Erro ao realizar agendamento. Tente novamente mais tarde.';
+        alert(msg);
+      }
+    });
+  }
+
+  verAgendamentos() {
+    this.router.navigate(['/client/meus-agendamentos']);
+  }
+
+  voltarInicio() {
+    this.router.navigate(['/client/home']);
+  }
+
+  fecharModal() {
+    this.showSuccessModal = false;
   }
 }

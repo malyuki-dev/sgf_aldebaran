@@ -1,46 +1,133 @@
 <div class="page-container">
   
-  <app-client-menu *ngIf="menuAberto" (close)="menuAberto = false"></app-client-menu>
-
-  <header class="app-header">
-    <div class="header-left">
-      <button class="icon-btn" routerLink="/client/home" style="margin-right: 10px;">
-        <lucide-angular [img]="icons.chevron" size="24" style="transform: rotate(180deg);"></lucide-angular>
+  <!-- Header Superior (Azul) -->
+  <header class="top-header-blue">
+    <!-- Barra de Abas -->
+    <div class="tabs-container">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'proximos'"
+        (click)="toggleTab('proximos')">
+        Próximos
       </button>
-      
-      <button class="icon-btn" (click)="menuAberto = true">
-        <lucide-angular [img]="icons.menu" size="24"></lucide-angular>
-      </button>
-      <h1>Meus Agendamentos</h1>
-    </div>
-    <div class="header-right">
-      <button class="icon-btn notification">
-        <lucide-angular [img]="icons.bell" size="24"></lucide-angular>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'historico'"
+        (click)="toggleTab('historico')">
+        Histórico
       </button>
     </div>
   </header>
 
   <main class="main-content">
-    <div class="schedule-grid">
-      
-      <div class="card action-item">
-        <div class="icon-circle teal"><lucide-angular [img]="icons.file" size="24"></lucide-angular></div>
-        <div class="text">
-          <h4>Pedido #1234</h4>
-          <p>15 Jan • Confirmado</p>
+    
+    <!-- Skeleton Loading (Premium) -->
+    <div class="appointments-list skeleton-list" *ngIf="loading">
+      <div class="card-appointment skeleton-card" *ngFor="let i of [1,2,3]">
+        <div class="card-body">
+          <div class="date-badge skeleton-pulse"></div>
+          <div class="info">
+            <div class="skeleton-line title skeleton-pulse"></div>
+            <div class="skeleton-line detail skeleton-pulse"></div>
+            <div class="skeleton-line detail skeleton-pulse"></div>
+          </div>
         </div>
-        <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
-      </div>
-
-      <div class="card action-item">
-        <div class="icon-circle beige"><lucide-angular [img]="icons.file" size="24"></lucide-angular></div>
-        <div class="text">
-          <h4>Pedido #1230</h4>
-          <p>10 Jan • Concluído</p>
+        <div class="card-actions">
+          <div class="skeleton-btn skeleton-pulse"></div>
+          <div class="skeleton-btn skeleton-pulse"></div>
         </div>
-        <lucide-angular [img]="icons.chevron" class="arrow" size="20"></lucide-angular>
       </div>
-
     </div>
+    <!-- Lista de Próximos -->
+    <div class="appointments-list" *ngIf="activeTab === 'proximos' && !loading">
+      <div class="card-appointment" *ngFor="let a of proximos" [ngClass]="a.status.toLowerCase()">
+        <div class="card-body">
+          <div class="date-badge">
+            <span class="day">{{ a.dia }}</span>
+            <span class="mes">{{ a.mes }}</span>
+          </div>
+          <div class="info">
+            <div class="title-row">
+              <h3>{{ a.categoriaNome }}</h3>
+              <div class="status-badge" [ngClass]="a.status.toLowerCase()">
+                {{ a.status }}
+              </div>
+            </div>
+            <div class="detail">
+              <lucide-angular [img]="icons.map" size="16"></lucide-angular>
+              <span>{{ a.filialNome }}</span>
+            </div>
+            <div class="detail">
+              <lucide-angular [img]="icons.clock" size="16"></lucide-angular>
+              <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-outline" [disabled]="cancelandoId === a.id || !a.podeCancelar" (click)="cancelarAgendamento(a.id)">
+            {{ cancelandoId === a.id ? 'Cancelando...' : 'Cancelar' }}
+          </button>
+          <button class="btn-primary" [disabled]="!a.podeReagendar" [routerLink]="['/client/agendar']" [queryParams]="{ re: a.id }">Reagendar</button>
+        </div>
+      </div>
+
+      <!-- Empty State Próximos -->
+      <div class="empty-state" *ngIf="proximos.length === 0">
+        <img src="assets/empty_calendar.png" alt="Sem agendamentos" class="empty-illustration animate-float">
+        <h3>Nada por aqui...</h3>
+        <p>Você ainda não possui agendamentos para os próximos dias.</p>
+        <button class="btn-new" routerLink="/client/agendar">Agendar Agora</button>
+      </div>
+    </div>
+
+    <!-- Lista de Histórico -->
+    <div class="appointments-list" *ngIf="activeTab === 'historico' && !loading">
+      <div class="card-appointment" *ngFor="let a of historico">
+        <div class="card-body">
+          <div class="date-badge">
+            <span class="day">{{ a.dia }}</span>
+            <span class="mes">{{ a.mes }}</span>
+          </div>
+          <div class="info">
+            <div class="title-row">
+              <h3>{{ a.categoriaNome }}</h3>
+              <div class="status-badge" [ngClass]="a.status.toLowerCase()">
+                {{ a.status === 'REALIZADO' ? 'Concluído' : a.status }}
+              </div>
+            </div>
+            <div class="detail">
+              <lucide-angular [img]="icons.map" size="16"></lucide-angular>
+              <span>{{ a.filialNome }}</span>
+            </div>
+            <div class="detail">
+              <lucide-angular [img]="icons.clock" size="16"></lucide-angular>
+              <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
+            </div>
+            
+            <button class="btn-evaluate" *ngIf="a.status === 'REALIZADO' || a.status === 'CONCLUIDO'">
+              <lucide-angular [img]="icons.star" size="14"></lucide-angular>
+              Avaliar Atendimento
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State Histórico -->
+      <div class="empty-state" *ngIf="historico.length === 0">
+        <p>Nenhum histórico encontrado.</p>
+      </div>
+    </div>
+
+    <!-- Loading Overlay Removido (Usando Skeletons) -->
+
   </main>
+
+  <!-- FAB (Floating Action Button) -->
+  <button class="fab-btn animate-pop" routerLink="/client/agendar" title="Novo Agendamento" *ngIf="activeTab === 'proximos'">
+    <lucide-angular [img]="icons.plus" size="28"></lucide-angular>
+  </button>
+
+  <!-- Menu Sidebar -->
+  <app-client-menu *ngIf="menuAberto" (close)="toggleMenu()"></app-client-menu>
+
 </div>

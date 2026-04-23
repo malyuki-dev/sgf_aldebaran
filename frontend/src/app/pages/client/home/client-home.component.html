@@ -1,95 +1,94 @@
 <div class="client-page">
   
-  <header class="top-bar">
-    <button class="icon-btn menu-btn">
-      <lucide-icon [img]="icons.menu" size="24"></lucide-icon>
-    </button>
-
-    <div class="logo-area">
-      <img src="assets/logo-aldebaran.png" alt="Aldebaran">
-    </div>
-
-    <div class="right-actions">
-      <div class="lang-toggle">
-        <span class="active">PT</span>
-        <span>EN</span>
-      </div>
-      <button class="icon-btn">
-        <lucide-icon [img]="icons.bell" size="22"></lucide-icon>
-      </button>
-    </div>
-  </header>
 
   <main class="content-container">
     
     <div class="greeting-section animate-up">
       <h1>Olá, {{ usuario.nome }} 👋</h1>
-      <p class="section-title">SEU PRÓXIMO AGENDAMENTO</p>
+      <p class="section-label">SEU PRÓXIMO AGENDAMENTO</p>
     </div>
 
-    <div class="dashboard-grid">
-      
-      <div class="status-card animate-up delay-1">
-        <span class="badge-status">STATUS</span>
-        
-        <div class="calendar-icon-display">
-          <div class="cal-top">
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
-          <div class="cal-body">{{ hoje | date:'dd' }}</div>
+    <!-- NEXT APPOINTMENT CARD -->
+    <div class="next-appointment-card animate-up delay-1" *ngIf="proximoAgendamento">
+      <div class="card-main">
+        <div class="date-badge">
+          <span class="day">{{ proximoAgendamento.day }}</span>
+          <span class="month">{{ proximoAgendamento.month }}</span>
         </div>
+        
+        <div class="appointment-info">
+          <h3>{{ proximoAgendamento.titulo }}</h3>
+          <div class="info-row">
+            <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
+            <span>{{ proximoAgendamento.hora }}</span>
+          </div>
+          <div class="info-row">
+            <lucide-icon [img]="icons.map" size="14"></lucide-icon>
+            <span>{{ proximoAgendamento.local }}</span>
+          </div>
+        </div>
+      </div>
 
-        <h2>Sem agendamentos</h2>
-        <p>Você não tem nenhuma senha ativa no momento. Utilize as ações rápidas abaixo para começar.</p>
+      <button class="btn-voucher">
+        <lucide-icon [img]="icons.qrcode" size="20"></lucide-icon>
+        Abrir Voucher / Check-in
+      </button>
 
-        <button class="btn-primary" routerLink="/client/agendar">
-          <lucide-icon [img]="icons.grid" size="20"></lucide-icon>
-          Agendar Horário
+      <button class="btn-cancel" *ngIf="proximoAgendamento && proximoAgendamento.podeCancelar" (click)="cancelarAgendamento()">Cancelar este agendamento</button>
+    </div>
+
+    <!-- MENSAGEM QUANDO NÃO HÁ AGENDAMENTOS -->
+    <div class="no-appointments-card animate-up delay-1" *ngIf="!proximoAgendamento">
+      <div class="empty-icon-wrap">
+        <lucide-icon [img]="icons.calendar" size="48"></lucide-icon>
+      </div>
+      <h3>Nenhum agendamento para hoje</h3>
+      <p>Você não possui atendimentos agendados. Deseja realizar um novo agendamento?</p>
+      <button class="btn-primary-home" routerLink="/client/agendar">Agendar Novo Horário</button>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions-section animate-up delay-2">
+      <p class="section-label">AÇÕES RÁPIDAS</p>
+
+      <div class="actions-grid">
+        <button class="action-card" routerLink="/client/agendar">
+          <div class="icon-wrap blue">
+            <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
+          </div>
+          <div class="action-details">
+            <h3>Novo Agendamento</h3>
+            <span>Agende um novo horário</span>
+          </div>
+        </button>
+
+        <button class="action-card" routerLink="/client/meus-agendamentos">
+          <div class="icon-wrap tan">
+            <lucide-icon [img]="icons.list" size="24"></lucide-icon>
+          </div>
+          <div class="action-details">
+            <h3>Meus Agendamentos</h3>
+            <span>Consulte atendimentos passados</span>
+          </div>
         </button>
       </div>
-
-      <div class="quick-actions animate-up delay-2">
-        <p class="section-title">AÇÕES RÁPIDAS</p>
-
-        <div class="action-list">
-          
-          <button class="action-item" routerLink="/client/agendar">
-            <div class="icon-circle blue">
-              <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
-            </div>
-            <div class="text-info">
-              <h3>Novo Agendamento</h3>
-              <span>Retirar senha ou agendar</span>
-            </div>
-            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
-          </button>
-
-          <button class="action-item">
-            <div class="icon-circle orange">
-              <lucide-icon [img]="icons.list" size="24"></lucide-icon>
-            </div>
-            <div class="text-info">
-              <h3>Meus Agendamentos</h3>
-              <span>Consulte seu histórico</span>
-            </div>
-            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
-          </button>
-
-          <button class="action-item">
-            <div class="icon-circle red">
-              <lucide-icon [img]="icons.help" size="24"></lucide-icon>
-            </div>
-            <div class="text-info">
-              <h3>Precisa de Ajuda?</h3>
-              <span>Fale com o suporte</span>
-            </div>
-            <lucide-icon [img]="icons.chevron" class="arrow" size="20"></lucide-icon>
-          </button>
-
-        </div>
-      </div>
-
     </div>
+
   </main>
+
+  <!-- MODAL DE CANCELAMENTO -->
+  <div class="cancel-modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelModal()">
+    <div class="cancel-modal-card scale-up" (click)="$event.stopPropagation()">
+      <div class="warning-icon-wrap">
+        <lucide-icon [img]="icons.help" size="40"></lucide-icon>
+      </div>
+      <h2>Deseja mesmo cancelar?</h2>
+      <p>Esta ação não pode ser desfeita e seu horário será liberado para outros clientes.</p>
+      
+      <div class="cancel-actions">
+        <button class="btn-confirm-cancel" (click)="confirmarCancelamento()">Sim, cancelar</button>
+        <button class="btn-keep" (click)="fecharCancelModal()">Não, manter agendamento</button>
+      </div>
+    </div>
+  </div>
 </div>

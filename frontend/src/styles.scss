@@ -1,6 +1,6 @@
 /* src/styles.scss */
 
-/* --- VARIÁVEIS GLOBAIS (Baseadas na imagem de referência) --- */
+/* Global Variables */
 :root {
   --auth-gradient-start: #0EA5E9;
   --auth-gradient-end: #0F766E;
@@ -10,12 +10,15 @@
   --auth-bg-light: #F8FAFC;
   --auth-border: #E2E8F0;
 
-  /* Global Admin Theme Variables */
   --bg-body: #f4f7f6;
   --bg-card: #ffffff;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --border-color: #e2e8f0;
+  
+  /* Primary Action Gradient */
+  --primary-gradient: linear-gradient(180deg, #029fe4 0%, #017c8b 100%);
+  --primary-shadow: rgba(1, 124, 139, 0.25);
 }
 
 body.dark-theme {
@@ -28,7 +31,7 @@ body.dark-theme {
   color: var(--text-primary);
 }
 
-/* Reset Básico */
+/* Base Reset */
 body {
   margin: 0;
   padding: 0;
@@ -38,9 +41,7 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* ============================================================
-   LAYOUT DE AUTENTICAÇÃO (Login, Signup, Recover)
-   ============================================================ */
+/* Auth Layout */
 
 /* Container Principal (Split Screen) */
 .split-layout {
@@ -55,7 +56,7 @@ body {
   }
 }
 
-/* --- LADO ESQUERDO (HERO / DEGRADÊ) --- */
+/* Hero Section */
 .hero-section {
   flex: 1;
   /* GRADIENTE VERTICAL EXATO */
@@ -158,13 +159,13 @@ body {
   }
 }
 
-/* --- LADO DIREITO (FORMULÁRIO) --- */
+/* Form Section */
 .form-section {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--bg-card);
   padding: 40px;
 
   .form-container {
@@ -218,7 +219,7 @@ body {
     h2 {
       font-size: 32px;
       font-weight: 800;
-      color: var(--auth-text-dark);
+      color: var(--text-primary);
       font-style: italic;
       margin: 0 0 5px 0;
     }
@@ -358,7 +359,7 @@ body {
   }
 }
 
-/* --- UTILITÁRIOS --- */
+/* Utility Classes */
 
 /* Abas (Pills) do Cadastro */
 .tabs-pills {
@@ -380,7 +381,7 @@ body {
     transition: 0.2s;
 
     &.active {
-      background: white;
+      background: var(--bg-card);
       color: var(--auth-primary);
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
@@ -422,7 +423,7 @@ body {
   h2 {
     font-size: 26px;
     font-weight: 800;
-    color: #1f2937;
+    color: var(--text-primary);
     margin-bottom: 12px;
     font-style: normal;
   }
@@ -496,9 +497,7 @@ body {
   animation: fadeIn 0.3s ease;
 }
 
-/* ============================================================
-   GLOBAL LIST CARD DESIGN (Mockup Compliant)
-   ============================================================ */
+/* List Card Design */
 .crud-page {
   animation: fadeIn 0.4s ease;
   padding: 1.5rem 0;
@@ -538,19 +537,24 @@ body {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.6rem 1.25rem;
-      background: linear-gradient(135deg, #0ea5e9 0%, #0f766e 100%);
+      padding: 0.75rem 1.5rem;
+      background: var(--primary-gradient);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 10px var(--primary-shadow);
 
       &:hover {
         opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px var(--primary-shadow);
       }
+      
+      &:active { transform: scale(0.98); }
     }
   }
 
@@ -727,15 +731,15 @@ body {
       color: var(--text-secondary);
 
       &.btn-edit:hover {
-        background: rgba(14, 165, 233, 0.1);
-        color: #0ea5e9;
-        border-color: #0ea5e9;
+        background: rgba(2, 159, 228, 0.1);
+        color: #029fe4;
+        border-color: #029fe4;
       }
 
       &.btn-delete:hover {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-        border-color: #ef4444;
+        background: rgba(244, 63, 94, 0.1);
+        color: #f43f5e;
+        border-color: #f43f5e;
       }
     }
   }
@@ -779,9 +783,7 @@ body {
   }
 }
 
-/* ============================================================
-   GLOBAL MODAL DESIGN (Mockup Compliant)
-   ============================================================ */
+/* Modal Design */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -925,20 +927,27 @@ body {
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, #0ea5e9 0%, #0f766e 100%);
+        background: var(--primary-gradient);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 20px;
+        font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 8px;
-        transition: opacity 0.2s;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px var(--primary-shadow);
 
         &:hover {
-          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 15px var(--primary-shadow);
+          opacity: 0.95;
+        }
+
+        &:active {
+          transform: scale(0.98);
         }
       }
     }
@@ -976,7 +985,7 @@ body {
 
     &.active {
       color: #0ea5e9;
-      background: rgba(14, 165, 233, 0.05);
+      background: rgba(14, 165, 233, 0.1);
       font-weight: 600;
     }
   }

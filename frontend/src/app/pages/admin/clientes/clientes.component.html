@@ -48,18 +48,20 @@
             </td>
             <td>{{ c.responsavel || 'João Silva' }}</td>
             <td>
-              <span class="badge" [ngClass]="isAtivo(c) ? 'badge-ativo' : 'badge-inativo'">
+              <div class="status-badge" [ngClass]="isAtivo(c) ? 'active' : 'inactive'">
+                <lucide-icon [img]="isAtivo(c) ? icons.checkCircle : icons.shieldAlert" size="14"></lucide-icon>
                 {{ isAtivo(c) ? 'Ativo' : 'Inativo' }}
-              </span>
+              </div>
             </td>
             <td>
               <div class="action-btns">
                 <button class="btn-edit" (click)="abrirModalEditar(c)" title="Editar">
                   <lucide-icon [img]="icons.edit" size="14"></lucide-icon>
                 </button>
-                <button class="btn-delete" (click)="alternarStatus(c.id)"
-                  [title]="isAtivo(c) ? 'Inativar' : 'Reativar'">
-                  <lucide-icon [img]="icons.trash2" size="14"></lucide-icon>
+                <button class="btn-toggle" [ngClass]="isAtivo(c) ? 'deactivate' : 'activate'" 
+                  (click)="alternarStatus(c.id)"
+                  [title]="isAtivo(c) ? 'Inativar' : 'Ativar'">
+                  <lucide-icon [img]="isAtivo(c) ? icons.trash2 : icons.checkCircle" size="14"></lucide-icon>
                 </button>
               </div>
             </td>
@@ -103,30 +105,31 @@
     </div>
 
     <div class="modal-body">
-      <!-- PF/PJ Toggle -->
-      <div class="type-segment" *ngIf="!isEditing || (isEditing && !clienteForm.cpf && !clienteForm.cnpj)">
-        <label
-          style="font-size: 13px; font-weight: 700; color: #64748B; margin-bottom: 8px; display: block;">TIPO</label>
-        <div class="segmented-control">
-          <button type="button" [class.active]="clienteForm.tipo === 'PF'" (click)="clienteForm.tipo = 'PF'">Pessoa
-            Física</button>
-          <button type="button" [class.active]="clienteForm.tipo === 'PJ'" (click)="clienteForm.tipo = 'PJ'">Pessoa
-            Jurídica</button>
+      <!-- PF/PJ Toggle - Segmented Control matching Screenshot 3 -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>TIPO</label>
+          <div class="segmented-control">
+            <button type="button" [class.active]="clienteForm.tipo === 'PF'" (click)="clienteForm.tipo = 'PF'">Pessoa Física</button>
+            <button type="button" [class.active]="clienteForm.tipo === 'PJ'" (click)="clienteForm.tipo = 'PJ'">Pessoa Jurídica</button>
+          </div>
         </div>
       </div>
 
       <div class="form-group">
-        <label>{{ clienteForm.tipo === 'PF' ? 'Nome Completo *' : 'Razão Social *' }}</label>
-        <input type="text" [(ngModel)]="clienteForm.nome" placeholder="Ex: João Silva" />
+        <label>{{ clienteForm.tipo === 'PF' ? 'Nome Completo' : 'Razão Social' }} *</label>
+        <input type="text" [(ngModel)]="clienteForm.nome" [placeholder]="clienteForm.tipo === 'PF' ? 'Ex: João Silva' : 'Ex: Minha Empresa LTDA'" />
       </div>
 
       <div class="form-row">
         <div class="form-group flex-1">
-          <label>{{ clienteForm.tipo === 'PF' ? 'CPF *' : 'CNPJ *' }}</label>
-          <input type="text" *ngIf="clienteForm.tipo === 'PF'" [(ngModel)]="clienteForm.cpf"
-            placeholder="000.000.000-00" mask="000.000.000-00" />
-          <input type="text" *ngIf="clienteForm.tipo === 'PJ'" [(ngModel)]="clienteForm.cnpj"
-            placeholder="00.000.000/0000-00" mask="00.000.000/0000-00" />
+          <label>{{ clienteForm.tipo === 'PF' ? 'CPF' : 'CNPJ' }} *</label>
+          <input *ngIf="clienteForm.tipo === 'PF'" type="text" [(ngModel)]="clienteForm.cpf"
+            (blur)="checkDocumento()"
+            placeholder="000.000.000-00" />
+          <input *ngIf="clienteForm.tipo === 'PJ'" type="text" [(ngModel)]="clienteForm.cnpj"
+            (blur)="checkDocumento()"
+            placeholder="00.000.000/0000-00" />
         </div>
         <div class="form-group flex-1">
           <label>Telefone</label>
@@ -144,24 +147,21 @@
         <input type="text" [(ngModel)]="clienteForm.endereco" placeholder="Rua, Número, Bairro, Cidade" />
       </div>
 
-      <!-- Senha Manual Opcional (Apenas na Criação) -->
-      <div class="form-group" *ngIf="!isEditing">
-        <label>Senha Inicial (Opcional)</label>
-        <input type="password" [(ngModel)]="clienteForm.senha" placeholder="Deixe em branco para usar o padrão..." />
-      </div>
-
-      <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
-        <input type="checkbox" [(ngModel)]="clienteForm.ativo" id="chkAtivo" style="width: auto; margin:0;" />
-        <label for="chkAtivo" style="margin:0; text-transform:none; font-weight: 500; font-size: 0.85rem;">Cliente
-          ativo</label>
+      <div class="form-row mt-4">
+        <div class="form-group flex-1">
+          <div class="toggle-wrapper">
+             <input type="checkbox" [(ngModel)]="clienteForm.ativo" id="chkAtivo" />
+             <label for="chkAtivo">Cliente ativo</label>
+          </div>
+        </div>
       </div>
 
     </div>
     <div class="modal-footer">
-      <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
-      <button type="button" class="btn-primary" (click)="salvar()">
+      <button class="btn-cancel" (click)="fecharModal()">Cancelar</button>
+      <button type="button" class="btn-submit" (click)="salvar()">
         <lucide-icon [img]="icons.checkCircle" size="18"></lucide-icon>
-        {{ isEditing ? 'Atualizar' : 'Cadastrar' }}
+        {{ isEditing ? 'Salvar' : 'Cadastrar' }}
       </button>
     </div>
   </div>

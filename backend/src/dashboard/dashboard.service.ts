@@ -3,43 +3,55 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async getMetrics() {
+  async getMetrics(filialId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 1. Filiais Ativas
+    const fid = filialId
+      ? isNaN(+filialId)
+        ? undefined
+        : +filialId
+      : undefined;
+
     const filiaisAtivas = await this.prisma.filial.count({
-      where: { ativo: true }
+      where: {
+        ativo: true,
+        ...(fid ? { id: fid } : {}),
+      },
     });
 
-    // 2. Guichês Ativos (Unique guichês that had atendimentos today)
-    const atendimentosHoje = await this.prisma.atendimento.findMany({
-      where: { inicioAtendimento: { gte: today } },
-      select: { guiche: true, inicioAtendimento: true, fimAtendimento: true }
+    const guichesAtivos = await this.prisma.guiche.count({
+      where: {
+        ativo: true,
+        ...(fid ? { filial_id: fid } : {}),
+      },
     });
 
-    // Extract unique guichês from today's atendimentos
-    const guichesSet = new Set(atendimentosHoje.map(a => a.guiche));
-    const guichesAtivos = guichesSet.size || 0;
-
-    // 3. Total de Atendimentos Hoje
-    const totalAtendimentos = atendimentosHoje.length;
-
-    // 4. Tempo Médio de Espera (Simplificado para fins de demonstração)
-    // No mundo real: Tempo entre criação da senha e início do atendimento.
-    // Como a relação senha/atendimento tem timestamps de criacao vs inicio, podemos calcular:
+    const atendimentosHojeLista = await this.prisma.atendimento.findMany({
+      where: {
+        inicioAtendimento: { gte: today },
+        ...(fid ? { guiche_rel: { filial_id: fid } } : {}),
+      } as any,
+    });
+    const totalAtendimentosHoje = atendimentosHojeLista.length;
 
     let totalEsperaMinutos = 0;
     let counts = 0;
 
-    const senhasHoje = await this.prisma.senha.findMany({
-      where: { dataCriacao: { gte: today } },
-      include: { atendimento: true }
+    const senhasAtendidasHoje = await this.prisma.senha.findMany({
+      where: {
+        dataCriacao: { gte: today },
+        ...(fid
+          ? { atendimento: { some: { guiche_rel: { filial_id: fid } } } }
+          : {}),
+      } as any,
+      include: { atendimento: true },
     });
 
-    for (const s of senhasHoje) {
+    for (const senha of senhasAtendidasHoje) {
+      const s = senha as any;
       if (s.atendimento && s.atendimento.length > 0) {
         const inicio = s.atendimento[0].inicioAtendimento.getTime();
         const criacao = s.dataCriacao.getTime();
@@ -54,41 +66,216 @@ export class DashboardService {
 
     const tempoMedio = counts > 0 ? Math.round(totalEsperaMinutos / counts) : 0;
 
-    // 5. Atividades Recentes (Mock dinâmico usando logs se existir, ou senhas/atendimentos misturados)
-    // Para simplificar vamos pegar os últimos 4 logs de auditoria
-    const logs = await this.prisma.log_auditoria.findMany({
-      take: 4,
+    const logsRecentes = await this.prisma.log_auditoria.findMany({
+      where: {
+        ...(fid ? { filial_id: fid } : {}),
+      } as any,
+      take: 6,
       orderBy: { criadoEm: 'desc' },
       select: {
         acao: true,
         descricao: true,
-        criadoEm: true
-      }
+        criadoEm: true,
+      },
     });
 
-    const atividadeRecente = logs.map(l => ({
-      horario: l.criadoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      titulo: l.acao,
-      local: 'Sistema Principal', // Ou relacionar se tiver filial no log
-      tipoId: 'Log' // Para pintar a label
+    const listaAtividades = logsRecentes.map((log) => ({
+      horario: log.criadoEm.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      titulo: log.acao,
+      local:
+        log.descricao.length > 35
+          ? log.descricao.substring(0, 35) + '...'
+          : log.descricao,
+      tipoId: 'Sistema',
     }));
-
-    // Caso não tenha logs suficientes, enche com mock
-    const fallbackActivities = [
-      { horario: '10:30', titulo: 'Nova senha gerada', local: 'Filial Centro', tipoId: 'Retirada Pesada' },
-      { horario: '10:15', titulo: 'Atendimento concluído', local: 'Filial Norte', tipoId: 'Caminhão' },
-      { horario: '09:45', titulo: 'Guichê 5 aberto', local: 'Filial Sul', tipoId: 'Sistema' },
-      { horario: '09:30', titulo: 'Nova senha gerada', local: 'Filial Centro', tipoId: 'Caminhão' },
-    ];
 
     return {
       cards: {
-        filiaisAtivas: filiaisAtivas > 0 ? filiaisAtivas : 3, // mock se 0 
-        guichesAtivos: guichesAtivos > 0 ? guichesAtivos : 12, // mock se 0
-        atendimentosHoje: totalAtendimentos > 0 ? totalAtendimentos : 24, // mock se 0
-        tempoMedioEspera: tempoMedio > 0 ? tempoMedio : 8 // min
+        filiaisAtivas: filiaisAtivas,
+        guichesAtivos: guichesAtivos,
+        atendimentosHoje: totalAtendimentosHoje,
+        tempoMedioEspera: tempoMedio,
       },
-      atividadeRecente: atividadeRecente.length > 0 ? atividadeRecente : fallbackActivities
+      atividadeRecente: listaAtividades,
+    };
+  }
+
+  async getRelatorios(periodo: string, filialId?: string) {
+    const fid = filialId
+      ? isNaN(+filialId)
+        ? undefined
+        : +filialId
+      : undefined;
+    const now = new Date();
+    const dataInicio = new Date();
+
+    if (periodo === 'dia') {
+      dataInicio.setHours(0, 0, 0, 0);
+    } else if (periodo === 'semana') {
+      dataInicio.setDate(now.getDate() - 7);
+      dataInicio.setHours(0, 0, 0, 0);
+    } else if (periodo === 'mes') {
+      dataInicio.setDate(1);
+      dataInicio.setHours(0, 0, 0, 0);
+    }
+
+    const totalAtendimentos = await this.prisma.atendimento.count({
+      where: {
+        inicioAtendimento: { gte: dataInicio },
+        ...(fid ? { guiche_rel: { filial_id: fid } } : {}),
+      } as any,
+    });
+
+    const atendimentosRecentes = await this.prisma.atendimento.findMany({
+      where: {
+        inicioAtendimento: { gte: dataInicio },
+        ...(fid ? { guiche_rel: { filial_id: fid } } : {}),
+      } as any,
+      orderBy: { inicioAtendimento: 'desc' },
+      take: 20,
+      include: { senha: { include: { servico: true } } },
+    });
+
+    return {
+      totalAtendimentos,
+      periodoAtual: periodo,
+      atendimentos: atendimentosRecentes.map((a) => ({
+        id: a.id,
+        inicio: a.inicioAtendimento,
+        fim: a.fimAtendimento,
+        guiche: a.guiche,
+        servico: a.senha?.servico?.nome || 'N/A',
+        justificativa: a.justificativaDemora || null,
+      })),
+    };
+  }
+
+  async getSupervisorOverview(filialId?: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+
+    const fid = filialId && !isNaN(+filialId) ? +filialId : undefined;
+    
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    // Todas as senhas criadas hoje na filial
+    const senhasAtivas = await this.prisma.senha.findMany({
+      where: {
+        dataCriacao: { gte: startOfToday },
+        ...(fid ? { filial_id: fid } : {}),
+      },
+      include: { atendimento: true },
+    });
+
+    // Senhas que ainda estão em espera (independente de quando foram criadas, ex: ontem a noite)
+    const senhasEmEspera = await this.prisma.senha.findMany({
+      where: {
+        status: 'AGUARDANDO',
+        ...(fid ? { filial_id: fid } : {}),
+      }
+    });
+
+    const totalHoje = senhasAtivas.length;
+    const filaAtual = senhasEmEspera.length;
+    
+    // Calcula tempo médio das senhas que foram atendidas hoje
+    const senhasAtendidasHoje = senhasAtivas.filter(s => 
+      s.atendimento && s.atendimento.length > 0
+    );
+
+    let totalEsperaMinutos = 0;
+    let counts = 0;
+    for (const senha of senhasAtendidasHoje) {
+      if (senha.atendimento[0] && senha.atendimento[0].inicioAtendimento) {
+        const inicio = senha.atendimento[0].inicioAtendimento.getTime();
+        const criacao = senha.dataCriacao.getTime();
+        const diff = (inicio - criacao) / 60000;
+        if (diff > 0) {
+          totalEsperaMinutos += diff;
+          counts++;
+        }
+      }
+    }
+    const tempoMedio = counts > 0 ? Math.round(totalEsperaMinutos / counts) : 0;
+
+    const agendamentos = await this.prisma.agendamento.findMany({
+      where: {
+        data: todayStr,
+        status: { not: 'CANCELADO' },
+        ...(fid ? { filial_id: fid } : {}),
+      },
+      include: { servico: true, filial: true },
+      orderBy: { hora: 'asc' },
+    });
+
+    const atendimentosQueue = await this.prisma.senha.findMany({
+      where: {
+        status: { in: ['AGUARDANDO', 'CHAMADO'] },
+        ...(fid ? { filial_id: fid } : {}),
+      },
+      include: {
+        servico: true,
+        agendamento: true,
+        atendimento: {
+          include: {
+            guiche_rel: {
+              include: { operadorAtual: true },
+            },
+          },
+        },
+      },
+      orderBy: { dataCriacao: 'asc' },
+    });
+
+    const configs = await this.prisma.configuracao.findMany({
+      where: {
+        OR: [{ filial_id: fid }, { filial_id: null }],
+      },
+    });
+
+    const getConfig = (chave: string, padrao: string) => {
+      const bV = configs.find((c) => c.chave === chave && c.filial_id === fid);
+      if (bV) return bV.valor;
+      const gV = configs.find((c) => c.chave === chave && c.filial_id === null);
+      return gV ? gV.valor : padrao;
+    };
+
+    const metaEspera = parseInt(getConfig('META_ESPERA', '20'), 10);
+
+    return {
+      kpis: {
+        totalHoje: totalHoje.toString(),
+        tempoMedio: `${tempoMedio} min`,
+        filaAtual: filaAtual.toString(),
+        alertaSla: tempoMedio > metaEspera || atendimentosQueue.some(s => Math.floor((new Date().getTime() - s.dataCriacao.getTime()) / 60000) > metaEspera),
+      },
+      agendamentos: agendamentos.map((a) => ({
+        senha: a.codigo || 'S/N',
+        transportadora: a.nomeCliente || 'Pessoa Física',
+        horario: a.hora,
+        status: a.status,
+      })),
+      atendimentos: atendimentosQueue.map((s) => {
+        const atend =
+          s.atendimento && s.atendimento.length > 0 ? s.atendimento[0] : null;
+        const esperaReal = Math.floor(
+          (new Date().getTime() - s.dataCriacao.getTime()) / 60000,
+        );
+        return {
+          ticket: s.numeroDisplay,
+          cliente: s.agendamento?.nomeCliente || 'Geral/Totem',
+          categoria: s.servico?.nome || 'Geral',
+          operador: atend?.guiche_rel?.operadorAtual?.nome || '-',
+          tempoEspera: `${esperaReal} min`,
+          status: s.status === 'CHAMADO' ? 'Em Atendimento' : 'Aguardando',
+          atrasado: esperaReal > metaEspera,
+        };
+      }),
     };
   }
 }

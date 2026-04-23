@@ -1,8 +1,9 @@
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Mail, Shield, UserX, CheckCircle, RefreshCw, User, Check } from 'lucide-angular';
+import { ApiService } from '../../../services/api.service';
+import { ActivatedRoute } from '@angular/router';
+import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Mail, Shield, UserX, CheckCircle, RefreshCw, User, Check, Building } from 'lucide-angular';
 
 @Component({
     selector: 'app-usuarios',
@@ -15,12 +16,15 @@ export class UsuariosComponent implements OnInit {
     icons = {
         search: Search, plus: Plus, edit2: Edit2,
         trash2: Trash2, x: X, users: Users,
-        mail: Mail, shield: Shield, userX: UserX, checkCircle: CheckCircle, refresh: RefreshCw, user: User, check: Check
+        mail: Mail, shield: Shield, userX: UserX, checkCircle: CheckCircle, refresh: RefreshCw, user: User, check: Check,
+        building: Building
     };
 
     usuarios: any[] = [];
     filtro = '';
     loading = false;
+    selectedFilialId: number | null = null;
+    filiais: any[] = [];
 
     // Modal state
     showModal = false;
@@ -36,7 +40,8 @@ export class UsuariosComponent implements OnInit {
         email: '',
         login: '',
         senha: '',
-        perfil: 'OPERADOR'
+        perfil: 'OPERADOR',
+        filial_id: null as number | null
     };
 
     novaSenhaForm = {
@@ -44,24 +49,32 @@ export class UsuariosComponent implements OnInit {
         senha: ''
     };
 
-    private apiUrl = `http://localhost:3000/usuarios`;
-
-    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
+    constructor(
+        private api: ApiService, 
+        private cdr: ChangeDetectorRef,
+        private route: ActivatedRoute
+    ) { }
 
     ngOnInit(): void {
-        this.carregarUsuarios();
+        this.route.queryParamMap.subscribe(params => {
+            const fid = params.get('filialId');
+            this.selectedFilialId = fid ? Number(fid) : null;
+            this.carregarUsuarios();
+        });
+        this.carregarFiliais();
     }
 
-    private getHeaders() {
-        // In a real app, this token would come from an AuthService
-        const token = localStorage.getItem('token') || '';
-        return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    carregarFiliais() {
+        this.api.get<any[]>(`/filiais`).subscribe({
+            next: (data) => this.filiais = data.filter(f => f.ativo),
+            error: (err) => console.error('Erro ao carregar filiais', err)
+        });
     }
 
     carregarUsuarios() {
         this.loading = true;
-        // In this basic version without advanced JWT setup in frontend yet, we just pass the headers.
-        this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).subscribe({
+        const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+        this.api.get<any[]>(`/usuarios${filialQuery}`).subscribe({
             next: (data) => {
                 if (this.filtro) {
                     const termo = this.filtro.toLowerCase();
@@ -78,8 +91,6 @@ export class UsuariosComponent implements OnInit {
             },
             error: (err) => {
                 console.error('Erro ao carregar usuários', err);
-                // Temporary workaround if JWT fails because it's not set in localstorage in the mocked app
-                // We'll alert the user or fallback.
                 if (err.status === 401) {
                     alert('Sessão expirada ou usuário não autenticado.');
                 }
@@ -102,7 +113,11 @@ export class UsuariosComponent implements OnInit {
 
     abrirModalNovo() {
         this.isEditing = false;
-        this.usuarioForm = { id: null, nome: '', email: '', login: '', senha: '', perfil: 'OPERADOR' };
+        this.usuarioForm = { 
+            id: null, nome: '', email: '', login: '', senha: '', 
+            perfil: 'OPERADOR',
+            filial_id: this.selectedFilialId
+        };
         this.showModal = true;
     }
 
@@ -114,7 +129,8 @@ export class UsuariosComponent implements OnInit {
             email: usu.email,
             login: usu.login,
             senha: '', // Senha goes blank on edit unless resetting
-            perfil: usu.perfil
+            perfil: usu.perfil,
+            filial_id: usu.filial_id
         };
         this.showModal = true;
     }
@@ -148,17 +164,16 @@ export class UsuariosComponent implements OnInit {
             return;
         }
 
-        const headers = this.getHeaders();
-
         if (this.isEditing) {
             // Update
             const payload = {
                 nome: this.usuarioForm.nome,
                 email: this.usuarioForm.email,
                 login: this.usuarioForm.login,
-                perfil: this.usuarioForm.perfil
+                perfil: this.usuarioForm.perfil,
+                filial_id: this.usuarioForm.filial_id
             };
-            this.http.put(`${this.apiUrl}/${this.usuarioForm.id}`, payload, { headers }).subscribe({
+            this.api.patch(`/usuarios/${this.usuarioForm.id}`, payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.successMessage = 'Usuário atualizado com sucesso.';
@@ -170,7 +185,7 @@ export class UsuariosComponent implements OnInit {
             });
         } else {
             // Create
-            this.http.post(this.apiUrl, this.usuarioForm, { headers }).subscribe({
+            this.api.post('/usuarios', this.usuarioForm).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.successMessage = 'Usuário cadastrado com sucesso.';
@@ -188,7 +203,7 @@ export class UsuariosComponent implements OnInit {
             return;
         }
 
-        this.http.patch(`${this.apiUrl}/${this.novaSenhaForm.id}/senha`, { senha: this.novaSenhaForm.senha }, { headers: this.getHeaders() })
+        this.api.patch(`/usuarios/${this.novaSenhaForm.id}/senha`, { senha: this.novaSenhaForm.senha })
             .subscribe({
                 next: () => {
                     this.showPasswordResetModal = false;
@@ -203,12 +218,26 @@ export class UsuariosComponent implements OnInit {
     alternarStatus(id: number, statusAtual: boolean) {
         const acao = statusAtual ? 'inativar' : 'ativar';
         if (confirm(`Tem certeza que deseja ${acao} este usuário?`)) {
-            this.http.patch(`${this.apiUrl}/${id}/status`, {}, { headers: this.getHeaders() }).subscribe({
+            this.api.patch(`/usuarios/${id}/status`, {}).subscribe({
                 next: () => {
                     this.carregarUsuarios();
                     this.cdr.detectChanges();
                 },
                 error: (err) => alert(`Erro ao ${acao} usuário`)
+            });
+        }
+    }
+
+    excluirUsuario(id: number, nome: string) {
+        if (confirm(`Tem certeza que deseja excluir permanentemente o usuário "${nome}"?`)) {
+            this.api.delete(`/usuarios/${id}`).subscribe({
+                next: () => {
+                    this.carregarUsuarios();
+                    this.successMessage = 'Usuário excluído com sucesso.';
+                    this.showSuccessModal = true;
+                    this.cdr.detectChanges();
+                },
+                error: (err) => alert('Erro ao excluir usuário: ' + (err.error?.message || 'Erro desconhecido'))
             });
         }
     }

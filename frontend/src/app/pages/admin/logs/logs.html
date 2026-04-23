@@ -1,63 +1,148 @@
-<div class="page-container">
-
-    <div class="header-section">
-        <div class="title-group">
-            <lucide-icon [img]="icons.fileText" size="24" class="title-icon"></lucide-icon>
-            <div>
-                <h1>Logs e Auditoria</h1>
-                <p>Acompanhe o histórico de ações e acessos ao sistema.</p>
+<div class="page-container animate-up">
+    
+    <!-- Seletor de Filial (Glassmorphism) -->
+    <div class="filial-selector-wrapper">
+        <div class="filial-selector-glass">
+            <div class="selector-content">
+                <div class="selector-info">
+                    <div class="selector-text">
+                        <span class="selector-label">Filial atual</span>
+                        <span class="selector-value">{{ selectedFilialName || 'Todas as Unidades' }}</span>
+                    </div>
+                </div>
+                <div class="selector-action">
+                    <select [(ngModel)]="selectedFilialId" (change)="onFilialChange()" class="filial-select-modern">
+                        <option [ngValue]="null">🌍 Todas as Unidades (Global)</option>
+                        <option *ngFor="let f of filiais" [ngValue]="f.id">
+                            🏢 {{ f.nome }}
+                        </option>
+                    </select>
+                    <div class="select-arrow">
+                        <lucide-icon [img]="icons.chevronDown" size="16"></lucide-icon>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="content-card">
+    <!-- Header -->
 
-        <div class="filters-section">
-            <div class="search-wrap">
-                <lucide-icon [img]="icons.search" size="18" class="search-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="searchQuery" (input)="filtrar()"
-                    placeholder="Buscar logs (ação, descrição...)">
+    <!-- Content Card -->
+    <div class="list-card">
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+            <lucide-icon [img]="icons.lock" size="18"></lucide-icon>
+            <span>Acesso restrito a Administradores - Todos os logs são monitorados</span>
+        </div>
+
+        <!-- Filters & Actions -->
+        <div class="list-card-header mb-4">
+            <div class="search-box">
+                <lucide-icon [img]="icons.search" size="18"></lucide-icon>
+                <input type="text" [ngModel]="filters.search" (input)="onSearchChange($any($event.target).value)" 
+                    placeholder="Buscar logs por ação, descrição, usuário...">
             </div>
-
-            <button class="btn-export" (click)="exportData()">
+            <button class="btn-primary" (click)="exportPDF()" [disabled]="loading">
                 <lucide-icon [img]="icons.download" size="18"></lucide-icon>
-                Exportar CSV
+                Exportar PDF
             </button>
         </div>
 
-        <!-- Tabela -->
-        <div class="table-responsive">
-            <table class="data-table">
+        <!-- Advanced Filters Grid -->
+        <div class="filters-grid">
+            <div class="filter-item">
+                <label>Ação:</label>
+                <select [(ngModel)]="filters.acao" (change)="carregar()">
+                    <option value="">Todas as Ações</option>
+                    <option value="Criação">Criação</option>
+                    <option value="Atualização">Atualização</option>
+                    <option value="Exclusão">Exclusão</option>
+                    <option value="Pagamento">Pagamento</option>
+                    <option value="Login">Login</option>
+                    <option value="Configuração">Configuração</option>
+                    <option value="Fila">Fila</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Data De:</label>
+                <input type="date" [(ngModel)]="filters.de" (change)="carregar()">
+            </div>
+            <div class="filter-item">
+                <label>Data Até:</label>
+                <input type="date" [(ngModel)]="filters.ate" (change)="carregar()">
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container mt-4">
+            <table class="premium-table">
                 <thead>
                     <tr>
-                        <th>DATA / HORA</th>
-                        <th>USUÁRIO (ID)</th>
-                        <th>AÇÃO</th>
+                        <th style="width: 180px;">DATA/HORA</th>
+                        <th style="width: 140px;">AÇÃO</th>
+                        <th style="width: 200px;">USUÁRIO</th>
+                        <th style="width: 150px;">ENTIDADE</th>
                         <th>DESCRIÇÃO</th>
+                        <th style="width: 120px;">STATUS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let log of filteredLogs">
-                        <td>{{ log.criadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                    <tr *ngFor="let log of logs">
+                        <td class="time-cell">{{ log.criadoEm | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                         <td>
-                            <span class="user-badge" *ngIf="log.usuario_id">#{{ log.usuario_id }}</span>
-                            <span class="system-badge" *ngIf="!log.usuario_id">Sistema</span>
+                            <span class="action-badge" [ngClass]="getActionClass(log.acao)">
+                                {{ log.acao }}
+                            </span>
                         </td>
-                        <td class="action-cell">
-                            <span class="action-badge">{{ log.acao }}</span>
+                        <td>
+                            <div class="user-info">
+                                <span class="user-name">{{ log.usuario?.nome || 'Sistema' }}</span>
+                                <span class="user-login">{{ log.usuario?.login || 'auto' }}</span>
+                            </div>
                         </td>
-                        <td class="description-cell">{{ log.descricao }}</td>
-                    </tr>
-
-                    <tr *ngIf="filteredLogs.length === 0 && !loading">
-                        <td colspan="4" class="empty-row text-center">Nenhum registro de log encontrado.</td>
-                    </tr>
-                    <tr *ngIf="loading">
-                        <td colspan="4" class="loading-state text-center">Carregando logs...</td>
+                        <td><span class="entity-tag">{{ log.entidade || '-' }}</span></td>
+                        <td><p class="desc-text">{{ log.descricao }}</p></td>
+                        <td>
+                            <span class="status-badge" [ngClass]="log.status?.toLowerCase() === 'erro' ? 'erro' : 'sucesso'">
+                                {{ log.status || 'Sucesso' }}
+                            </span>
+                        </td>
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Empty State -->
+            <div *ngIf="logs.length === 0 && !loading" class="empty-state">
+                <div class="icon-halo">
+                    <lucide-icon [img]="icons.fileText" size="32"></lucide-icon>
+                </div>
+                <h3>Nenhum log encontrado</h3>
+                <p>Tente ajustar os filtros ou a busca por texto.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div *ngIf="loading" class="empty-state">
+                <div class="spinner"></div>
+                <p>Carregando registros...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="table-footer" *ngIf="total > 0">
+            <div class="page-info">
+                Mostrando {{ (page - 1) * limit + 1 }} a {{ Math.min(page * limit, total) }} de {{ total }} registros
+            </div>
+            <div class="page-controls">
+                <button class="btn-page" [disabled]="page === 1" (click)="changePage(page - 1)">
+                    <lucide-icon [img]="icons.chevronLeft" size="18"></lucide-icon>
+                </button>
+                <button *ngFor="let p of pages" class="btn-page" [class.active]="p === page" (click)="changePage(p)">
+                    {{ p }}
+                </button>
+                <button class="btn-page" [disabled]="page === lastPage" (click)="changePage(page + 1)">
+                    <lucide-icon [img]="icons.chevronRight" size="18"></lucide-icon>
+                </button>
+            </div>
         </div>
     </div>
-
 </div>

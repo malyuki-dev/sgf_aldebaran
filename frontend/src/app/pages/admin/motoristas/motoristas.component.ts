@@ -1,7 +1,8 @@
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { ApiService } from '../../../services/api.service';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule, Search, Plus, Edit2, Trash2, X, Users, Briefcase, Hash, User, CheckCircle, Truck, Check } from 'lucide-angular';
 
 @Component({
@@ -17,6 +18,7 @@ export class MotoristasComponent implements OnInit {
     motoristas: any[] = [];
     filtro = '';
     loading = false;
+    selectedFilialId: number | null = null;
 
     // Modal state
     showModal = false;
@@ -25,30 +27,46 @@ export class MotoristasComponent implements OnInit {
 
     // Form Model
     motoristaForm = {
-        id: null,
+        id: null as number | null,
         nome: '',
         cpf: '',
         cnh: '',
         email: '',
         telefone: '',
-        transportadora: ''
+        transportadora: '',
+        ativo: true,
+        filial_id: null as number | null
     };
 
-    private apiUrl = `http://localhost:3000/motoristas`;
-
-    constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
+    constructor(
+        private api: ApiService, 
+        private cdr: ChangeDetectorRef,
+        private route: ActivatedRoute
+    ) { }
 
     ngOnInit(): void {
-        this.carregarMotoristas();
+        this.route.queryParamMap.subscribe(params => {
+            const fid = params.get('filialId');
+            this.selectedFilialId = fid ? Number(fid) : null;
+            this.carregarMotoristas();
+        });
     }
 
     carregarMotoristas() {
         this.loading = true;
-        const url = this.filtro ? `${this.apiUrl}?q=${this.filtro}` : this.apiUrl;
-
-        this.http.get<any[]>(url).subscribe({
+        const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+        this.api.get<any[]>(`/motoristas${filialQuery}`).subscribe({
             next: (data) => {
-                this.motoristas = data;
+                if (this.filtro) {
+                    const termo = this.filtro.toLowerCase();
+                    this.motoristas = data.filter(m => 
+                        m.nome.toLowerCase().includes(termo) ||
+                        m.cpf.includes(termo) ||
+                        m.cnh.includes(termo)
+                    );
+                } else {
+                    this.motoristas = data;
+                }
                 this.loading = false;
                 this.cdr.detectChanges();
             },
@@ -59,19 +77,41 @@ export class MotoristasComponent implements OnInit {
         });
     }
 
+    checkIdentidade() {
+        if (this.isEditing) return;
+        
+        const cpf = this.motoristaForm.cpf;
+        const cnh = this.motoristaForm.cnh;
+        
+        if (cpf?.length === 11 || cnh?.length === 11) {
+            this.api.get<{exists: boolean}>(`/motoristas/check`, {
+                cpf: cpf || '', cnh: cnh || ''
+            }).subscribe(res => {
+                if (res.exists) {
+                    alert('CPF ou CNH já cadastrado para outro motorista!');
+                }
+            });
+        }
+    }
+
     buscar() {
         this.carregarMotoristas();
     }
 
     abrirModalNovo() {
         this.isEditing = false;
-        this.motoristaForm = { id: null, nome: '', cpf: '', cnh: '', email: '', telefone: '', transportadora: '' };
+        this.motoristaForm = { 
+            id: null, nome: '', cpf: '', cnh: '', email: '', 
+            telefone: '', transportadora: '', ativo: true, 
+            filial_id: this.selectedFilialId 
+        };
         this.showModal = true;
     }
 
     abrirModalEditar(mot: any) {
         this.isEditing = true;
         this.motoristaForm = { ...mot };
+        if (this.motoristaForm.filial_id === undefined) this.motoristaForm.filial_id = null;
         this.showModal = true;
     }
 
@@ -92,15 +132,17 @@ export class MotoristasComponent implements OnInit {
             alert('Nome, CPF e CNH são obrigatórios!');
             return;
         }
+        const { id, ...payloadData } = this.motoristaForm;
         const payload = {
-            ...this.motoristaForm,
+            ...payloadData,
+            filial_id: this.motoristaForm.filial_id ? Number(this.motoristaForm.filial_id) : null,
             email: this.motoristaForm.email || '',
             telefone: this.motoristaForm.telefone || '',
             transportadora: this.motoristaForm.transportadora || ''
         };
 
         if (this.isEditing) {
-            this.http.put(`${this.apiUrl}/${this.motoristaForm.id}`, payload).subscribe({
+            this.api.patch(`/motoristas/${this.motoristaForm.id}`, payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.showSuccessModal = true;
@@ -110,7 +152,7 @@ export class MotoristasComponent implements OnInit {
                 error: (err) => alert('Erro ao atualizar: ' + (err.error?.message || 'Erro desconhecido'))
             });
         } else {
-            this.http.post(this.apiUrl, payload).subscribe({
+            this.api.post('/motoristas', payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.showSuccessModal = true;
@@ -122,15 +164,13 @@ export class MotoristasComponent implements OnInit {
         }
     }
 
-    excluir(id: number) {
-        if (confirm('Tem certeza que deseja inativar este motorista? Esta ação não excluirá os dados históricos.')) {
-            this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-                next: () => {
-                    this.carregarMotoristas();
-                    this.cdr.detectChanges();
-                },
-                error: (err) => alert('Erro ao inativar motorista')
-            });
-        }
+    alternarStatus(id: number) {
+        this.api.patch(`/motoristas/${id}/status`, {}).subscribe({
+            next: () => {
+                this.carregarMotoristas();
+                this.cdr.detectChanges();
+            },
+            error: (err) => alert('Erro ao alterar status')
+        });
     }
 }
