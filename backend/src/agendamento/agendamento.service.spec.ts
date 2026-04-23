@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DeepMockProxy } from 'jest-mock-extended';
 import { createPrismaMock } from '../prisma/prisma.mock';
 import { PrismaService } from '../prisma/prisma.service';
@@ -178,5 +178,65 @@ describe('AgendamentoService', () => {
     await expect(
       service.cancelarMeuAgendamento(clienteAutenticado.id, 999),
     ).rejects.toThrow(new NotFoundException('Agendamento não encontrado'));
+  });
+
+  it('lança UnauthorizedException quando clienteId está vazio', async () => {
+    await expect(
+      service.listarMeusAgendamentos('', AgendamentoFiltroStatus.ACTIVE),
+    ).rejects.toThrow(new UnauthorizedException('Cliente autenticado não identificado.'));
+  });
+
+  it('lança UnauthorizedException quando cliente não existe no banco', async () => {
+    prisma.clientes.findUnique.mockResolvedValue(null as never);
+
+    await expect(
+      service.listarMeusAgendamentos('inexistente', AgendamentoFiltroStatus.ACTIVE),
+    ).rejects.toThrow(new UnauthorizedException('Cliente autenticado não identificado.'));
+  });
+
+  it('lança UnauthorizedException quando cliente está deletado', async () => {
+    prisma.clientes.findUnique.mockResolvedValue({
+      ...clienteAutenticado,
+      deletedAt: new Date(),
+    } as never);
+
+    await expect(
+      service.listarMeusAgendamentos(clienteAutenticado.id, AgendamentoFiltroStatus.ACTIVE),
+    ).rejects.toThrow(new UnauthorizedException('Cliente autenticado não identificado.'));
+  });
+
+  it('bloqueia cancelamento de agendamento já iniciado', async () => {
+    const now = new Date();
+    const passado = new Date(now.getTime() - 60 * 1000);
+    const dataLocal = `${passado.getFullYear()}-${String(passado.getMonth() + 1).padStart(2, '0')}-${String(passado.getDate()).padStart(2, '0')}`;
+    const horaLocal = `${String(passado.getHours()).padStart(2, '0')}:${String(passado.getMinutes()).padStart(2, '0')}`;
+
+    prisma.clientes.findUnique.mockResolvedValue(clienteAutenticado as never);
+    prisma.agendamento.findUnique.mockResolvedValue({
+      ...baseAgendamento,
+      data: dataLocal,
+      hora: horaLocal,
+    } as never);
+
+    await expect(
+      service.cancelarMeuAgendamento(clienteAutenticado.id, baseAgendamento.id),
+    ).rejects.toThrow(
+      new BadRequestException('Agendamento já finalizado não pode ser cancelado'),
+    );
+  });
+
+  it('reconhece documento via CPF do cliente', async () => {
+    const clienteComCpf = { ...clienteAutenticado, cpf: '123.456.789-00' };
+    prisma.clientes.findUnique.mockResolvedValue(clienteComCpf as never);
+    prisma.agendamento.findMany.mockResolvedValue([
+      { ...baseAgendamento, documento: '123.456.789-00' },
+    ] as never);
+
+    const result = await service.listarMeusAgendamentos(
+      clienteComCpf.id,
+      AgendamentoFiltroStatus.ACTIVE,
+    );
+
+    expect(result).toHaveLength(1);
   });
 });
