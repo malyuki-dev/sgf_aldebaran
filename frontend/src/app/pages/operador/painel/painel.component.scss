@@ -551,11 +551,6 @@
   color: #0891d1;
 }
 
-.card-icon.pagamento {
-  background: #e8f6ef;
-  color: #16a34a;
-}
-
 .card-content h4 {
   margin: 0;
   font-size: 16px;
@@ -1220,23 +1215,24 @@
 
 /* Modais de Cadastro */
 .modal-cadastro {
-  max-width: 700px;
-  border-radius: 14px;
+  max-width: 680px;
+  border-radius: 16px;
 }
 
 .cadastro-header {
-  height: 54px;
-  padding: 0 16px;
+  height: 64px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(180deg, #20a5df 0%, #0f7e86 100%);
+  border-radius: 14px 14px 0 0;
 }
 
 .cadastro-header h3 {
   margin: 0;
   color: #fff;
-  font-size: 31px;
+  font-size: 24px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -1250,25 +1246,37 @@
 }
 
 .cadastro-header .close-btn {
+  display: grid;
+  place-items: center;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
   color: #fff;
-  font-size: 22px;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s;
+}
+
+.cadastro-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .cadastro-body {
-  padding: 14px 18px;
+  padding: 24px 32px;
 }
 
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  color: #334155;
-  font-size: 14px;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 15px;
 }
 
 .form-group label span {
@@ -1279,20 +1287,28 @@
 .form-group select,
 .form-group textarea {
   width: 100%;
-  border: 1px solid #d1dae6;
-  border-radius: 11px;
-  background: #f8fafc;
-  height: 38px;
-  padding: 0 12px;
-  font-size: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  height: 52px;
+  padding: 0 16px;
+  font-size: 16px;
   color: #334155;
   outline: none;
 }
 
 .form-group textarea {
-  height: 76px;
+  height: 120px;
   resize: none;
-  padding: 10px 12px;
+  padding: 16px;
+}
+
+.input-with-icon textarea {
+  padding-left: 48px;
+  padding-top: 14px;
+}
+.input-with-icon lucide-icon.file-icon {
+  top: 16px;
 }
 
 .form-group input:focus,
@@ -1305,80 +1321,110 @@
 .tipo-cliente-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 16px;
 }
 
 .tipo-cliente-tabs button {
-  height: 68px;
+  height: 52px;
   border-radius: 12px;
-  border: 1px solid #d1dae6;
+  border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #334155;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .tipo-cliente-tabs button.active {
-  background: #dff0f8;
+  background: #f0f9ff;
   border-color: #0ea5e9;
+  color: #0ea5e9;
+  font-weight: 600;
 }
 
 .cadastro-footer {
-  border-top: 1px solid #e5eaf0;
-  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+  padding: 24px 32px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
 }
 
 .btn-cadastro-cancel {
-  width: 110px;
-  border: 0;
-  background: transparent;
+  width: auto;
+  min-width: 120px;
+  height: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748b;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cadastro-cancel:hover {
+  background: #f8fafc;
+  color: #475569;
 }
 
 .btn-cadastro-save {
-  width: 150px;
-  height: 34px;
+  width: auto;
+  min-width: 140px;
+  height: 48px;
   border-radius: 12px;
-  font-size: 15px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
   background: linear-gradient(180deg, #20a5df 0%, #0f7e86 100%);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(15, 126, 134, 0.2), 0 2px 4px -1px rgba(15, 126, 134, 0.1);
 }
 
-.modal-pagamento {
-  max-width: 620px;
+.btn-cadastro-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(15, 126, 134, 0.25), 0 4px 6px -1px rgba(15, 126, 134, 0.15);
+  background: linear-gradient(180deg, #25b4f2 0%, #11959f 100%);
 }
 
-.pagamento-cliente-linha {
-  padding: 9px 18px;
-  border-bottom: 1px solid #e5eaf0;
-  background: #f8fafc;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  font-size: 14px;
-  color: #64748b;
+.btn-cadastro-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
-
-.pagamento-cliente-linha strong {
-  color: #1e293b;
-  font-weight: 700;
-}
-
-.pagamento-body {
-  padding-top: 12px;
-}
-
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-
 
 /* ACTIVE TICKET STYLES */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon lucide-icon {
+  position: absolute;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.input-with-icon input,
+.input-with-icon select,
+.input-with-icon textarea {
+  padding-left: 44px;
+}
+
+.input-with-icon input,
+.input-with-icon textarea {
+  padding-left: 38px;
+}
 .status-card.has-ticket {
   display: block;
   padding: 20px 14px 14px;

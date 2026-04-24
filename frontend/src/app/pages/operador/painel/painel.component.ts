@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
     LucideAngularModule, User, Phone, Briefcase, Hash,
-    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut
+    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut, FileText, Package, Building2, Mail
 } from 'lucide-angular';
 import { GuicheService, GuicheOperador } from '../../../services/guiche.service';
 import { AuthService } from '../../../services/auth.service';
@@ -21,22 +21,71 @@ import { ApiService } from '../../../services/api.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PainelOperadorComponent implements OnInit, OnDestroy {
+    formatarDocumento(event: any) {
+        let value = event.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+            value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+            value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+        }
+        this.formCliente.documento = value;
+    }
+
+    formatarTelefone(event: any) {
+        let value = event.target.value.replace(/\D/g, '');
+        value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+        value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+        this.formCliente.telefone = value;
+    }
+
+    formatarPlaca(event: any) {
+        let value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (value.length > 3) {
+            value = value.replace(/^([A-Z]{3})([0-9A-Z]{1,4})$/, '$1-$2');
+        }
+        this.formCaminhao.placa = value;
+    }
+
     salvarCadastroCliente() {
-        if (!this.formCliente.nome || !this.formCliente.documento) {
-            alert('Preencha os campos obrigatórios.');
+        const nome = this.tipoClienteCadastro === 'PJ' ? this.formCliente.nomeEmpresa : this.formCliente.nome;
+
+        if (!nome || !this.formCliente.documento) {
+            alert('Preencha os campos obrigatórios (Nome/Razão Social e Documento).');
             return;
         }
-        const payload = {
-            nome: this.formCliente.nome,
-            cpf: this.formCliente.documento, // Assume document as CPF if needed
-            telefone: this.formCliente.telefone,
-            email: this.formCliente.email,
-            filial_id: parseInt(this.filialSelecionada || '0', 10)
+
+        const documentoLimpo = this.formCliente.documento.replace(/\D/g, '');
+
+        const payload: any = {
+            tipo: this.tipoClienteCadastro,
+            nome: nome,
+            telefone: this.formCliente.telefone.replace(/\D/g, ''),
+            email: this.formCliente.email
         };
+
+        if (this.tipoClienteCadastro === 'PJ') {
+            payload.cnpj = documentoLimpo;
+        } else {
+            payload.cpf = documentoLimpo;
+        }
+
         this.api.post<any>('/clientes', payload).subscribe({
             next: () => {
-                alert('Cliente cadastrado com sucesso!');
-                this.fecharModal();
+                this.formCliente = {
+                    nomeEmpresa: '',
+                    nome: '',
+                    documento: '',
+                    telefone: '',
+                    email: '',
+                };
+                this.modalAberto = null;
+                this.successModal = 'client';
+                this.cdr.markForCheck();
             },
             error: err => alert(err?.error?.message || 'Erro ao cadastrar cliente.')
         });
@@ -50,30 +99,28 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         const filialIdNum = parseInt(this.filialSelecionada || '0', 10);
         // Tentar enviar dados sem id (gerado pelo Prisma)
         const payload = {
-            placa: this.formCaminhao.placa,
+            placa: this.formCaminhao.placa.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7), // Remove traços, espaços e formata para 7 caracteres alfanuméricos
             modelo: this.formCaminhao.modelo,
             transportadora: this.formCaminhao.transportadora,
             capacidade: this.formCaminhao.capacidade,
             observacoes: this.formCaminhao.observacoes,
-            filialId: isNaN(filialIdNum) ? undefined : filialIdNum
+            filial_id: isNaN(filialIdNum) ? undefined : filialIdNum
         };
         this.api.post<any>('/caminhoes/operacional', payload).subscribe({
             next: () => {
-                alert('Caminhão cadastrado com sucesso!');
-                this.fecharModal();
+                this.formCaminhao = {
+                    placa: '',
+                    modelo: '',
+                    transportadora: '',
+                    capacidade: '',
+                    observacoes: '',
+                };
+                this.modalAberto = null;
+                this.successModal = 'truck';
+                this.cdr.markForCheck();
             },
             error: err => alert(err?.error?.message || 'Erro ao cadastrar caminhão.')
         });
-    }
-
-    salvarRegistroPagamento() {
-        // Mock register payment
-        if (!this.formPagamento.valor || !this.formPagamento.formaPagamento) {
-            alert('Preencha registro de pagamento.');
-            return;
-        }
-        alert('Pagamento registrado! (Ação Mockada)');
-        this.fecharModal();
     }
 
     nomeOperador = 'Operador (Carregando...)';
@@ -93,7 +140,8 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         play: Play, check: CheckCircle, close: XCircle, recall: RotateCcw,
         alert: AlertTriangle, users: Users, clock: Clock,
         search: Search, truck: Truck, creditCard: CreditCard,
-        calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone
+        calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone,
+        building: Building2, package: Package, fileText: FileText, mail: Mail
     };
 
     // Status de fila
@@ -106,6 +154,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     // Ticket Atual
     ticketAtual: any = null;
     modalAberto: string | null = null;
+    successModal: 'truck' | 'client' | null = null;
     mostrarToastRechamar: boolean = false;
     mostrarToastTimeout: any;
     guicheTransferenciaSelecionado: string | null = null;
@@ -150,13 +199,6 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         documento: '',
         telefone: '',
         email: '',
-    };
-    formPagamento = {
-        valor: '',
-        formaPagamento: '',
-        motivo: '',
-        documento: '',
-        observacoes: '',
     };
 
     guichesLista = [
@@ -352,8 +394,8 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     chamarProximo() {
         if (this.ticketAtual && this.ticketAtual.status !== 'FINALIZADO' && this.ticketAtual.status !== 'CANCELADO') {
-             // Block if already in progress
-             return;
+            // Block if already in progress
+            return;
         }
 
         if (!this.guicheAtualId) {
@@ -442,6 +484,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     fecharModal() {
         this.modalAberto = null;
+        this.successModal = null;
     }
 
     confirmarNaoCompareceu() {
@@ -580,7 +623,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.tempoAtendimento = `${mm}:${ss}`;
     }
 
-    abrirModalCadastro(tipo: 'caminhao' | 'cliente' | 'pagamento') {
+    abrirModalCadastro(tipo: 'caminhao' | 'cliente') {
         if (tipo === 'caminhao') {
             this.modalAberto = 'cadastro-caminhao';
             return;
@@ -589,13 +632,6 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             this.modalAberto = 'cadastro-cliente';
             return;
         }
-        this.modalAberto = 'cadastro-pagamento';
-    }
-
-
-
-    salvarPagamento() {
-        this.modalAberto = null;
     }
 
     // -- Resumos de Badges (Meus Atendimentos e Agendamentos) --

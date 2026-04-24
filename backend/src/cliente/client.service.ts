@@ -148,7 +148,15 @@ export class ClientService {
       where: {
         ...(busca ? { OR: [{ nome: { contains: busca, mode: 'insensitive' as any } }, { cpf: { contains: busca } }, { cnpj: { contains: busca } }, { telefone: { contains: busca } }] } : {}),
         deletedAt: null,
-        filial_id: filialId ? filialId : undefined,
+        ...(filialId
+          ? {
+            AND: [
+              {
+                OR: [{ filial_id: filialId }, { filial_id: null }],
+              },
+            ],
+          }
+          : {}),
       },
       select: {
         id: true,
