@@ -53,6 +53,18 @@ export class SupervisorGerenciarFilaComponent implements OnInit, OnDestroy {
   operadorLoading = false;
   operadorError: string | null = null;
   private apiUrl = environment.apiUrl;
+
+  formatarTituloGuiche(numero: string | number | undefined): string {
+    if (numero === undefined || numero === null) return '';
+    const limpo = String(numero).trim();
+    if (/^Guich[êe]/i.test(limpo)) {
+      return limpo.toUpperCase();
+    }
+    if (!isNaN(Number(limpo))) {
+      return `GUICHÊ ${limpo}`;
+    }
+    return limpo.toUpperCase();
+  }
   private relatoriosTimer: any;
 
   private filialSub?: any;

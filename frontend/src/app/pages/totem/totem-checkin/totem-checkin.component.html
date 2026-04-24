@@ -82,7 +82,7 @@
 
       <input type="text" 
              class="code-input" 
-             placeholder="#RP-9025-XQ"
+              placeholder="#ABC123 ou ABC123"
              [(ngModel)]="codigoDigitado" 
              (keyup.enter)="confirmarCodigo()">
 
@@ -113,7 +113,7 @@
           <li><strong>E-mail:</strong> Verifique sua caixa de entrada ou spam.</li>
           <li><strong>SMS/WhatsApp:</strong> Verifique as mensagens no seu celular.</li>
         </ul>
-        <p class="small">O código geralmente possui 6 dígitos.</p>
+        <p class="small">O código pode conter letras e números.</p>
       </div>
 
       <button class="btn-entendi" (click)="fecharAjuda()">Entendi</button>

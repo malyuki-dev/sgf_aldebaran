@@ -18,16 +18,16 @@ export interface Ticket {
   providedIn: 'root'
 })
 export class TotemService {
-  private apiUrl = 'http://localhost:3000/fila'; 
-  
+  private apiUrl = 'http://localhost:3000/fila';
+
   // MUDANÇA: Agora guardamos o TIPO, não a categoria
-  private tipoSelecionado: string = ''; 
+  private tipoSelecionado: string = '';
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private router: Router,
     private configService: TotemConfigService
-  ) {}
+  ) { }
 
   // PASSO 1: Guarda o TIPO (Preferencial/Convencional) e vai para Categorias
   escolherTipo(tipo: string) {
@@ -37,17 +37,19 @@ export class TotemService {
   }
 
   // PASSO 2: Recebe a CATEGORIA, junta com o TIPO e gera a senha
-  solicitarSenha(categoria: string) {
+  solicitarSenha(categoria: string, categoriaId?: number, qtdeGarrafoes: number = 0) {
     if (!this.tipoSelecionado) {
-      alert('Erro: Fluxo incorreto. Voltando ao início.');
+      alert('Erro: Fluxo incorreto. Voltando ao inÃcio.');
       this.router.navigate(['/totem']);
       return;
     }
 
     const payload = {
-      tipo: this.tipoSelecionado, 
+      tipo: this.tipoSelecionado,
       categoria: categoria,
-      filialId: this.configService.getFilialId()
+      categoriaId: categoriaId,
+      filialId: this.configService.getFilialId(),
+      qtdeGarrafoes: qtdeGarrafoes
     };
 
     console.log('2. Enviando para o Backend:', payload);
@@ -58,14 +60,29 @@ export class TotemService {
       },
       error: (erro) => {
         console.error('Erro:', erro);
+        const mensagem = erro?.error?.message;
+        if (Array.isArray(mensagem) && mensagem.length) {
+          alert(mensagem.join('\n'));
+          return;
+        }
+        if (typeof mensagem === 'string' && mensagem.trim() !== '') {
+          alert(mensagem);
+          return;
+        }
         alert('Erro ao conectar com o servidor.');
       }
     });
   }
 
   validarCheckin(codigo: string) {
+    const codigoNormalizado = this.normalizarCodigoCheckin(codigo);
+    if (!codigoNormalizado) {
+      alert('Informe um codigo valido.');
+      return;
+    }
+
     const payload = {
-      codigo: codigo,
+      codigo: codigoNormalizado,
       filialId: this.configService.getFilialId()
     };
 
@@ -82,6 +99,12 @@ export class TotemService {
         alert('Erro ao validar código.');
       }
     });
+  }
+
+  private normalizarCodigoCheckin(codigo: string): string {
+    const normalizado = String(codigo || '').trim().toUpperCase();
+    if (!normalizado) return '';
+    return normalizado.startsWith('#') ? normalizado.substring(1) : normalizado;
   }
 
   private finalizarProcesso(resposta: any, categoriaFallback: string) {

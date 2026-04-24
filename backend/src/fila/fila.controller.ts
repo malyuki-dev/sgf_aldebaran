@@ -18,14 +18,25 @@ import { FilaService } from './fila.service';
 export class FilaController {
   constructor(private readonly filaService: FilaService) {}
 
+
+  // Totem
   @Post('totem/senha')
   solicitarSenhaTotem(
-    @Body() body: { tipo: string; categoria: string; filialId?: number },
+    @Body()
+    body: {
+      tipo: string;
+      categoria?: string;
+      categoriaId?: number;
+      filialId?: number;
+      qtdeGarrafoes?: number;
+    },
   ) {
     return this.filaService.solicitarSenhaTotem(
       body.tipo,
       body.categoria,
       body.filialId,
+      body.categoriaId,
+      body.qtdeGarrafoes,
     );
   }
 
@@ -100,20 +111,21 @@ export class FilaController {
   excluirServico(@Param('id') id: string) {
     return this.filaService.excluirServico(+id);
   }
-
+  // Operação de Fila
   @Post('solicitar_senha')
   solicitarSenha(@Body() body: { servico_id: number }) {
     return this.filaService.solicitarSenha(body.servico_id);
   }
 
   @Post('chamar_proximo')
-  chamarProximo(@Body() body: { guiche: number }) {
-    return this.filaService.chamarProximo(body.guiche);
+  chamarProximo(@Body() body: { guiche: number; repetir?: boolean }) {
+    return this.filaService.chamarProximo(body.guiche, !!body.repetir);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('operador/proximas')
   async listarProximas(@Request() req: any) {
+    // Busca os guiches do operador para saber a filial
     const guicheId = Number(req.headers['x-guiche-id']);
     if (!guicheId) return [];
     return this.filaService.listarProximas(guicheId);
@@ -138,6 +150,7 @@ export class FilaController {
   painel() {
     return this.filaService.listarPainel();
   }
+
 
   @Post('avaliar')
   avaliar(@Body() body: { numero: string; nota: number }) {

@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('clientes')
 export class ClienteController {
-  constructor(private readonly clienteService: ClientService) {}
+  constructor(private readonly clienteService: ClientService) { }
 
   // US-0001: Rota Pública - Autocadastro
   @Post('autocadastro')
@@ -33,8 +33,11 @@ export class ClienteController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('filialId') filialId?: string) {
-    return this.clienteService.findAll(filialId ? +filialId : undefined);
+  findAll(@Query('filialId') filialId?: string, @Query('busca') busca?: string) {
+    return this.clienteService.findAll(
+      filialId ? +filialId : undefined,
+      busca?.trim() || undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

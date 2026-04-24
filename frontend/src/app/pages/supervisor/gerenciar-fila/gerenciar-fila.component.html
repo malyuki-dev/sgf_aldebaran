@@ -142,7 +142,7 @@
       <div class="guiches-grid">
         <div class="guiche-card" *ngFor="let guiche of guiches" [ngClass]="guiche.status">
           <div class="card-header">
-            <h3>Guichê {{ guiche.numero }}</h3>
+            <h3>{{ formatarTituloGuiche(guiche.numero) }}</h3>
             <div class="header-right">
               <span class="status-pill">{{ guiche.statusLabel }}</span>
               <div class="context-menu-wrapper" (click)="$event.stopPropagation()">
@@ -313,7 +313,7 @@
       <div class="modal-header">
         <h2>
           <lucide-icon [img]="icons.user" size="20"></lucide-icon>
-          Selecionar Operador para Guichê {{ guicheAtual?.numero }}
+          Selecionar Operador para {{ formatarTituloGuiche(guicheAtual?.numero) }}
         </h2>
         <button class="close-btn" (click)="fecharModalOperador()">
           <lucide-icon [img]="icons.x" size="20"></lucide-icon>

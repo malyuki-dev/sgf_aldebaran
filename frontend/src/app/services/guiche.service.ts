@@ -63,14 +63,17 @@ export class GuicheService {
       })
       : null;
 
+    const rawNumero = String(item?.numero ?? item?.nome ?? item?.id ?? '');
+    const numeroSemPrefixo = rawNumero.replace(/^Guich[êe]\s*/i, '').trim();
+
     return {
       id: Number(item?.id),
-      numero: String(item?.numero ?? item?.nome ?? item?.id ?? ''),
+      numero: numeroSemPrefixo,
       ocupado,
       status: ocupado ? 'OCUPADO' : 'DISPONIVEL',
       operador: item?.operadorAtual?.nome ?? null,
       logado,
-      codigoAtendimento: atendimentoAtual?.senha?.numeroDisplay ?? item?.atendimentoAtualCodigo ?? null,
+      codigoAtendimento: situacaoAtendimento ? (atendimentoAtual?.senha?.numeroDisplay ?? item?.atendimentoAtualCodigo ?? null) : null,
       situacaoAtendimento,
     };
   }

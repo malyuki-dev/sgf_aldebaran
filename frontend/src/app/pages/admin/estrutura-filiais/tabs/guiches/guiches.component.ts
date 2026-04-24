@@ -18,13 +18,13 @@ export class GuichesComponent implements OnInit {
   filiaisAgrupadas: any[] = [];
   loading = false;
   selectedFilialId: number | null = null;
-  
+
   // Modais State
   showModal = false;
   editando = false;
   showConfirmDelete = false;
   showSuccessModal = false;
-  
+
   // Modal Form (Guiche)
   form: any = {
     id: null,
@@ -35,8 +35,8 @@ export class GuichesComponent implements OnInit {
 
   guicheParaExcluir: any = null;
 
-  readonly icons = { 
-    plus: Plus, edit: Edit2, trash: Trash2, power: Power, 
+  readonly icons = {
+    plus: Plus, edit: Edit2, trash: Trash2, power: Power,
     x: X, building: Building, check: Check, layout: Layout
   };
 
@@ -70,14 +70,14 @@ export class GuichesComponent implements OnInit {
             this.cdr.detectChanges();
           },
           error: (err) => {
-              console.error(err);
-              this.loading = false;
+            console.error(err);
+            this.loading = false;
           }
         });
       },
       error: (err) => {
-          console.error(err);
-          this.loading = false;
+        console.error(err);
+        this.loading = false;
       }
     });
   }
@@ -86,9 +86,9 @@ export class GuichesComponent implements OnInit {
     // Filtramos primeiro as filiais pela seleção atual
     this.filiaisAgrupadas = this.filiais
       .filter(f => {
-         const ativo = f.ativo;
-         const correspondeFiltro = !this.selectedFilialId || f.id === this.selectedFilialId;
-         return ativo && correspondeFiltro;
+        const ativo = f.ativo;
+        const correspondeFiltro = !this.selectedFilialId || f.id === this.selectedFilialId;
+        return ativo && correspondeFiltro;
       })
       .map(f => {
         return {
@@ -102,16 +102,17 @@ export class GuichesComponent implements OnInit {
   abrirModal(guiche?: any) {
     if (guiche) {
       this.editando = true;
-      this.form = { 
+      this.form = {
         ...guiche,
+        nome: String(guiche.numero || guiche.nome || '').replace(/^Guich[êe]\s*/i, '').trim(),
         status: guiche.ativo ? 'Ativo' : 'Inativo'
       };
     } else {
       this.editando = false;
       this.form = {
-        id: null, 
+        id: null,
         nome: '',
-        filial_id: this.selectedFilialId || (this.filiais.length > 0 ? this.filiais[0].id : null), 
+        filial_id: this.selectedFilialId || (this.filiais.length > 0 ? this.filiais[0].id : null),
         status: 'Ativo'
       };
     }
@@ -132,15 +133,18 @@ export class GuichesComponent implements OnInit {
 
   salvar() {
     if (!this.form.nome || !this.form.filial_id) {
-       return alert("Todos os campos obrigatórios (*) devem ser preenchidos.");
+      return alert("Todos os campos obrigatórios (*) devem ser preenchidos.");
     }
-    
+
     this.loading = true;
+    const valorCanonico = String(this.form.nome).replace(/^Guich[êe]\s*/i, '').trim();
+
     // Map status back to ativo boolean for API
     const payload = {
-        ...this.form,
-        ativo: this.form.status === 'Ativo',
-        numero: this.form.nome // Use name as number for compatibility if backend requires it
+      ...this.form,
+      ativo: this.form.status === 'Ativo',
+      nome: valorCanonico,
+      numero: valorCanonico // Use name as number for compatibility if backend requires it
     };
 
     const request = this.editando

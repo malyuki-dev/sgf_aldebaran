@@ -310,125 +310,58 @@
 }
 
 /* ============================================================== */
-/* OVERLAY DE NOTIFICAÇÃO DE NOVA CHAMADA                         */
+/* ESTADOS DA TV E ANIMAÇÕES INLINE                               */
 /* ============================================================== */
 
-.tv-overlay-alert {
+.tv-start-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.85); 
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tv-alert-content {
-  background: linear-gradient(150deg, #1385b4 0%, #0f6f8f 100%);
-  border: 4px solid #38bdf8;
-  border-radius: 24px;
-  box-shadow: 0 0 60px rgba(14, 165, 233, 0.6), inset 0 0 30px rgba(56, 189, 248, 0.3);
-  padding: clamp(30px, 5vh, 60px) clamp(40px, 6vw, 80px);
-  text-align: center;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  min-width: clamp(300px, 60vw, 800px);
+  background: linear-gradient(180deg, #0f766e 0%, #064e3b 100%);
+  color: white;
+  z-index: 10000;
+  cursor: pointer;
+  text-align: center;
+  font-family: sans-serif;
+  gap: 20px;
 }
 
-.pulse-animation {
+.tv-start-overlay h1 {
+  font-size: 3rem;
+  margin: 0;
   animation: pulse-grow 2s infinite ease-in-out;
+}
+
+.tv-start-overlay p {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+/* Quando chamado, piscar o conteúdo principal em vez de popup */
+.alerta-piscar {
+  animation: pulse-border 1.5s infinite ease-in-out;
+  border: 4px solid rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.alerta-piscar .tv-ticket,
+.alerta-piscar .tv-guiche-box, 
+.alerta-piscar .tv-label-main {
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4);
+}
+
+@keyframes pulse-border {
+  0% { transform: scale(1); box-shadow: 0 0 20px rgba(14, 165, 233, 0.2); }
+  50% { transform: scale(1.02); box-shadow: 0 0 50px rgba(14, 165, 233, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 0 20px rgba(14, 165, 233, 0.2); }
 }
 
 @keyframes pulse-grow {
   0% { transform: scale(0.96); box-shadow: 0 0 30px rgba(14, 165, 233, 0.4); }
   50% { transform: scale(1.02); box-shadow: 0 0 90px rgba(14, 165, 233, 0.9); }
   100% { transform: scale(0.96); box-shadow: 0 0 30px rgba(14, 165, 233, 0.4); }
-}
-
-.tv-alert-title {
-  font-size: clamp(30px, 6vh, 54px);
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 6px;
-  margin: 0 0 clamp(20px, 4vh, 40px);
-  background: linear-gradient(90deg, #fff, #bae6fd);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
-}
-
-.tv-alert-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(30px, 5vw, 60px);
-  margin-bottom: clamp(25px, 5vh, 50px);
-}
-
-.tv-alert-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tv-alert-col .label {
-  font-size: clamp(18px, 3vh, 30px);
-  color: #bae6fd;
-  letter-spacing: 4px;
-  margin-bottom: clamp(8px, 1.5vh, 15px);
-}
-
-.tv-alert-col .value {
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.tv-alert-col .value.ticket {
-  font-size: clamp(60px, 12vh, 160px);
-  text-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.tv-alert-col .value.guiche {
-  font-size: clamp(50px, 10vh, 140px);
-  width: clamp(100px, 18vh, 180px);
-  height: clamp(100px, 18vh, 180px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.15);
-  border-radius: 20px;
-  border: 4px solid rgba(255,255,255,0.4);
-}
-
-.tv-alert-divider {
-  width: 4px;
-  height: clamp(80px, 16vh, 180px);
-  background: rgba(186, 230, 253, 0.3);
-  border-radius: 2px;
-}
-
-.tv-alert-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(12px, 2.5vh, 24px);
-}
-
-.tv-alert-footer .tv-servico-badge {
-  font-size: clamp(16px, 2.5vh, 26px);
-  padding: clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 32px);
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-}
-
-.tv-alert-help {
-  font-size: clamp(14px, 2.5vh, 24px);
-  color: rgba(255,255,255,0.9);
-  letter-spacing: 1px;
 }

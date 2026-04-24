@@ -7,6 +7,7 @@ import { ApiService } from '../../../services/api.service';
 import { TotemConfigService } from '../../../services/totem-config.service';
 
 interface Categoria {
+  id?: number;
   nome: string;
   icone: any; // MUDANÇA: Agora recebe o objeto do ícone
   descricao: string;
@@ -21,8 +22,10 @@ interface Categoria {
 })
 export class TotemCategoriaComponent implements OnInit {
 
-  categorias: Categoria[] = [];
-  
+  categorias: Categoria[] = [];  
+  // Controle de estÃ¡gio para quantidade
+  categoriaSelecionada: Categoria | null = null;
+  quantidadeGarrafoes: number = 0;
   readonly icons: any = { Truck, Package, Zap, Box, Clock, User, Building };
 
   constructor(
@@ -39,12 +42,12 @@ export class TotemCategoriaComponent implements OnInit {
   carregarCategorias() {
     const filialId = this.configService.getFilialId();
     const tipo = this.totemService.getTipoSelecionado();
-    
+
     let query = filialId ? `?filialId=${filialId}` : '';
     if (tipo) {
       query += query ? `&tipo=${tipo}` : `?tipo=${tipo}`;
     }
-    
+
     this.api.get<any[]>(`/servicos/public/list${query}`).subscribe({
 
       next: (dados) => {
@@ -52,7 +55,7 @@ export class TotemCategoriaComponent implements OnInit {
         this.categorias = dados
           .filter(s => s.ativo)
           .map(s => {
-            let icone = s.icone || 'zap'; 
+            let icone = s.icone || 'zap';
             let descricao = 'Atendimento geral';
 
             if (s.nome.toLowerCase().includes('caminhão') || s.nome.toLowerCase().includes('caminhao')) {
@@ -71,7 +74,7 @@ export class TotemCategoriaComponent implements OnInit {
             // Mapeamento de ícone string -> objeto lucide
             let iconeObjeto = this.icons.Zap;
             const iconeLower = icone.toLowerCase();
-            
+
             if (iconeLower === 'truck') iconeObjeto = this.icons.Truck;
             else if (iconeLower === 'package' || iconeLower === 'box') iconeObjeto = this.icons.Box;
             else if (iconeLower === 'zap') iconeObjeto = this.icons.Zap;
@@ -80,6 +83,7 @@ export class TotemCategoriaComponent implements OnInit {
             else if (iconeLower === 'building') iconeObjeto = this.icons.Building;
 
             return {
+              id: s.id,
               nome: s.nome || 'Sem Nome',
               icone: iconeObjeto,
               descricao: descricao
@@ -92,7 +96,29 @@ export class TotemCategoriaComponent implements OnInit {
   }
 
   selecionarCategoria(cat: Categoria) {
-    // Agora sim chamamos solicitarSenha, pois temos o Tipo + Categoria
-    this.totemService.solicitarSenha(cat.nome);
+    // Se a categoria for especifica de garrafoes, ou como regra padrao
+    this.categoriaSelecionada = cat;
+    this.quantidadeGarrafoes = 0; // zera e mostra o passo
+  }
+
+  aumentarQtde() {
+    this.quantidadeGarrafoes++;
+  }
+
+  diminuirQtde() {
+    if (this.quantidadeGarrafoes > 0) {
+      this.quantidadeGarrafoes--;
+    }
+  }
+
+  confirmar() {
+    if (this.categoriaSelecionada) {
+      this.totemService.solicitarSenha(this.categoriaSelecionada.nome, this.categoriaSelecionada.id, this.quantidadeGarrafoes);
+    }
+  }
+
+  cancelar() {
+    this.categoriaSelecionada = null;
+    this.quantidadeGarrafoes = 0;
   }
 }

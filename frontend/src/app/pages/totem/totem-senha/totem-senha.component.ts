@@ -146,14 +146,14 @@ import { TotemService, Ticket } from '../../../services/totem.service';
   `]
 })
 export class TotemSenhaComponent implements OnInit {
-  
+
   ticket: Ticket | null = null;
   qrCodeUrl: string = '';
 
   constructor(
     private totemService: TotemService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.ticket = this.totemService.getSenhaGerada();
@@ -163,7 +163,9 @@ export class TotemSenhaComponent implements OnInit {
       return;
     }
 
-    const dadosParaQr = `SENHA:${this.ticket.numeroDisplay}|ID:${this.ticket.id}`;
+    const dadosParaQr = this.ticket.id
+      ? `${window.location.origin}/mobile/ticket/${this.ticket.id}`
+      : `SENHA:${this.ticket.numeroDisplay}`;
     this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dadosParaQr)}`;
 
     this.playAudio();
@@ -178,9 +180,9 @@ export class TotemSenhaComponent implements OnInit {
     }, 10000);
   }
 
-  playAudio(){
+  playAudio() {
     const audio = new Audio();
-    audio.src = "assets/ding.mp3"; 
+    audio.src = "assets/ding.mp3";
     audio.load();
     audio.play().catch(e => console.log('Audio error:', e));
   }

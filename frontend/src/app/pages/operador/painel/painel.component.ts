@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
     LucideAngularModule, User, Phone, Briefcase, Hash,
-    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut
+    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut, FileText, Package, Building2, Mail
 } from 'lucide-angular';
 import { GuicheService, GuicheOperador } from '../../../services/guiche.service';
 import { AuthService } from '../../../services/auth.service';
-import { finalize, switchMap, takeUntil, catchError } from 'rxjs/operators';
+import { finalize, switchMap, takeUntil, catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject, of, interval } from 'rxjs';
 import { FilialService, Filial } from '../../../services/filial.service';
 import { ApiService } from '../../../services/api.service';
@@ -21,6 +21,108 @@ import { ApiService } from '../../../services/api.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PainelOperadorComponent implements OnInit, OnDestroy {
+    formatarDocumento(event: any) {
+        let value = event.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+            value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+            value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+        }
+        this.formCliente.documento = value;
+    }
+
+    formatarTelefone(event: any) {
+        let value = event.target.value.replace(/\D/g, '');
+        value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+        value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+        this.formCliente.telefone = value;
+    }
+
+    formatarPlaca(event: any) {
+        let value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (value.length > 3) {
+            value = value.replace(/^([A-Z]{3})([0-9A-Z]{1,4})$/, '$1-$2');
+        }
+        this.formCaminhao.placa = value;
+    }
+
+    salvarCadastroCliente() {
+        const nome = this.tipoClienteCadastro === 'PJ' ? this.formCliente.nomeEmpresa : this.formCliente.nome;
+
+        if (!nome || !this.formCliente.documento) {
+            alert('Preencha os campos obrigatórios (Nome/Razão Social e Documento).');
+            return;
+        }
+
+        const documentoLimpo = this.formCliente.documento.replace(/\D/g, '');
+
+        const payload: any = {
+            tipo: this.tipoClienteCadastro,
+            nome: nome,
+            telefone: this.formCliente.telefone.replace(/\D/g, ''),
+            email: this.formCliente.email
+        };
+
+        if (this.tipoClienteCadastro === 'PJ') {
+            payload.cnpj = documentoLimpo;
+        } else {
+            payload.cpf = documentoLimpo;
+        }
+
+        this.api.post<any>('/clientes', payload).subscribe({
+            next: () => {
+                this.formCliente = {
+                    nomeEmpresa: '',
+                    nome: '',
+                    documento: '',
+                    telefone: '',
+                    email: '',
+                };
+                this.modalAberto = null;
+                this.successModal = 'client';
+                this.cdr.markForCheck();
+            },
+            error: err => alert(err?.error?.message || 'Erro ao cadastrar cliente.')
+        });
+    }
+
+    salvarCadastroCaminhao() {
+        if (!this.formCaminhao.placa || !this.formCaminhao.modelo || !this.formCaminhao.transportadora || !this.formCaminhao.capacidade) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+        const filialIdNum = parseInt(this.filialSelecionada || '0', 10);
+        // Tentar enviar dados sem id (gerado pelo Prisma)
+        const payload = {
+            placa: this.formCaminhao.placa.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7), // Remove traços, espaços e formata para 7 caracteres alfanuméricos
+            modelo: this.formCaminhao.modelo,
+            transportadora: this.formCaminhao.transportadora,
+            capacidade: this.formCaminhao.capacidade,
+            observacoes: this.formCaminhao.observacoes,
+            filial_id: isNaN(filialIdNum) ? undefined : filialIdNum
+        };
+        this.api.post<any>('/caminhoes/operacional', payload).subscribe({
+            next: () => {
+                this.formCaminhao = {
+                    placa: '',
+                    modelo: '',
+                    transportadora: '',
+                    capacidade: '',
+                    observacoes: '',
+                };
+                this.modalAberto = null;
+                this.successModal = 'truck';
+                this.cdr.markForCheck();
+            },
+            error: err => alert(err?.error?.message || 'Erro ao cadastrar caminhão.')
+        });
+    }
+
     nomeOperador = 'Operador (Carregando...)';
     numeroGuiche: string | number = 0;
     guicheAtualId: number | null = null;
@@ -38,7 +140,8 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         play: Play, check: CheckCircle, close: XCircle, recall: RotateCcw,
         alert: AlertTriangle, users: Users, clock: Clock,
         search: Search, truck: Truck, creditCard: CreditCard,
-        calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone
+        calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone,
+        building: Building2, package: Package, fileText: FileText, mail: Mail
     };
 
     // Status de fila
@@ -51,11 +154,12 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     // Ticket Atual
     ticketAtual: any = null;
     modalAberto: string | null = null;
+    successModal: 'truck' | 'client' | null = null;
     mostrarToastRechamar: boolean = false;
     mostrarToastTimeout: any;
     guicheTransferenciaSelecionado: string | null = null;
     guicheTransferenciaDestino: { guiche: string; nome: string } | null = null;
-    quantidadeGarrafoes = 27;
+    quantidadeGarrafoes = 0;
     tempoAtendimento = '00:00';
     atendimentoIniciadoEm: number | null = null;
     atendimentoTimer: any;
@@ -96,13 +200,6 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         telefone: '',
         email: '',
     };
-    formPagamento = {
-        valor: '',
-        formaPagamento: '',
-        motivo: '',
-        documento: '',
-        observacoes: '',
-    };
 
     guichesLista = [
         { id: "1", nome: "João Santos", guiche: "01", status: "OCUPADO", atendimento: "C039" },
@@ -126,9 +223,32 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.nomeOperador = localStorage.getItem('usuario_nome') || 'Atendente Padrão';
-        
         this.carregarFiliais();
-        
+
+        this.searchSubject.pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            switchMap(termo => {
+                if (!termo || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
+                    return of([]);
+                }
+                const filialId = localStorage.getItem('filialAtual') || '';
+                const query = filialId ? `?filialId=${filialId}&busca=${encodeURIComponent(termo)}` : `?busca=${encodeURIComponent(termo)}`;
+                return this.api.get<any[]>(`/clientes${query}`).pipe(
+                    catchError(() => of([]))
+                );
+            }),
+            takeUntil(this.destroy$)
+        ).subscribe(clientes => {
+            this.clientesFiltrados = clientes.map(c => ({
+                id: c.id,
+                nome: c.nome,
+                documento: c.documento || c.cpf || c.cnpj || 'Sem Documento'
+            }));
+            this.mostrarSugestoesCliente = this.clientesFiltrados.length > 0;
+            this.cdr.markForCheck();
+        });
+
         this.guicheService.getCurrentOperatorGuiche()
             .pipe(
                 finalize(() => {
@@ -143,12 +263,12 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                     }
 
                     localStorage.setItem('guicheAtual', guicheAtual.numero);
-                    
+
                     // Ajusta para mostrar "Guichê 01" via string ou pegar o número sem parse incorreto
-                    this.numeroGuiche = guicheAtual.numero.replace(/\D/g, '') || guicheAtual.numero;
-                    
+                    this.numeroGuiche = guicheAtual.numero;
+
                     this.guicheAtualId = guicheAtual.id;
-                    
+
                     // Inicia cronometro Ocioso (pois começou sem ticket)
                     this.iniciarCronometroOcioso();
                     this.cdr.markForCheck();
@@ -189,7 +309,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     onFilialChange() {
         const id = this.filialSelecionada ? parseInt(this.filialSelecionada, 10) : null;
         this.filialService.setSelectedFilial(id);
-        
+
         // Ao mudar a filial, recarrega a fila e os resumos (agendamentos daquela filial)
         this.carregarFila();
         this.carregarResumos();
@@ -262,16 +382,22 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                     codigo: item.numeroDisplay,
                     tempo: 'AGUARDE',
                     servico: item.servico?.nome || 'Serviço Geral',
-                    posicao: index + 1
+                    posicao: index + 1,
+                    qtdeGarrafoes: item.qtdeGarrafoes || 0
                 }));
                 this.filaAguardando = res.length;
                 this.cdr.markForCheck();
             },
-            error: () => {}
+            error: () => { }
         });
     }
 
     chamarProximo() {
+        if (this.ticketAtual && this.ticketAtual.status !== 'FINALIZADO' && this.ticketAtual.status !== 'CANCELADO') {
+            // Block if already in progress
+            return;
+        }
+
         if (!this.guicheAtualId) {
             this.router.navigate(['/operador/escolha-guiches']);
             return;
@@ -282,20 +408,20 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                 this.ticketAtual = {
                     id: senha.id,
                     senha: senha.numeroDisplay,
-                    cliente: senha.agendamento?.nome || '',
-                    documento: senha.agendamento?.cpf || '',
+                    cliente: senha.agendamento?.nomeCliente || '',
+                    documento: senha.agendamento?.documento || '',
                     servico: senha.servico?.nome || 'Serviço',
                     status: 'CHAMADO',
-                    clienteSelecionado: !!senha.agendamento?.nome
+                    clienteSelecionado: !!senha.agendamento?.nomeCliente
                 };
-                
+
                 this.classificacaoSelecionada = '';
-                this.quantidadeGarrafoes = 27;
+                this.quantidadeGarrafoes = senha.qtdeGarrafoes || 0;
                 this.termoBuscaCliente = '';
                 this.clientesFiltrados = [];
                 this.mostrarSugestoesCliente = false;
                 this.tempoAtendimento = '00:00';
-                
+
                 // Parar ocioso
                 this.pararCronometroOcioso();
                 this.pararCronometroAtendimento();
@@ -331,7 +457,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                     this.tempoAtendimento = '00:00';
                     this.termoBuscaCliente = '';
                     this.mostrarSugestoesCliente = false;
-                    
+
                     // Iniciar Ocioso novamente
                     this.iniciarCronometroOcioso();
                     this.cdr.markForCheck();
@@ -343,6 +469,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
 
 
+    // Removendo declarações duplicadas no escopo superior.
     trocarIdioma(idioma: string) {
         this.idiomaAtivo = idioma;
         console.log('Idioma alterado para:', idioma);
@@ -357,6 +484,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     fecharModal() {
         this.modalAberto = null;
+        this.successModal = null;
     }
 
     confirmarNaoCompareceu() {
@@ -371,7 +499,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                 this.pararCronometroAtendimento();
                 this.tempoAtendimento = '00:00';
                 this.modalAberto = null;
-                
+
                 // Iniciar Ocioso novamente
                 this.iniciarCronometroOcioso();
                 this.cdr.markForCheck();
@@ -389,14 +517,26 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     }
 
     rechamar() {
-        if (!this.ticketAtual) return;
-        console.log("Rechamando senha atual no painel e no áudio...");
-        this.mostrarToastRechamar = true;
-        if (this.mostrarToastTimeout) clearTimeout(this.mostrarToastTimeout);
-        this.mostrarToastTimeout = setTimeout(() => {
-            this.mostrarToastRechamar = false;
-            this.cdr.detectChanges();
-        }, 3000);
+        if (!this.ticketAtual || !this.guicheAtualId) return;
+
+        this.api.post<any>('/fila/chamar_proximo', {
+            guiche: this.guicheAtualId,
+            repetir: true
+        }).subscribe({
+            next: () => {
+                this.mostrarToastRechamar = true;
+                if (this.mostrarToastTimeout) clearTimeout(this.mostrarToastTimeout);
+                this.mostrarToastTimeout = setTimeout(() => {
+                    this.mostrarToastRechamar = false;
+                    this.cdr.detectChanges();
+                }, 3000);
+                this.cdr.markForCheck();
+            },
+            error: (err) => {
+                const isMsg = err?.error?.message;
+                alert(isMsg ? err.error.message : 'Nao foi possivel rechamar a senha neste momento.');
+            }
+        });
     }
 
     selecionarGuicheTransferencia(id: string) {
@@ -419,7 +559,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.guicheTransferenciaSelecionado = null;
         this.guicheTransferenciaDestino = null;
         this.modalAberto = null;
-        
+
         // Iniciar Ocioso novamente
         this.iniciarCronometroOcioso();
     }
@@ -432,18 +572,16 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.quantidadeGarrafoes = Math.max(0, this.quantidadeGarrafoes - 1);
     }
 
+    private searchSubject = new Subject<string>();
+
     atualizarBuscaCliente() {
-        const termo = this.termoBuscaCliente.trim().toLowerCase();
+        const termo = this.termoBuscaCliente.trim();
         if (!termo || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
             this.clientesFiltrados = [];
             this.mostrarSugestoesCliente = false;
             return;
         }
-
-        this.clientesFiltrados = this.clientesBase.filter((cliente) => {
-            return cliente.nome.toLowerCase().includes(termo) || cliente.documento.toLowerCase().includes(termo);
-        });
-        this.mostrarSugestoesCliente = this.clientesFiltrados.length > 0;
+        this.searchSubject.next(termo);
     }
 
     selecionarCliente(cliente: { nome: string; documento: string }) {
@@ -485,7 +623,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         this.tempoAtendimento = `${mm}:${ss}`;
     }
 
-    abrirModalCadastro(tipo: 'caminhao' | 'cliente' | 'pagamento') {
+    abrirModalCadastro(tipo: 'caminhao' | 'cliente') {
         if (tipo === 'caminhao') {
             this.modalAberto = 'cadastro-caminhao';
             return;
@@ -494,34 +632,22 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             this.modalAberto = 'cadastro-cliente';
             return;
         }
-        this.modalAberto = 'cadastro-pagamento';
-    }
-
-    salvarCadastroCaminhao() {
-        this.modalAberto = null;
-    }
-
-    salvarCadastroCliente() {
-        this.modalAberto = null;
-    }
-
-    salvarPagamento() {
-        this.modalAberto = null;
     }
 
     // -- Resumos de Badges (Meus Atendimentos e Agendamentos) --
     private carregarResumos() {
         if (!this.filialSelecionada) return;
-        
+
         const fid = parseInt(this.filialSelecionada, 10);
-        
+
         // Branch specific scheduling
         this.api.get<any[]>('/fila/agendamento', { filialId: fid.toString() }).subscribe({
             next: (list) => {
                 // Filtra agendamentos de HOJE que ainda não foram realizados
                 const hojeStr = new Date().toISOString().split('T')[0];
-                const count = list.filter((a: any) => 
-                    a.dataAgendamento.startsWith(hojeStr) && a.status === 'PENDENTE'
+                const count = list.filter((a: any) =>
+                    a.data?.startsWith(hojeStr) &&
+                    (a.status === 'PENDENTE' || a.status === 'CONFIRMADO')
                 ).length;
                 this.badgeAgendamentosCount = count;
                 this.cdr.markForCheck();
@@ -540,12 +666,12 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     navegarPara(secao: string) {
         if (secao === 'agendamentos') {
-             this.router.navigate(['/admin/agendamentos']);
+            this.router.navigate(['/admin/agendamentos']);
         } else if (secao === 'meus-atendimentos') {
-             this.router.navigate(['/admin/atendimento']); // Placeholder rotas de atendimentos
+            this.router.navigate(['/admin/atendimento']); // Placeholder rotas de atendimentos
         }
     }
-    
+
     // -- Cronômetro Ocioso --
     private iniciarCronometroOcioso() {
         this.pararCronometroOcioso();
@@ -574,10 +700,23 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         const mm = String(Math.floor(segundos / 60)).padStart(2, '0');
         const ss = String(segundos % 60).padStart(2, '0');
         if (Math.floor(segundos / 3600) > 0) {
-           const hh = String(Math.floor(segundos / 3600)).padStart(2, '0');
-           this.tempoOciosoText = `${hh}:${mm}:${ss}`;
+            const hh = String(Math.floor(segundos / 3600)).padStart(2, '0');
+            this.tempoOciosoText = `${hh}:${mm}:${ss}`;
         } else {
-           this.tempoOciosoText = `${mm}:${ss}`;
+            this.tempoOciosoText = `${mm}:${ss}`;
         }
+    }
+
+    formatarTituloGuiche(numero: string | number): string {
+        const limpo = String(numero).trim();
+        if (/^Guich[êe]/i.test(limpo)) {
+            return limpo.toUpperCase();
+        }
+
+        // Se for apenas número, adiciona GUICHÊ, senão mantém o texto como veio
+        if (!isNaN(Number(limpo))) {
+            return `GUICHÊ ${limpo}`;
+        }
+        return limpo.toUpperCase();
     }
 }

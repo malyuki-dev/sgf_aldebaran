@@ -13,7 +13,7 @@ export class ClientService {
   constructor(
     private prisma: PrismaService,
     private notificacaoService: NotificacaoService,
-  ) {}
+  ) { }
 
   // US-0001: Autocadastro Público (Exige Senha)
   async createPublic(data: any) {
@@ -33,7 +33,9 @@ export class ClientService {
       throw new ConflictException('Cliente já existe com este documento.');
 
     const emailExiste = await this.prisma.clientes.findUnique({
-      where: { email: data.email },
+      where: {
+        email: data.email
+      },
     });
     if (emailExiste) throw new ConflictException('E-mail já cadastrado.');
 
@@ -97,7 +99,9 @@ export class ClientService {
     // Check email uniqueness if provided
     if (data.email) {
       const emailExiste = await this.prisma.clientes.findUnique({
-        where: { email: data.email },
+        where: {
+          email: data.email
+        },
       });
       if (emailExiste) throw new ConflictException('E-mail já cadastrado.');
     }
@@ -139,11 +143,20 @@ export class ClientService {
   }
 
   // Listar todos (sem expor senhas)
-  async findAll(filialId?: number) {
+  async findAll(filialId?: number, busca?: string) {
     return await this.prisma.clientes.findMany({
       where: {
+        ...(busca ? { OR: [{ nome: { contains: busca, mode: 'insensitive' as any } }, { cpf: { contains: busca } }, { cnpj: { contains: busca } }, { telefone: { contains: busca } }] } : {}),
         deletedAt: null,
-        filial_id: filialId ? filialId : undefined,
+        ...(filialId
+          ? {
+            AND: [
+              {
+                OR: [{ filial_id: filialId }, { filial_id: null }],
+              },
+            ],
+          }
+          : {}),
       },
       select: {
         id: true,
@@ -162,7 +175,9 @@ export class ClientService {
   // Buscar um (sem expor senha)
   async findOne(id: string) {
     const cliente = await this.prisma.clientes.findUnique({
-      where: { id },
+      where: {
+        id
+      },
       select: {
         id: true,
         nome: true,
@@ -209,7 +224,9 @@ export class ClientService {
     const { senha, ...safeData } = data;
 
     const client = await this.prisma.clientes.update({
-      where: { id },
+      where: {
+        id
+      },
       data: {
         ...safeData,
         filial_id: safeData.filial_id ? +safeData.filial_id : undefined,
@@ -243,7 +260,9 @@ export class ClientService {
     const isDeleted = !!cliente.deletedAt;
 
     return await this.prisma.clientes.update({
-      where: { id },
+      where: {
+        id
+      },
       data: {
         deletedAt: isDeleted ? null : new Date(),
       },
@@ -273,7 +292,9 @@ export class ClientService {
     const senhaHash = await bcrypt.hash(novaSenha, 12);
 
     return await this.prisma.clientes.update({
-      where: { id },
+      where: {
+        id
+      },
       data: { senha: senhaHash, updatedAt: new Date() },
       select: { id: true, nome: true },
     });
