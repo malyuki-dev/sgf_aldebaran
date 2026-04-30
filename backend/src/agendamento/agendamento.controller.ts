@@ -4,6 +4,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   Request,
   UseGuards,
@@ -26,6 +27,22 @@ export class AgendamentoController {
     return this.agendamentoService.listarMeusAgendamentos(
       String(req.user.userId),
       query.status,
+    );
+  }
+
+  @Get('voucher/ativo')
+  buscarVoucherAtivo(@Request() req: AuthenticatedRequest) {
+    return this.agendamentoService.buscarVoucherAtivo(String(req.user.userId));
+  }
+
+  @Post(':id/checkin')
+  realizarCheckin(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.agendamentoService.realizarCheckinCliente(
+      String(req.user.userId),
+      id,
     );
   }
 

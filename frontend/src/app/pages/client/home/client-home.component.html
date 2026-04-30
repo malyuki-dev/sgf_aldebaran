@@ -29,7 +29,7 @@
         </div>
       </div>
 
-      <button class="btn-voucher">
+      <button class="btn-voucher" (click)="abrirVoucher()">
         <lucide-icon [img]="icons.qrcode" size="20"></lucide-icon>
         Abrir Voucher / Check-in
       </button>
@@ -89,6 +89,76 @@
         <button class="btn-confirm-cancel" (click)="confirmarCancelamento()">Sim, cancelar</button>
         <button class="btn-keep" (click)="fecharCancelModal()">Não, manter agendamento</button>
       </div>
+    </div>
+  </div>
+
+  <div class="voucher-modal-overlay" *ngIf="showVoucherModal" (click)="fecharVoucher()">
+    <div class="voucher-modal-card scale-up" (click)="$event.stopPropagation()">
+      <div class="voucher-header">
+        <div class="voucher-icon-wrap">
+          <lucide-icon [img]="icons.qrcode" size="32"></lucide-icon>
+        </div>
+        <div>
+          <h2>Voucher de Check-in</h2>
+          <p>Confira os dados antes de confirmar sua chegada.</p>
+        </div>
+      </div>
+
+      <div class="voucher-loading" *ngIf="voucherLoading">
+        Carregando voucher...
+      </div>
+
+      <div class="voucher-error" *ngIf="voucherError && !voucherLoading">
+        {{ voucherError }}
+      </div>
+
+      <ng-container *ngIf="voucher && !voucherLoading">
+        <div class="voucher-code">
+          <span>Código</span>
+          <strong>{{ voucher.codigo }}</strong>
+        </div>
+
+        <div class="voucher-details">
+          <div>
+            <span>Serviço</span>
+            <strong>{{ voucher.categoriaNome }}</strong>
+          </div>
+          <div>
+            <span>Filial</span>
+            <strong>{{ voucher.filialNome }}</strong>
+          </div>
+          <div>
+            <span>Data</span>
+            <strong>{{ voucher.data }}</strong>
+          </div>
+          <div>
+            <span>Horário</span>
+            <strong>{{ voucher.horaInicio }} - {{ voucher.horaFim }}</strong>
+          </div>
+        </div>
+
+        <div class="checkin-success" *ngIf="checkinSuccess && ticket">
+          <strong>{{ checkinSuccess }}</strong>
+          <span>Sua senha: {{ ticket.numeroDisplay }}</span>
+          <span>Status: {{ ticket.status }} · Posição: {{ ticket.posicao }} · Estimativa: {{ ticket.estimativa }} min</span>
+        </div>
+
+        <button
+          class="btn-checkin"
+          *ngIf="!voucher.checkinRealizado && !ticket"
+          [disabled]="checkinLoading"
+          (click)="confirmarCheckin()">
+          {{ checkinLoading ? 'Confirmando...' : 'Confirmar check-in' }}
+        </button>
+
+        <button class="btn-keep" *ngIf="voucher.checkinRealizado || ticket" (click)="fecharVoucher()">
+          Fechar
+        </button>
+      </ng-container>
+
+      <button class="btn-keep" *ngIf="!voucherLoading && !voucher && voucherError" (click)="fecharVoucher()">
+        Fechar
+      </button>
     </div>
   </div>
 </div>
