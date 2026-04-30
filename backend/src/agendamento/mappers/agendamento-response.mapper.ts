@@ -57,10 +57,13 @@ export function normalizeTime(hora: string): string {
 export function addMinutes(hora: string, minutesToAdd: number): string {
   const [hourRaw, minuteRaw] = normalizeTime(hora).split(':').map(Number);
   const totalMinutes = hourRaw * 60 + minuteRaw + minutesToAdd;
-  const finalHour = Math.floor(totalMinutes / 60)
+  const minutesInDay = 24 * 60;
+  const normalizedMinutes =
+    ((totalMinutes % minutesInDay) + minutesInDay) % minutesInDay;
+  const finalHour = Math.floor(normalizedMinutes / 60)
     .toString()
     .padStart(2, '0');
-  const finalMinute = (totalMinutes % 60).toString().padStart(2, '0');
+  const finalMinute = (normalizedMinutes % 60).toString().padStart(2, '0');
   return `${finalHour}:${finalMinute}`;
 }
 

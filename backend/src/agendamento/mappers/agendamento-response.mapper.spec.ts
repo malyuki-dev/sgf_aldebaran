@@ -33,6 +33,22 @@ describe('addMinutes', () => {
     expect(addMinutes('23:45', 30)).toBe('00:15');
   });
 
+  it('lida com adição maior que 60 minutos cruzando o dia', () => {
+    expect(addMinutes('22:30', 90)).toBe('00:00');
+  });
+
+  it('mantém comportamento normal dentro do mesmo dia', () => {
+    expect(addMinutes('10:15', 30)).toBe('10:45');
+  });
+
+  it('lida com horário inicial em meia-noite', () => {
+    expect(addMinutes('00:00', 15)).toBe('00:15');
+  });
+
+  it('lida com virada de dia no último minuto', () => {
+    expect(addMinutes('23:59', 1)).toBe('00:00');
+  });
+
   it('adiciona 0 minutos e retorna a mesma hora formatada', () => {
     expect(addMinutes('08:05', 0)).toBe('08:05');
   });
