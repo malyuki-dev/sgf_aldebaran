@@ -18,10 +18,10 @@ export class TotemLayoutComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Se o totem não estiver mais com filial válida, redireciona para setup
+    // Se o totem não estiver mais com filial válida, redireciona para a tela de autenticação
     const isValid = await this.configService.validateConfig(this.api);
-    if (!isValid && !this.router.url.includes('/totem/setup')) {
-      this.router.navigate(['/totem/setup']);
+    if (!isValid && !this.router.url.includes('/totem/configtot')) {
+      this.router.navigate(['/totem/configtot']);
     }
   }
-}
+}

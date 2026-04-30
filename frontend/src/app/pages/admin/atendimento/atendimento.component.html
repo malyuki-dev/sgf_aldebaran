@@ -9,7 +9,7 @@
     <div class="guiche-selector">
       <lucide-icon [img]="icons.monitor" size="18"></lucide-icon>
       <select [(ngModel)]="selectedGuicheId" (change)="salvarGuiche()" class="guiche-select">
-        <option *ngFor="let g of guiches" [value]="g.id">Guichê {{ g.numero }} - {{ g.nome || 'Padrão' }}</option>
+        <option *ngFor="let g of guiches" [value]="g.id">{{ formatarTituloGuiche(g.numero) }} - {{ g.nome || 'Padrão' }}</option>
       </select>
     </div>
   </div>

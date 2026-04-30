@@ -1,5 +1,250 @@
-.mobile-container { min-height: 100vh; background: #F4F6F9; display: flex; justify-content: center; padding: 20px; }
-.pass-card { width: 100%; max-width: 400px; text-align: center; padding: 40px 20px; border-top: 6px solid var(--success-color); height: fit-content; animation: slideUp 0.5s; }
-.info-list { margin-top: 30px; text-align: left; display: flex; flex-direction: column; gap: 15px; }
-.item { background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1.1rem; }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.voucher-shell {
+	min-height: 100vh;
+	padding: 18px;
+	background: rgba(15, 23, 42, 0.7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Inter', 'Arimo', sans-serif;
+}
+
+.voucher-modal {
+	width: min(100%, 380px);
+	background: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+	padding: 20px 18px 16px;
+}
+
+.voucher-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+
+	h2 {
+		margin: 0;
+		color: #222222;
+		font-size: 22px;
+		font-weight: 800;
+		line-height: 1.15;
+		letter-spacing: -0.2px;
+	}
+}
+
+.btn-refresh {
+	border: 1px solid #d0d6dc;
+	background: #f8fafc;
+	color: #334155;
+	border-radius: 10px;
+	font-size: 12px;
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 10px;
+	cursor: pointer;
+	margin-left: auto;
+
+	&:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+}
+
+.update-note {
+	margin: 10px 0 14px;
+	color: #64748b;
+	font-size: 11px;
+	font-weight: 500;
+
+	&.syncing {
+		color: #0f766e;
+	}
+}
+
+.state {
+	border-radius: 12px;
+	padding: 16px;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: center;
+
+	&.loading {
+		background: #f1f5f9;
+		color: #334155;
+	}
+
+	&.error {
+		background: #fef2f2;
+		color: #991b1b;
+	}
+}
+
+.voucher-body {
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	padding: 14px;
+	background: #fdfdfd;
+	margin-bottom: 12px;
+}
+
+.voucher-secondary {
+	padding: 0;
+}
+
+.meta-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-bottom: 14px;
+}
+
+.meta-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #1f2937;
+
+	span {
+		display: block;
+		color: #666666;
+		font-size: 11px;
+		line-height: 1.1;
+	}
+
+	strong {
+		display: block;
+		color: #222222;
+		font-size: 14px;
+		line-height: 1.2;
+	}
+}
+
+.status-text {
+	&.status-pending {
+		color: #facc15;
+	}
+
+	&.status-confirm {
+		color: #eab308;
+	}
+
+	&.status-ok {
+		color: #22c55e;
+	}
+
+	&.status-cancel {
+		color: #ef4444;
+	}
+}
+
+.qr-panel {
+	background: #d9f4fb;
+	border-radius: 10px;
+	width: fit-content;
+	margin: 10px auto 12px;
+	padding: 8px;
+
+	img {
+		width: 160px;
+		height: 160px;
+		display: block;
+		border-radius: 4px;
+		background: white;
+	}
+}
+
+.ou-divider {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #9ca3af;
+	font-size: 12px;
+	font-weight: 700;
+	margin: 8px 0;
+
+	&::before,
+	&::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: #d1d5db;
+	}
+}
+
+.codigo-panel {
+	background: #dbe4ec;
+	border: 1px solid #c6d2de;
+	color: #1a3b5c;
+	border-radius: 10px;
+	padding: 12px;
+	text-align: center;
+	font-size: 24px;
+	font-weight: 800;
+	letter-spacing: 0.6px;
+	line-height: 1.2;
+	word-break: break-word;
+	margin-bottom: 12px;
+}
+
+.hint {
+	background: #f3f4f6;
+	color: #555555;
+	border-radius: 8px;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	text-align: center;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.btn-fechar {
+	width: 100%;
+	height: 48px;
+	border: 0;
+	border-radius: 10px;
+	background: #ff3b30;
+	color: #ffffff;
+	font-size: 16px;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+@media (max-width: 480px) {
+	.voucher-shell {
+		padding: 12px;
+	}
+
+	.voucher-modal {
+		width: 100%;
+		padding: 16px 14px 14px;
+	}
+
+	.voucher-header {
+		gap: 8px;
+
+		h2 {
+			font-size: 20px;
+		}
+	}
+
+	.meta-grid {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.qr-panel img {
+		width: 150px;
+		height: 150px;
+	}
+
+	.codigo-panel {
+		font-size: 22px;
+	}
+
+	.btn-fechar {
+		font-size: 16px;
+	}
+}

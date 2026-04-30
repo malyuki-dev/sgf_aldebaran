@@ -43,7 +43,7 @@
       <div class="operator-profile">
         <div class="profile-info">
           <p class="name">{{ nomeOperador }}</p>
-          <p class="guiche">Guichê {{ numeroGuiche }}</p>
+          <p class="guiche">{{ formatarTituloGuiche(numeroGuiche) }}</p>
         </div>
         <div class="avatar">
           <img src="assets/Icon (7).svg" class="icon" alt="" />
@@ -61,7 +61,7 @@
     <div class="left-section">
       <!-- Call Buttons -->
       <div class="call-buttons">
-        <button class="btn-call-primary" (click)="chamarProximo()" [disabled]="!numeroGuiche">
+        <button class="btn-call-primary" (click)="chamarProximo()" [disabled]="!numeroGuiche || (ticketAtual && ticketAtual.status !== 'FINALIZADO' && ticketAtual.status !== 'CANCELADO')" [class.disabled-btn]="ticketAtual && ticketAtual.status !== 'FINALIZADO' && ticketAtual.status !== 'CANCELADO'">
           <div class="btn-call-wrap">
             <img src="assets/Icon (3).svg" class="icon" alt="" />
             <span>Chamar Próximo</span>
@@ -218,17 +218,7 @@
           </div>
           <div class="card-content">
             <h4>Cadastrar Cliente</h4>
-            <p>Individual • Empresa • Caminhoneiro</p>
-          </div>
-        </button>
-
-        <button class="quick-action-card" (click)="abrirModalCadastro('pagamento')">
-          <div class="card-icon pagamento">
-            <img src="assets/Icon (8).svg" class="icon" alt="" />
-          </div>
-          <div class="card-content">
-            <h4>Registrar Pagamento</h4>
-            <p>Manual • Dinheiro • Cartão • PIX</p>
+            <p>Individual • Empresa </p>
           </div>
         </button>
       </div>
@@ -250,9 +240,9 @@
           </div>
           <p class="ticket-service">{{ ticket.servico }}</p>
           <div class="queue-item-footer">
-            <span class="queue-position">
-              <img src="assets/Vector (1).svg" class="icon queue-icon-img" alt="" />
-              {{ ticket.posicao }}
+            <span class="queue-position" *ngIf="ticket.qtdeGarrafoes > 0">
+              <img src="assets/Vector (1).svg" class="icon queue-icon-img" alt="" style="width:12px; margin-right:4px;" />
+              {{ ticket.qtdeGarrafoes }}
             </span>
           </div>
         </div>
@@ -320,7 +310,7 @@
                (click)="g.status !== 'FECHADO' && selecionarGuicheTransferencia(g.id)">
             <ng-container *ngIf="g.status !== 'FECHADO'">
               <div class="guiche-header">
-                <span>Guichê {{ g.guiche }}</span>
+                <span>{{ formatarTituloGuiche(g.guiche) }}</span>
                 <span class="badge-status" [class.disponivel]="g.status === 'DISPONÍVEL'">{{ g.status }}</span>
               </div>
               <div class="guiche-operador">
@@ -334,7 +324,7 @@
               </div>
             </ng-container>
             <ng-container *ngIf="g.status === 'FECHADO'">
-              <div class="guiche-fechado-title">Guichê {{ g.guiche }}</div>
+              <div class="guiche-fechado-title">{{ formatarTituloGuiche(g.guiche) }}</div>
               <div class="guiche-fechado-subtitle">Fechado</div>
             </ng-container>
           </div>
@@ -363,7 +353,7 @@
     <div class="success-flux">
       <span class="senha">{{ ticketAtual?.senha }}</span>
       <span class="seta">⟶</span>
-      <span class="guiche-destino">Guichê {{ guicheTransferenciaDestino?.guiche || '05' }} <span>({{ guicheTransferenciaDestino?.nome || 'Gustavo C.' }})</span></span>
+      <span class="guiche-destino">{{ formatarTituloGuiche(guicheTransferenciaDestino?.guiche || '05') }} <span>({{ guicheTransferenciaDestino?.nome || 'Gustavo C.' }})</span></span>
     </div>
     <button class="btn-voltar-console" (click)="encerrarTransferencia()">
       Voltar ao Console
@@ -375,29 +365,44 @@
 <div *ngIf="modalAberto === 'cadastro-caminhao'" class="modal-overlay">
   <div class="modal-content modal-cadastro">
     <div class="cadastro-header">
-      <h3><img src="assets/Icon (6).svg" alt="" /> Cadastrar Caminhão</h3>
+      <h3><lucide-icon [name]="icons.truck" style="color: white; width: 24px; height: 24px;"></lucide-icon> Cadastrar Caminhão</h3>
       <button class="close-btn" (click)="fecharModal()">✕</button>
     </div>
     <div class="cadastro-body">
       <div class="form-group">
         <label>Placa <span>*</span></label>
-        <input type="text" [(ngModel)]="formCaminhao.placa" placeholder="ABC - 1234" />
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.hash"></lucide-icon>
+          <input type="text" [(ngModel)]="formCaminhao.placa" (input)="formatarPlaca($event)" maxlength="8" style="text-transform: uppercase;" placeholder="ABC-1234" />
+        </div>
       </div>
       <div class="form-group">
         <label>Modelo <span>*</span></label>
-        <input type="text" [(ngModel)]="formCaminhao.modelo" placeholder="Ex: Mercedes-Benz Atego 1719" />
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.truck"></lucide-icon>
+          <input type="text" [(ngModel)]="formCaminhao.modelo" placeholder="Ex: Mercedes-Benz Atego 1719" />
+        </div>
       </div>
       <div class="form-group">
         <label>Transportadora <span>*</span></label>
-        <input type="text" [(ngModel)]="formCaminhao.transportadora" placeholder="Ex: Transportadora ABC Ltda" />
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.building"></lucide-icon>
+          <input type="text" [(ngModel)]="formCaminhao.transportadora" placeholder="Ex: Transportadora ABC Ltda" />
+        </div>
       </div>
       <div class="form-group">
         <label>Capacidade <span>*</span></label>
-        <input type="text" [(ngModel)]="formCaminhao.capacidade" placeholder="Ex: 10 toneladas" />
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.package"></lucide-icon>
+          <input type="text" [(ngModel)]="formCaminhao.capacidade" placeholder="Ex: 10 toneladas" />
+        </div>
       </div>
       <div class="form-group">
         <label>Observações</label>
-        <textarea [(ngModel)]="formCaminhao.observacoes" placeholder="Informações adicionais sobre o veículo..."></textarea>
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.fileText" class="file-icon"></lucide-icon>
+          <textarea [(ngModel)]="formCaminhao.observacoes" placeholder="Informações adicionais sobre o veículo..."></textarea>
+        </div>
       </div>
     </div>
     <div class="cadastro-footer">
@@ -411,7 +416,7 @@
 <div *ngIf="modalAberto === 'cadastro-cliente'" class="modal-overlay">
   <div class="modal-content modal-cadastro">
     <div class="cadastro-header">
-      <h3><img src="assets/Icon (5).svg" alt="" /> Cadastrar Cliente</h3>
+      <h3><lucide-icon [name]="icons.user" style="color: white; width: 24px; height: 24px;"></lucide-icon> Cadastrar Cliente</h3>
       <button class="close-btn" (click)="fecharModal()">✕</button>
     </div>
     <div class="cadastro-body">
@@ -424,88 +429,64 @@
       </div>
 
       <div class="form-group" *ngIf="tipoClienteCadastro === 'PJ'">
-        <label>Nome da Empresa <span>*</span></label>
-        <input type="text" [(ngModel)]="formCliente.nomeEmpresa" placeholder="Ex: Transportadora ABC Ltda" />
+        <label>Razão Social <span>*</span></label>
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.building"></lucide-icon>
+          <input type="text" [(ngModel)]="formCliente.nomeEmpresa" placeholder="Ex: Empresa LTDA" />
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="tipoClienteCadastro === 'PF'">
+        <label>Nome Completo <span>*</span></label>
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.user"></lucide-icon>
+          <input type="text" [(ngModel)]="formCliente.nome" placeholder="Ex: João da Silva" />
+        </div>
       </div>
 
       <div class="form-group">
-        <label>{{ tipoClienteCadastro === 'PJ' ? 'Nome Completo' : 'Nome Completo' }} <span>*</span></label>
-        <input type="text" [(ngModel)]="formCliente.nome" [placeholder]="tipoClienteCadastro === 'PJ' ? 'Ex: João Silva (Responsável)' : 'Ex: Maria Santos'" />
-      </div>
-
-      <div class="form-group">
-        <label>CPF/CNPJ <span>*</span></label>
-        <input type="text" [(ngModel)]="formCliente.documento" [placeholder]="tipoClienteCadastro === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'" />
-      </div>
-
-      <div class="form-group">
-        <label>Telefone <span>*</span></label>
-        <input type="text" [(ngModel)]="formCliente.telefone" placeholder="(11) 98765-4321" />
+        <label>{{ tipoClienteCadastro === 'PJ' ? 'CNPJ' : 'CPF' }} <span>*</span></label>
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.hash"></lucide-icon>
+          <input type="text" [(ngModel)]="formCliente.documento" (input)="formatarDocumento($event)" maxlength="18" [placeholder]="tipoClienteCadastro === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'" />
+        </div>
       </div>
 
       <div class="form-group">
         <label>E-mail</label>
-        <input type="text" [(ngModel)]="formCliente.email" placeholder="exemplo@email.com" />
-      </div>
-    </div>
-    <div class="cadastro-footer">
-      <button class="btn-cancel btn-cadastro-cancel" (click)="fecharModal()">Cancelar</button>
-      <button class="btn-primary btn-cadastro-save" (click)="salvarCadastroCliente()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Registrar Pagamento -->
-<div *ngIf="modalAberto === 'cadastro-pagamento'" class="modal-overlay">
-  <div class="modal-content modal-cadastro modal-pagamento">
-    <div class="cadastro-header">
-      <h3><img src="assets/Icon (8).svg" alt="" /> Registrar Pagamento Manual</h3>
-      <button class="close-btn" (click)="fecharModal()">✕</button>
-    </div>
-
-    <div class="pagamento-cliente-linha">
-      <span>Recebendo de: <strong>{{ ticketAtual?.cliente || 'João Silva' }}</strong></span>
-      <span>Ticket: <strong>{{ ticketAtual?.senha || 'RP042' }}</strong></span>
-    </div>
-
-    <div class="cadastro-body pagamento-body">
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label>Valor (R$) <span>*</span></label>
-          <input type="text" [(ngModel)]="formPagamento.valor" placeholder="Ex: 150,00" />
-        </div>
-        <div class="form-group">
-          <label>Forma de Pagamento <span>*</span></label>
-          <select [(ngModel)]="formPagamento.formaPagamento">
-            <option value="" disabled>Selecione</option>
-            <option>Cartão de Crédito</option>
-            <option>Cartão de Débito</option>
-            <option>PIX</option>
-            <option>Dinheiro</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label>Motivo / Categoria <span>*</span></label>
-          <input type="text" [(ngModel)]="formPagamento.motivo" placeholder="Venda de Produtos" />
-        </div>
-        <div class="form-group">
-          <label>Nº Pedido / NF / Doc <span>*</span></label>
-          <input type="text" [(ngModel)]="formPagamento.documento" placeholder="NF-e 12345" />
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.mail"></lucide-icon>
+          <input type="text" [(ngModel)]="formCliente.email" placeholder="seu@email.com" />
         </div>
       </div>
 
       <div class="form-group">
-        <label>Observações</label>
-        <textarea [(ngModel)]="formPagamento.observacoes" placeholder="Pagamento referente ao transporte de Mercadorias"></textarea>
+        <label>Telefone / Celular <span style="color: #94a3b8; font-weight: normal;">(opcional)</span></label>
+        <div class="input-with-icon">
+          <lucide-icon [name]="icons.phone"></lucide-icon>
+          <input type="text" [(ngModel)]="formCliente.telefone" (input)="formatarTelefone($event)" maxlength="15" placeholder="(00) 00000-0000" />
+        </div>
       </div>
     </div>
-
     <div class="cadastro-footer">
       <button class="btn-cancel btn-cadastro-cancel" (click)="fecharModal()">Cancelar</button>
-      <button class="btn-primary btn-cadastro-save" (click)="salvarPagamento()">Confirmar Pagamento</button>
+      <button class="btn-primary btn-cadastro-save" (click)="salvarCadastroCliente()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sucesso -->
+<div class="modal-overlay" *ngIf="successModal" (click)="fecharModal()">
+  <div class="modal-content" style="max-width: 380px; padding: 2rem; border-radius: 20px;" (click)="$event.stopPropagation()">
+    <div class="success-view">
+      <div class="icon-halo">
+        <div class="icon-circle">
+          <lucide-icon [img]="icons.check" size="40" strokeWidth="3"></lucide-icon>
+        </div>
+      </div>
+      <h2>Sucesso!</h2>
+      <p>{{ successModal === 'truck' ? 'Caminhão cadastrado corretamente.' : 'Cliente cadastrado corretamente.' }}</p>
+      <button class="btn-success-ok" (click)="fecharModal()">OK, Entendi</button>
     </div>
   </div>
 </div>

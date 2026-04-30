@@ -21,8 +21,7 @@ export interface TicketCallPayload {
   },
 })
 export class NotificacaoGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -64,21 +63,42 @@ export class NotificacaoGateway
    * Dispara apenas para os painéis interessados na categoria.
    */
   public broadcastTicket(payload: TicketCallPayload) {
-    const isHeavyLoad = ['CAMINHAO', 'RETIRADA_PESADA'].includes(
-      payload.category,
-    );
+    const normalizedCategory = (payload.category || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .toUpperCase();
+
+    const isHeavyLoad =
+      normalizedCategory.includes('CAMINHA') ||
+      normalizedCategory.includes('RETIRADA') ||
+      normalizedCategory.includes('CARGA') ||
+      normalizedCategory.includes('DOCA') ||
+      normalizedCategory.includes('BAIA');
 
     // Roteamento condicional
     const targetRoom = isHeavyLoad ? 'room_docas' : 'room_saguao';
 
     if (this.server) {
       this.server.to(targetRoom).emit('ticket_called', payload);
+      this.server.to('room_general').emit('ticket_called', payload);
     }
   }
 
   enviarParaTodos(evento: string, data: any) {
     if (this.server) {
       this.server.emit(evento, data);
+    }
+  }
+
+  /**
+   * Força os terminais a apenas recarregarem a lista sem disparar alarmes.
+   */
+  public broadcastRefresh() {
+    if (this.server) {
+      this.server.to('room_general').emit('ticket_called', null);
+      this.server.to('room_docas').emit('ticket_called', null);
+      this.server.to('room_saguao').emit('ticket_called', null);
     }
   }
 

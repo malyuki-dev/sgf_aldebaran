@@ -28,6 +28,7 @@
           <lucide-icon [img]="icons.filter" size="16"></lucide-icon>
           <select [(ngModel)]="filtroStatus" (change)="aplicarFiltros()">
             <option value="TODOS">Todos os Status</option>
+            <option value="PENDENTE">Pendentes</option>
             <option value="CONFIRMADO">Confirmados</option>
             <option value="REALIZADO">Realizados</option>
             <option value="CANCELADO">Cancelados</option>
@@ -86,7 +87,7 @@
             </td>
             <td>
               <div class="action-btns">
-                <button class="btn-cancel" *ngIf="ag.status === 'CONFIRMADO'" (click)="cancelar(ag.id)" title="Cancelar Agendamento">
+                <button class="btn-cancel" *ngIf="ag.status === 'PENDENTE' || ag.status === 'CONFIRMADO'" (click)="cancelar(ag.id)" title="Cancelar Agendamento">
                   <lucide-icon [img]="icons.trash" size="14"></lucide-icon>
                 </button>
                 <button class="btn-view" title="Ver Detalhes">

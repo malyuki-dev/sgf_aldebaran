@@ -63,6 +63,7 @@ model senha {
   tipo          String?       @db.VarChar // Preferencial / Convencional
   tipoOrigem    String?       @db.VarChar(20) // TOTEM, AGENDAMENTO
   prioridade    Int           @default(0)
+  qtdeGarrafoes Int?          @default(0)
   atendimento   atendimento[]
   servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
 
