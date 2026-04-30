@@ -23,8 +23,36 @@ interface NextAppointmentView {
   filialNome: string;
   data: string;
   horaInicio: string;
+  horaFim?: string;
   status: string;
   podeCancelar: boolean;
+}
+
+interface ClientVoucherView {
+  id: number;
+  codigo: string;
+  categoriaNome: string;
+  filialNome: string;
+  data: string;
+  horaInicio: string;
+  horaFim: string;
+  status: string;
+  checkinRealizado: boolean;
+}
+
+interface CheckinTicketView {
+  id: number;
+  numeroDisplay: string;
+  status: string;
+  dataCriacao: string;
+  posicao: number;
+  estimativa: number;
+}
+
+interface CheckinResponseView {
+  message: string;
+  agendamento: ClientVoucherView;
+  ticket: CheckinTicketView;
 }
 
 @Component({
@@ -38,6 +66,13 @@ export class ClientHomeComponent implements OnInit {
   usuario = { nome: 'Cliente' };
   hoje = Date.now();
   showCancelModal = false;
+  showVoucherModal = false;
+  voucherLoading = false;
+  checkinLoading = false;
+  voucherError: string | null = null;
+  checkinSuccess: string | null = null;
+  voucher: ClientVoucherView | null = null;
+  ticket: CheckinTicketView | null = null;
 
   proximoAgendamento: {
     titulo: string;
@@ -47,6 +82,7 @@ export class ClientHomeComponent implements OnInit {
     local: string;
     id: number;
     podeCancelar: boolean;
+    status: string;
   } | null = null;
 
   private readonly mesesAbrev = [
@@ -89,6 +125,63 @@ export class ClientHomeComponent implements OnInit {
 
   fecharCancelModal() {
     this.showCancelModal = false;
+  }
+
+  abrirVoucher() {
+    this.showVoucherModal = true;
+    this.voucherLoading = true;
+    this.voucherError = null;
+    this.checkinSuccess = null;
+    this.voucher = null;
+    this.ticket = null;
+
+    this.apiService.get<ClientVoucherView>('/agendamentos/voucher/ativo').subscribe({
+      next: (voucher) => {
+        this.voucher = voucher;
+        this.voucherLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.voucherError =
+          err.error?.message || 'Não foi possível carregar o voucher deste agendamento.';
+        this.voucherLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  fecharVoucher() {
+    this.showVoucherModal = false;
+    this.voucherError = null;
+    this.checkinSuccess = null;
+    this.voucher = null;
+    this.ticket = null;
+  }
+
+  confirmarCheckin() {
+    if (!this.voucher || this.voucher.checkinRealizado) return;
+
+    this.checkinLoading = true;
+    this.voucherError = null;
+
+    this.apiService
+      .post<CheckinResponseView>(`/agendamentos/${this.voucher.id}/checkin`, {})
+      .subscribe({
+        next: (response) => {
+          this.voucher = response.agendamento;
+          this.ticket = response.ticket;
+          this.checkinSuccess = response.message || 'Check-in realizado com sucesso.';
+          this.checkinLoading = false;
+          this.carregarDados();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.voucherError =
+            err.error?.message || 'Não foi possível realizar o check-in.';
+          this.checkinLoading = false;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   confirmarCancelamento() {
@@ -147,6 +240,7 @@ export class ClientHomeComponent implements OnInit {
             local: proximo.filialNome || 'Filial não informada',
             id: proximo.id,
             podeCancelar: proximo.podeCancelar,
+            status: proximo.status,
           };
 
           this.cdr.detectChanges();
