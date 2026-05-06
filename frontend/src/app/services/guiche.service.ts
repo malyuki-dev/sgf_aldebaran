@@ -100,6 +100,72 @@ export class GuicheService {
 
   guiches$ = this.guichesSubject.asObservable();
   private lastFilialId?: number;
+  private mapGuicheData(g: any, correntes: any[]) {
+    const displayLabel = g.nome || g.numero || String(g.id);
+    const temOperador = Boolean(g.operadorAtualId);
+
+    const atendimentos = Array.isArray(g.atendimentos) ? g.atendimentos : [];
+    const atendimentoAtivo = atendimentos.length > 0 ? atendimentos[0] : null;
+    const temAtendimentoAtivo = Boolean(atendimentoAtivo);
+
+    const statusDb = (g.status || '').toLowerCase();
+    const statusCorreto = temOperador
+      ? (temAtendimentoAtivo ? 'ocupado' : 'disponivel')
+      : 'vazio';
+    const statusLabelCorreto = temOperador
+      ? (temAtendimentoAtivo ? 'Ocupado' : 'Disponível')
+      : 'Vazio';
+
+    const m = correntes.find((c: any) => c.id === g.id);
+
+    let tempoOcupado = 0;
+    let tempoOcupadoFormatado = '00:00';
+    let tempoOcupadoSegundos = 0;
+    let progresso = 0;
+    let atrasado = false;
+    let startTime = null;
+    let idleStartTime = null;
+
+    if (temAtendimentoAtivo && atendimentoAtivo.inicioAtendimento) {
+      startTime = new Date(atendimentoAtivo.inicioAtendimento).getTime();
+      if (m && m.status === 'ocupado') {
+        tempoOcupado = m.tempoOcupado;
+        tempoOcupadoFormatado = m.tempoOcupadoFormatado;
+        tempoOcupadoSegundos = m.tempoOcupadoSegundos;
+        progresso = m.progresso;
+        atrasado = m.atrasado;
+      }
+    } else if (statusCorreto === 'disponivel') {
+      if (m && m.status === 'disponivel' && m.idleStartTime) {
+        idleStartTime = m.idleStartTime;
+        tempoOcupadoFormatado = m.tempoOcupadoFormatado || '00:00';
+      } else {
+        idleStartTime = Date.now();
+      }
+    }
+
+    return {
+      id: g.id,
+      displayLabel,
+      numero: g.numero,
+      nome: g.nome,
+      operadorAtualId: g.operadorAtualId ?? null,
+      status: statusCorreto,
+      statusLabel: statusLabelCorreto,
+      operador: g.operadorAtual?.nome || null,
+      ticket: atendimentoAtivo ? atendimentoAtivo.senha?.numeroDisplay : null,
+      senhaId: atendimentoAtivo ? atendimentoAtivo.senha_id : null,
+      placa: null,
+      tempoOcupado,
+      tempoOcupadoFormatado,
+      tempoOcupadoSegundos,
+      progresso,
+      atrasado,
+      startTime,
+      idleStartTime
+    };
+  }
+
   carregarGuichesDaApi(filialId?: number) {
     this.lastFilialId = filialId;
     const params = filialId ? `?filialId=${filialId}` : '';
@@ -108,33 +174,14 @@ export class GuicheService {
         const ativos = guichesDb.filter(g => g.ativo);
         const correntes = this.guichesSubject.value;
 
-        const mapped = ativos.map(g => {
-          const m = correntes.find(c => c.numero == (g.numero || g.nome) || c.id === g.id);
-          if (m) {
-            return { ...m, numero: g.numero || g.nome, nome: g.nome, id: g.id };
-          }
-          return {
-            id: g.id,
-            numero: g.numero || g.nome,
-            nome: g.nome,
-            status: 'vazio',
-            statusLabel: 'Vazio',
-            operador: null,
-            ticket: null,
-            placa: null,
-            progresso: 0,
-            tempoOcupado: 0,
-            tempoOcupadoFormatado: '00:00',
-            tempoOcupadoSegundos: 0,
-            atrasado: false,
-            startTime: null
-          };
-        });
+        const mapped = ativos.map(g => this.mapGuicheData(g, correntes));
 
         mapped.sort((a, b) => {
-          const numA = (typeof a.numero === 'number' ? a.numero : parseInt(a.numero, 10)) || 0;
-          const numB = (typeof b.numero === 'number' ? b.numero : parseInt(b.numero, 10)) || 0;
-          return numA - numB;
+          // Ordenar pelo nome configurado, mas tentar numericalmente primeiro
+          const numA = parseInt(a.nome || a.numero, 10);
+          const numB = parseInt(b.nome || b.numero, 10);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return (a.displayLabel || '').localeCompare(b.displayLabel || '');
         });
 
         this.guichesSubject.next(mapped);
@@ -152,15 +199,17 @@ export class GuicheService {
     const params = filialId ? `?filialId=${filialId}` : '';
     this.http.get<any[]>(`${this.apiUrl}${params}`, { headers: this.authHeaders() }).subscribe({
       next: (data) => {
-        const mapped = data.map(g => ({
-          id: g.id,
-          numero: parseInt(g.numero, 10) || g.id,
-          status: (g.status.toLowerCase() === 'online' || g.status.toLowerCase() === 'ativo' || g.status.toLowerCase() === 'offline') ? 'disponivel' : (g.status.toLowerCase() === 'ocupado' ? 'ocupado' : 'vazio'),
-          statusLabel: g.status,
-          operador: g.operadorAtual?.nome || null,
-          ticket: g.atendimentoAtualCodigo || null,
-          startTime: g.loginOperadorEm ? new Date(g.loginOperadorEm).getTime() : null
-        }));
+        const ativos = data.filter(g => g.ativo);
+        const correntes = this.guichesSubject.value;
+        const mapped = ativos.map(g => this.mapGuicheData(g, correntes));
+
+        mapped.sort((a, b) => {
+          const numA = parseInt(a.nome || a.numero, 10);
+          const numB = parseInt(b.nome || b.numero, 10);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return (a.displayLabel || '').localeCompare(b.displayLabel || '');
+        });
+
         this.guichesSubject.next(mapped);
       },
       error: (err) => console.error('Erro ao buscar guichês:', err)
@@ -209,6 +258,21 @@ export class GuicheService {
             progresso,
             atrasado
           };
+        } else if (g.status === 'disponivel' && g.idleStartTime) {
+          const now = new Date().getTime();
+          const tempoOciosoSegundos = Math.floor((now - g.idleStartTime) / 1000);
+          
+          const minutos = Math.floor(tempoOciosoSegundos / 60);
+          const segundos = tempoOciosoSegundos % 60;
+          const tempoOciosoFormatado = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+          
+          if (g.tempoOcupadoFormatado !== tempoOciosoFormatado) {
+            needsUpdate = true;
+          }
+          return {
+            ...g,
+            tempoOcupadoFormatado: tempoOciosoFormatado
+          };
         }
         return g;
       });
@@ -231,61 +295,36 @@ export class GuicheService {
     }
   }
 
-  atribuirOperador(numeroGuiche: number, operador: string) {
-    this.atualizarGuiche(numeroGuiche, {
-      status: 'disponivel',
-      statusLabel: 'Disponível',
-      operador: operador
-    });
+  atribuirOperador(guicheId: number, operadorId: number) {
+    return this.http.patch(
+      `${this.apiUrl}/${guicheId}`,
+      {
+        operadorAtualId: operadorId,
+        status: 'Online',
+        loginOperadorEm: new Date()
+      },
+      { headers: this.authHeaders() }
+    );
   }
 
-  chamarProximo(numeroGuiche: number) {
-    const guiche = this.getGuiches().find(g => g.numero === numeroGuiche);
-    if (guiche && guiche.status === 'disponivel') {
-      this.atualizarGuiche(numeroGuiche, {
-        status: 'ocupado',
-        statusLabel: 'Ocupado',
-        ticket: 'RP' + Math.floor(Math.random() * 1000),
-        placa: 'ABC-' + Math.floor(Math.random() * 9999),
-        progresso: 0,
-        tempoOcupado: 0,
-        tempoOcupadoFormatado: '00:00',
-        tempoOcupadoSegundos: 0,
-        atrasado: false,
-        startTime: new Date().getTime()
-      });
-    }
+  chamarProximo(guicheId: number) {
+    return this.http.post(`${environment.apiUrl}/fila/chamar_proximo`, { guiche: guicheId }, { headers: this.authHeaders() });
   }
 
-  encerrarAtendimento(numeroGuiche: number) {
-    const guiche = this.getGuiches().find(g => g.numero === numeroGuiche);
-    if (guiche && guiche.status === 'ocupado') {
-      if (guiche.tempoOcupadoSegundos) {
-        this.historicoTemposSegundos.push(guiche.tempoOcupadoSegundos);
-      }
-      this.atualizarGuiche(numeroGuiche, {
-        status: 'disponivel',
-        statusLabel: 'Disponível',
-        ticket: null,
-        placa: null,
-        progresso: 0,
-        tempoOcupado: 0,
-        tempoOcupadoFormatado: null,
-        tempoOcupadoSegundos: 0,
-        atrasado: false,
-        startTime: null
-      });
-    }
+  encerrarAtendimento(senhaId: number) {
+    return this.http.post(`${environment.apiUrl}/fila/finalizar_atendimento`, { senhaId: senhaId }, { headers: this.authHeaders() });
   }
 
-  liberarGuiche(numeroGuiche: number) {
-    this.atualizarGuiche(numeroGuiche, {
-      status: 'vazio',
-      statusLabel: 'Vazio',
-      operador: null,
-      ticket: null,
-      placa: null
-    });
+  liberarGuiche(guicheId: number) {
+    return this.http.patch(
+      `${this.apiUrl}/${guicheId}`,
+      {
+        operadorAtualId: null,
+        status: 'Offline',
+        loginOperadorEm: null
+      },
+      { headers: this.authHeaders() }
+    );
   }
 
   getGuichesAtivos(): number {

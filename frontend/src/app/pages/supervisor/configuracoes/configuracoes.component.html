@@ -1,5 +1,5 @@
 <div class="config-page">
-  
+
   <div class="top-nav">
     <div class="logo-space">
       <!-- The main layout probably has the logo, so we leave it empty or add the text if the layout doesn't cover this -->
@@ -8,16 +8,13 @@
   </div>
 
   <div class="config-container">
-    
+
     <!-- MENU LATERAL -->
     <aside class="config-sidebar">
       <div class="sidebar-group">
         <h4 class="group-title">SISTEMA</h4>
         <nav class="sidebar-nav">
-          <button 
-            *ngFor="let tab of tabs" 
-            class="nav-item" 
-            [class.active]="currentTab === tab.id"
+          <button *ngFor="let tab of tabs" class="nav-item" [class.active]="currentTab === tab.id"
             (click)="setTab(tab.id)">
             {{ tab.label }}
           </button>
@@ -27,9 +24,9 @@
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="config-main">
-      
+
       <form [formGroup]="configForm" *ngIf="currentTab === 'geral'" class="tab-content">
-        
+
         <div class="header-section">
           <h2>Configurações Gerais</h2>
           <p>Gerencie as informações básicas da filial e aparência do sistema.</p>
@@ -42,7 +39,7 @@
           <div class="form-row">
             <div class="form-field mix-width">
               <label>Nome da Filial</label>
-              <input type="text" formControlName="nomeFilial">
+              <input type="text" formControlName="nomeFilial" [placeholder]="selectedFilialId ? 'Digite o novo nome' : 'Selecione uma filial específica para editar'">
             </div>
             <div class="form-field mix-width">
               <label>Fuso Horário</label>
@@ -77,12 +74,25 @@
           <div class="setting-row">
             <div class="setting-info">
               <h4>Sons de Alerta</h4>
-              <p>Reproduzir som quando um novo caminhão entrar na fila.</p>
+              <p>Reproduzir som quando um novo usuário/cliente entrar na fila.</p>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" formControlName="sonsAlerta">
               <span class="slider"></span>
             </label>
+          </div>
+
+          <div *ngIf="configForm.get('sonsAlerta')?.value" class="expandable-section" style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-top: 16px;">
+            <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: #334155;">Emitir som para as categorias:</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <label *ngFor="let servico of servicosDisponiveis" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #475569; cursor: pointer;">
+                <input type="checkbox" 
+                       [checked]="categoriasSom.includes(servico.id)"
+                       (change)="toggleCategoriaSom(servico.id, $event)"
+                       style="accent-color: #2563eb; width: 16px; height: 16px;">
+                {{ servico.nome }}
+              </label>
+            </div>
           </div>
 
           <hr class="light-divider">
@@ -120,15 +130,15 @@
           <p>Defina limites de tempo e prioridades de atendimento.</p>
         </div>
         <hr class="divider">
-        
+
         <div class="settings-group">
           <h3>Tempos e Limites</h3>
           <div class="form-row">
             <div class="form-field mix-width">
               <label>Tempo de Tolerância (Atrasos)</label>
               <div class="input-with-suffix">
-                 <input type="number" formControlName="tempoTolerancia">
-                 <span class="suffix">minutos</span>
+                <input type="number" formControlName="tempoTolerancia">
+                <span class="suffix">minutos</span>
               </div>
             </div>
             <div class="form-field mix-width">
@@ -162,9 +172,9 @@
             </label>
           </div>
         </div>
-        
+
         <div class="form-actions mt-32">
-           <button type="button" class="btn-solid-blue" (click)="salvarRegras()">Salvar Regras</button>
+          <button type="button" class="btn-solid-blue" (click)="salvarRegras()">Salvar Regras</button>
         </div>
       </form>
 
@@ -208,72 +218,75 @@
       <!-- GESTÃO DE USUÁRIOS -->
       <div *ngIf="currentTab === 'usuarios'" class="tab-content">
         <div class="users-header">
-           <div class="header-section">
-             <h2>Gestão de Usuários</h2>
-             <p>Gerencie quem tem acesso ao sistema da filial.</p>
-           </div>
-           <button class="btn-solid-blue btn-add-user" (click)="abrirModalUsuario()">
-              <lucide-icon [img]="icons.plus" size="18"></lucide-icon> Novo Usuário
-           </button>
+          <div class="header-section">
+            <h2>Gestão de Usuários</h2>
+            <p>Gerencie quem tem acesso ao sistema da filial.</p>
+          </div>
+          <button class="btn-solid-blue btn-add-user" (click)="abrirModalUsuario()">
+            <lucide-icon [img]="icons.plus" size="18"></lucide-icon> Novo Usuário
+          </button>
         </div>
 
         <div class="users-controls">
-           <div class="search-box">
-             <lucide-icon [img]="icons.search" size="18" class="text-sec"></lucide-icon>
-             <input type="text" placeholder="Buscar por nome ou e-mail...">
-           </div>
-           
-           <div class="filter-box custom-select">
-              <select>
-                 <option>Todos os Perfis</option>
-                 <option>Admin</option>
-                 <option>Supervisor</option>
-                 <option>Operador</option>
-              </select>
-           </div>
+          <div class="search-box">
+            <lucide-icon [img]="icons.search" size="18" class="text-sec"></lucide-icon>
+            <input type="text" placeholder="Buscar por nome ou e-mail...">
+          </div>
+
+          <div class="filter-box custom-select">
+            <select>
+              <option>Todos os Perfis</option>
+              <option>Admin</option>
+              <option>Supervisor</option>
+              <option>Operador</option>
+            </select>
+          </div>
         </div>
 
         <div class="users-table-container mt-16">
-           <table class="users-table">
-              <thead>
-                 <tr>
-                    <th>NOME / E-MAIL</th>
-                    <th>PERFIL</th>
-                    <th>STATUS</th>
-                    <th class="text-right">AÇÕES</th>
-                 </tr>
-              </thead>
-              <tbody>
-                 <tr *ngFor="let u of usuariosMock">
-                    <td>
-                       <div class="user-cell">
-                          <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
-                          <div class="user-info">
-                             <span class="user-name">{{ u.nome }}</span>
-                             <span class="user-email">{{ u.email }}</span>
-                          </div>
-                       </div>
-                    </td>
-                    <td><span class="badge badge-role">{{ u.perfil }}</span></td>
-                    <td>
-                       <span class="badge" [ngClass]="u.status === 'Ativo' ? 'badge-green' : 'badge-gray'">{{ u.status }}</span>
-                    </td>
-                    <td class="text-right">
-                       <button class="action-btn text-blue" title="Editar"><lucide-icon [img]="icons.edit" size="16"></lucide-icon></button>
-                       <button class="action-btn text-red" title="Excluir"><lucide-icon [img]="icons.trash" size="16"></lucide-icon></button>
-                    </td>
-                 </tr>
-              </tbody>
-           </table>
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>NOME / E-MAIL</th>
+                <th>PERFIL</th>
+                <th>STATUS</th>
+                <th class="text-right">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of usuariosMock">
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
+                    <div class="user-info">
+                      <span class="user-name">{{ u.nome }}</span>
+                      <span class="user-email">{{ u.email }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-role">{{ u.perfil }}</span></td>
+                <td>
+                  <span class="badge" [ngClass]="u.status === 'Ativo' ? 'badge-green' : 'badge-gray'">{{ u.status
+                    }}</span>
+                </td>
+                <td class="text-right">
+                  <button class="action-btn text-blue" title="Editar"><lucide-icon [img]="icons.edit"
+                      size="16"></lucide-icon></button>
+                  <button class="action-btn text-red" title="Excluir"><lucide-icon [img]="icons.trash"
+                      size="16"></lucide-icon></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        
+
         <div class="pagination">
-           <span class="page-info">Mostrando 1 a 3 de 3 registros</span>
-           <div class="page-controls">
-              <button class="btn-page" disabled>Anterior</button>
-              <button class="btn-page active">1</button>
-              <button class="btn-page" disabled>Próxima</button>
-           </div>
+          <span class="page-info">Mostrando 1 a 3 de 3 registros</span>
+          <div class="page-controls">
+            <button class="btn-page" disabled>Anterior</button>
+            <button class="btn-page active">1</button>
+            <button class="btn-page" disabled>Próxima</button>
+          </div>
         </div>
       </div>
 
@@ -283,7 +296,7 @@
           <div class="modal-header-gradient">
             <div class="modal-title-area">
               <div class="modal-icon-container">
-                 <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
+                <lucide-icon [img]="icons.plus" size="24"></lucide-icon>
               </div>
               <h2>Novo Usuário</h2>
             </div>
@@ -291,7 +304,7 @@
               <lucide-icon [img]="icons.x" size="20"></lucide-icon> <!-- make sure x is imported in TS -->
             </button>
           </div>
-          
+
           <div class="modal-body">
             <form [formGroup]="novoUsuarioForm">
               <div class="settings-group">
@@ -299,7 +312,7 @@
                   <label>Nome Completo</label>
                   <input type="text" formControlName="nome" placeholder="Digite o nome completo">
                 </div>
-                
+
                 <div class="form-field mb-16">
                   <label>E-mail</label>
                   <input type="email" formControlName="email" placeholder="email@empresa.com">
@@ -342,20 +355,22 @@
     <div class="modal-c redesign-modal">
       <div class="modal-header-gradient">
         <div class="modal-title-area">
-          <h2 style="color: #e11d48;">Atenção!</h2>
+          <h2 style="color: #e11d48;">Deseja zerar a fila?</h2>
         </div>
         <button class="close-btn-ghost" (click)="cancelarZerar()">
           <lucide-icon [img]="icons.x" size="20"></lucide-icon>
         </button>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom:1rem;">Esta ação irá <strong>zerar a numeração</strong> de todas as senhas do dia. Não pode ser desfeita.</p>
+        <p style="margin-bottom:1rem;">Esta ação removerá todas as senhas aguardando sem agendamento e reiniciará a numeração do dia. Não pode ser desfeito.</p>
         <p style="margin-bottom:0.5rem;">Para confirmar, digite <strong>ZERAR</strong> abaixo:</p>
-        <input type="text" [(ngModel)]="zerarInput" placeholder="Digite ZERAR para confirmar" style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+        <input type="text" [(ngModel)]="zerarInput" placeholder="Digite ZERAR para confirmar"
+          style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
       </div>
       <div class="modal-footer-gradient">
         <button class="btn-ghost" (click)="cancelarZerar()">Cancelar</button>
-        <button class="btn-danger" (click)="confirmarZerar()" [disabled]="zerarInput.trim().toUpperCase() !== 'ZERAR'">Sim, Zerar</button>
+        <button class="btn-danger" (click)="confirmarZerar()"
+          [disabled]="zerarInput.trim().toUpperCase() !== 'ZERAR'">Confirmar</button>
       </div>
     </div>
   </div>

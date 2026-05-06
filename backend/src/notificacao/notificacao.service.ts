@@ -16,6 +16,7 @@ export class NotificacaoService {
     icon?: string;
     iconClass?: string;
     usuario_id?: number;
+    servico_id?: number;
   }) {
     const notificacao = await this.prisma.notificacao.create({
       data: {
@@ -28,8 +29,8 @@ export class NotificacaoService {
       },
     });
 
-    // Emitir via WebSocket para tempo real
-    this.gateway.enviarParaTodos('nova_notificacao', notificacao);
+    // Emitir via WebSocket para tempo real com servico_id anexado
+    this.gateway.enviarParaTodos('nova_notificacao', { ...notificacao, servico_id: dados.servico_id });
 
     return notificacao;
   }

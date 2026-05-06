@@ -98,6 +98,21 @@ export class FilaController {
     return this.filaService.chamarProximo(body.guiche);
   }
 
+  @Post('zerar')
+  zerarFila(@Body() body: { filialId?: number }) {
+    return this.filaService.zerarFila(body.filialId);
+  }
+
+  @Post('chamar_especifico')
+  chamarEspecifico(@Body() body: { guiche: number; senhaId: number }) {
+    return this.filaService.chamarEspecifico(body.guiche, body.senhaId);
+  }
+
+  @Patch('senha/:id/cancelar')
+  cancelarSenha(@Param('id') id: string) {
+    return this.filaService.cancelarSenha(+id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('operador/proximas')
   async listarProximas(@Request() req: any) {
