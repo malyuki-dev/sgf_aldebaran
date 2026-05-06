@@ -4,6 +4,8 @@ import { ApiService } from '../../services/api.service';
 import { Subscription, interval } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../../environments/environment';
+import { ActivatedRoute, Router } from '@angular/router';
+import { PainelConfigService } from '../../services/painel-config.service';
 
 @Component({
   selector: 'app-painel-tv',
@@ -19,6 +21,8 @@ export class PainelTvComponent implements OnInit, OnDestroy {
   ultimasChamadas: any[] = [];
   readonly idiomas = ['PT', 'EN'];
   categoriasServico: any[] = [];
+  filialId: number | null = null;
+  configurado = false;
 
   private subs: Subscription[] = [];
   private socket: Socket | null = null;
@@ -29,7 +33,13 @@ export class PainelTvComponent implements OnInit, OnDestroy {
   exibirAlerta = false;
   iniciado = false; // Add variable to track if user started the panel
 
-  constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) { }
+  constructor(
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
+    private configService: PainelConfigService,
+  ) { }
 
   ngOnInit() {
     this.atualizarDataHora();
@@ -40,17 +50,35 @@ export class PainelTvComponent implements OnInit, OnDestroy {
       }),
       // Fallback de resiliencia: evita painel congelado se o WS cair.
       interval(3000).subscribe(() => {
-        if (this.iniciado) {
+        if (this.iniciado && this.configurado) {
           this.atualizar();
         }
       })
     );
-    this.carregarCategorias();
+    this.route.queryParamMap.subscribe(params => {
+      const fidParam = params.get('filialId');
+      const fidConfig = this.configService.getFilialId();
+      this.filialId = fidParam ? Number(fidParam) : fidConfig;
+      this.configurado = !!this.filialId;
+
+      if (!this.configurado) {
+        this.router.navigate(['/painel/setup']);
+        return;
+      }
+
+      if (this.configurado) {
+        this.carregarCategorias();
+        if (this.iniciado) {
+          this.atualizar();
+        }
+      }
+    });
     this.conectarWebSocket();
     // Do not fetch initial data until user clicks start
   }
 
   iniciarPainel() {
+    if (!this.configurado) return;
     this.iniciado = true;
 
     // Play a silent sound to unlock audio context in the browser
@@ -83,7 +111,7 @@ export class PainelTvComponent implements OnInit, OnDestroy {
 
     this.socket.on('connect', () => {
       console.log('[Painel-TV] WebSocket conectado!');
-      if (this.iniciado) {
+      if (this.iniciado && this.configurado) {
         this.atualizar();
       }
     });
@@ -97,7 +125,7 @@ export class PainelTvComponent implements OnInit, OnDestroy {
     });
 
     this.socket.on('ticket_called', (payload: any) => {
-      if (this.iniciado) {
+      if (this.iniciado && this.configurado) {
         // Se houver um payload válido significa que alguém clicou em Chamar ou Rechamar.
         // Se o payload for null/undefined foi apenas uma atualização de fila (como um Finalizar Atendimento).
         const deveForcar = !!payload;
@@ -107,7 +135,12 @@ export class PainelTvComponent implements OnInit, OnDestroy {
   }
 
   private carregarCategorias() {
-    this.apiService.get<any[]>('/servicos/public/list').subscribe({
+    if (!this.filialId) {
+      this.categoriasServico = [];
+      return;
+    }
+    const query = this.filialId ? `?filialId=${this.filialId}` : '';
+    this.apiService.get<any[]>(`/servicos/public/list${query}`).subscribe({
       next: (dados) => {
         if (dados) {
           this.categoriasServico = dados.filter(s => s.ativo);
@@ -140,34 +173,30 @@ export class PainelTvComponent implements OnInit, OnDestroy {
 
   // Alterado para aceitar o payload do web socket que contem o ticket recém chamado (ticketId, category, guicheOrDoca)
   atualizar(forceAlert = false, payload?: any) {
-    this.apiService.get<any[]>('/fila/painel').subscribe({
+    if (!this.filialId) return;
+    const query = this.filialId ? `?filialId=${this.filialId}` : '';
+    this.apiService.get<any[]>(`/fila/painel${query}`).subscribe({
       next: (dados) => {
         if (dados && dados.length > 0) {
 
           if (forceAlert && payload && payload.ticketId) {
-            // Se houve alarme forçado e veio a senha
             const idxEncontrado = dados.findIndex(
               d => String(d.id) === String(payload.ticketId) || String(d.numero) === String(payload.ticketId)
             );
-            let novaSenha;
-            if (idxEncontrado >= 0) {
-              novaSenha = dados[idxEncontrado];
-              dados.splice(idxEncontrado, 1);
-            } else {
-              novaSenha = {
-                id: payload.ticketId,
-                numero: payload.ticketId,
-                senha: payload.ticketId,
-                categoria: payload.category || 'Servico',
-                guiche: payload.guicheOrDoca || '01',
-                guicheNumero: payload.guicheOrDoca || '01'
-              };
-            }
-            this.senhaAtual = novaSenha;
-            this.ultimasChamadas = dados.slice(0, 5);
-            this.dispararAlertaNovaChamada();
 
-          } else {
+            if (idxEncontrado >= 0) {
+              const novaSenha = dados[idxEncontrado];
+              dados.splice(idxEncontrado, 1);
+              this.senhaAtual = novaSenha;
+              this.ultimasChamadas = dados.slice(0, 5);
+              this.dispararAlertaNovaChamada();
+              this.isInitialLoad = false;
+              this.cdr.detectChanges();
+              return;
+            }
+          }
+
+          {
             // Atualização silenciosa.
             if (!this.senhaAtual) {
               this.senhaAtual = dados.shift();
@@ -250,9 +279,13 @@ export class PainelTvComponent implements OnInit, OnDestroy {
         const numeroBase = numeroRaw.replace(/[^A-Za-z0-9]/g, ''); // limpa espaços
         const numero = numeroBase.split('').join(', ');
 
-        const guiche = this.getGuiche(this.senhaAtual);
+        const destinoTipo = this.getGuicheDestinoTipo(this.senhaAtual).toLowerCase();
+        const destinoValor = this.getGuicheDestinoValor(this.senhaAtual);
+        const destino = destinoValor && destinoValor !== '--'
+          ? `${destinoTipo} ${destinoValor}`
+          : destinoTipo;
 
-        const mensagem = new SpeechSynthesisUtterance(`Senha. ${numero}, Dirija-se ao, ${guiche}.`);
+        const mensagem = new SpeechSynthesisUtterance(`Senha. ${numero}, Dirija-se ao, ${destino}.`);
         mensagem.lang = 'pt-BR';
         mensagem.rate = 0.85;
 
@@ -297,5 +330,9 @@ export class PainelTvComponent implements OnInit, OnDestroy {
     const parts = g.split(' ');
     // Retorna a última palavra/número como o valor (ex: "BAIA 2" -> "2", "SALA 5" -> "5")
     return parts.length > 1 ? parts[parts.length - 1] : g;
+  }
+
+  irParaConfiguracao() {
+    this.router.navigate(['/painel/setup']);
   }
 }

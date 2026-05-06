@@ -96,6 +96,8 @@ export class AdminLayoutComponent implements OnInit {
       title: 'SISTEMA',
       items: [
         { path: '/admin/configuracoes', label: 'Configurações', icon: 'settings' },
+        { path: '/painel/setup', label: 'Configurar Painel TV', icon: 'monitor' },
+        { path: '/totem/setup', label: 'Configurar Totem', icon: 'ticket' },
         { path: '/totem', label: 'Modo Totem', icon: 'monitor', external: true }
       ]
     }

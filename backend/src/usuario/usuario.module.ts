@@ -3,9 +3,10 @@ import { UsuarioService } from './usuario.service';
 import { UsuarioController } from './usuario.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { NotificacaoModule } from '../notificacao/notificacao.module';
+import { LogModule } from '../log/log.module';
 
 @Module({
-  imports: [PrismaModule, NotificacaoModule], // PrismaModule já é global
+  imports: [PrismaModule, NotificacaoModule, LogModule], // PrismaModule já é global
   controllers: [UsuarioController],
   providers: [UsuarioService],
   exports: [UsuarioService],

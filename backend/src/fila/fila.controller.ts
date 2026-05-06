@@ -147,8 +147,8 @@ export class FilaController {
   }
 
   @Get('painel')
-  painel() {
-    return this.filaService.listarPainel();
+  painel(@Query('filialId') filialId?: string) {
+    return this.filaService.listarPainel(filialId ? +filialId : undefined);
   }
 
 

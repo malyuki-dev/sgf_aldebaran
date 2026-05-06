@@ -244,7 +244,14 @@ export const routes: Routes = [
       { path: 'senha', component: TotemSenhaComponent },
     ],
   },
-
+  {
+    path: 'painel/setup',
+    canActivate: [roleGuard],
+    loadComponent: () =>
+      import('./pages/tv/painel-setup/painel-setup.component').then(
+        (m) => m.PainelSetupComponent,
+      ),
+  },
   { path: 'painel', component: PainelTvComponent },
   {
     path: 'operador/escolha-guiches',

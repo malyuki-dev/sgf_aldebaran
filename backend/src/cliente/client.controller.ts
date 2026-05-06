@@ -8,27 +8,50 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
   Query,
 } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClienteDto } from './dto/create-client.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { LogService } from '../log/log.service';
 
 @Controller('clientes')
 export class ClienteController {
-  constructor(private readonly clienteService: ClientService) { }
+  constructor(
+    private readonly clienteService: ClientService,
+    private readonly logService: LogService,
+  ) {}
 
   // US-0001: Rota Pública - Autocadastro
   @Post('autocadastro')
-  createPublic(@Body() createClienteDto: CreateClienteDto) {
-    return this.clienteService.createPublic(createClienteDto);
+  async createPublic(@Body() createClienteDto: CreateClienteDto) {
+    const res = await this.clienteService.createPublic(createClienteDto);
+    await this.logService.logAction(
+      'Autocadastro',
+      `Novo autocadastro de cliente: ${res.nome}`,
+      undefined,
+      'Cliente',
+    );
+    return res;
   }
 
   // US-0002: Rota Protegida - Cadastro Operacional (Admin/Totem/Operador)
   @UseGuards(JwtAuthGuard)
   @Post()
-  createOperacional(@Body() createClienteDto: any) {
-    return this.clienteService.createOperacional(createClienteDto);
+  async createOperacional(
+    @Body() createClienteDto: any,
+    @Request() req: any,
+  ) {
+    const res = await this.clienteService.createOperacional(createClienteDto);
+    const userId = req.user?.userId ?? req.user?.id;
+    await this.logService.logAction(
+      'Criação',
+      `Cliente cadastrado via sistema: ${res.nome}`,
+      userId,
+      'Cliente',
+    );
+    return res;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,19 +81,52 @@ export class ClienteController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateClienteDto: any) {
-    return this.clienteService.update(id, updateClienteDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateClienteDto: any,
+    @Request() req: any,
+  ) {
+    const res = await this.clienteService.update(id, updateClienteDto);
+    const userId = req.user?.userId ?? req.user?.id;
+    await this.logService.logAction(
+      'Atualização',
+      `Atualizou cliente: ${res.nome}`,
+      userId,
+      'Cliente',
+    );
+    return res;
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
-  toggleStatus(@Param('id') id: string) {
-    return this.clienteService.toggleStatus(id);
+  async toggleStatus(@Param('id') id: string, @Request() req: any) {
+    const res = await this.clienteService.toggleStatus(id);
+    const userId = req.user?.userId ?? req.user?.id;
+    const acao = res.deletedAt ? 'Inativação' : 'Ativação';
+    await this.logService.logAction(
+      acao,
+      `Alterou status do cliente: ${res.nome}`,
+      userId,
+      'Cliente',
+    );
+    return res;
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/senha')
-  resetPassword(@Param('id') id: string, @Body() body: { senha: string }) {
-    return this.clienteService.resetPassword(id, body.senha);
+  async resetPassword(
+    @Param('id') id: string,
+    @Body() body: { senha: string },
+    @Request() req: any,
+  ) {
+    const res = await this.clienteService.resetPassword(id, body.senha);
+    const userId = req.user?.userId ?? req.user?.id;
+    await this.logService.logAction(
+      'Reset de Senha',
+      `Resetou senha do cliente: ${res.nome}`,
+      userId,
+      'Cliente',
+    );
+    return res;
   }
 }

@@ -40,16 +40,48 @@ export class GuicheService {
 
   async create(data: any) {
     data = this.normalizarDadosGuiche(data);
-    const guiche = await this.prisma.guiche.create({
-      data: {
+
+    // Verifica se já existe um guichê (mesmo deletado logicamente) com o mesmo número na mesma filial
+    const guicheExistente = await this.prisma.guiche.findFirst({
+      where: {
         numero: data.numero,
-        nome: data.nome,
-        status: data.status || 'Offline',
-        ativo: data.ativo ?? true,
-        filial_id: +data.filial_id,
+        filial_id: +data.filial_id
       },
-      include: { filial: true },
     });
+
+    let guiche;
+
+    if (guicheExistente) {
+      if (!guicheExistente.deletadoEm) {
+        throw new BadRequestException('Guichê com este número já existe na filial especificada.');
+      }
+      
+      // Ressuscita o guichê excluído logicamente
+      guiche = await this.prisma.guiche.update({
+        where: { id: guicheExistente.id },
+        data: {
+          nome: data.nome,
+          status: data.status || 'Offline',
+          ativo: data.ativo ?? true,
+          deletadoEm: null,
+          operadorAtualId: null,
+          loginOperadorEm: null,
+          atendimentoAtualCodigo: null,
+        },
+        include: { filial: true },
+      });
+    } else {
+      guiche = await this.prisma.guiche.create({
+        data: {
+          numero: data.numero,
+          nome: data.nome,
+          status: data.status || 'Offline',
+          ativo: data.ativo ?? true,
+          filial_id: +data.filial_id,
+        },
+        include: { filial: true },
+      });
+    }
 
     // Notificação de novo guichê
     await this.notificacaoService.criar({

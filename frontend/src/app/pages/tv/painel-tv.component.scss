@@ -329,6 +329,26 @@
   gap: 20px;
 }
 
+.tv-start-overlay.config {
+  cursor: default;
+}
+
+.tv-start-overlay .btn-config {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #ffffff;
+  color: #0f766e;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.tv-start-overlay .btn-config:hover {
+  transform: translateY(-2px);
+}
+
 .tv-start-overlay h1 {
   font-size: 3rem;
   margin: 0;

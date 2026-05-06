@@ -1,6 +1,12 @@
-<div class="tv-start-overlay" *ngIf="!iniciado" (click)="iniciarPainel()">
+<div class="tv-start-overlay config" *ngIf="!configurado">
+  <h1>Painel sem configuracao</h1>
+  <p>Defina a filial para este painel antes de iniciar.</p>
+  <button class="btn-config" (click)="irParaConfiguracao()">Configurar painel</button>
+</div>
+
+<div class="tv-start-overlay" *ngIf="configurado && !iniciado" (click)="iniciarPainel()">
   <h1>Clique para Iniciar o Painel</h1>
-  <p>Isso é necessário para permitir que a TV toque as notificações de áudio</p>
+  <p>Isso e necessario para permitir que a TV toque as notificacoes de audio</p>
 </div>
 
 <div class="tv-container" *ngIf="iniciado">
