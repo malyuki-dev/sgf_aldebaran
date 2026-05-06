@@ -37,7 +37,8 @@ export class SupervisorDashboardComponent implements OnInit {
 
   visaoGeral = [
     { titulo: 'Total Hoje', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.trendingUp, bgIcon: '#e0f2fe', colorIcon: '#0284c7' },
-    { titulo: 'Tempo Médio', valor: '0 min', info: '-', corInfo: 'gray', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
+    { titulo: 'Tempo Médio Diário', valor: '00:00', info: '-', corInfo: 'gray', icon: this.icons.clock, bgIcon: '#ecfdf5', colorIcon: '#059669' },
+    { titulo: 'Atendimento Diário', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.activity, bgIcon: '#fef9c3', colorIcon: '#ca8a04' },
     { titulo: 'Fila Atual', valor: '0', info: '-', corInfo: 'gray', icon: this.icons.users, bgIcon: '#f3e8ff', colorIcon: '#9333ea' }
   ];
 
@@ -138,8 +139,13 @@ export class SupervisorDashboardComponent implements OnInit {
       this.loadData();
     });
     
-    // Refresh data every 30 seconds
-    setInterval(() => this.loadData(), 30000);
+    // Refresh data every 5 seconds
+    setInterval(() => this.loadData(), 5000);
+
+    // Tick real-time seconds for waiting lists
+    setInterval(() => {
+      this.tickWaitTimes();
+    }, 1000);
   }
 
   ngOnDestroy() {
@@ -181,7 +187,8 @@ export class SupervisorDashboardComponent implements OnInit {
         // Update KPIs
         this.visaoGeral[0].valor = res.kpis.totalHoje;
         this.visaoGeral[1].valor = res.kpis.tempoMedio;
-        this.visaoGeral[2].valor = res.kpis.filaAtual;
+        this.visaoGeral[2].valor = res.kpis.totalHoje; // Usando totalHoje em vez de atendimentosDiarios
+        this.visaoGeral[3].valor = res.kpis.filaAtual;
 
         // Update Lists
         this.agendamentos = res.agendamentos;
@@ -311,14 +318,14 @@ export class SupervisorDashboardComponent implements OnInit {
         status = 'FECHADO';
       } else if (guiche.status === 'disponivel') {
         status = 'DISPONIVEL';
-        tempo = '00:00';
+        tempo = guiche.tempoOcupadoFormatado || '00:00';
       } else if (guiche.status === 'ocupado') {
         status = 'ATENDENDO';
         tempo = guiche.tempoOcupadoFormatado || '00:00';
       }
 
       return {
-        numero: guiche.numero,
+        numero: guiche.displayLabel || guiche.nome || guiche.numero,
         operador: guiche.operador || '',
         status: status,
         ticket: guiche.ticket || '',
@@ -330,5 +337,33 @@ export class SupervisorDashboardComponent implements OnInit {
 
   get tempoMedio(): string {
     return this.visaoGeral[1].valor;
+  }
+
+  get atendimentosDiarios(): string {
+    return this.visaoGeral[2].valor;
+  }
+
+  tickWaitTimes() {
+    if (!this.atendimentosList || this.atendimentosList.length === 0) return;
+    let needsUpdate = false;
+    const now = new Date().getTime();
+
+    this.atendimentosList.forEach(a => {
+      if (a.dataCriacao && (a.status === 'Aguardando' || a.status === 'Em Atendimento')) {
+        const diffMs = now - new Date(a.dataCriacao).getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffSecs = Math.floor((diffMs % 60000) / 1000);
+        const formatado = `${diffMins.toString().padStart(2, '0')}:${diffSecs.toString().padStart(2, '0')}`;
+        
+        if (a.tempoEspera !== formatado) {
+          a.tempoEspera = formatado;
+          needsUpdate = true;
+        }
+      }
+    });
+
+    if (needsUpdate) {
+      this.cdr.detectChanges();
+    }
   }
 }

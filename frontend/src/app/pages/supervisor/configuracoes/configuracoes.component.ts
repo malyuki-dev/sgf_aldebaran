@@ -43,13 +43,18 @@ export class SupervisorConfiguracoesComponent implements OnInit {
 
   selectedFilialId: number | null = null;
   private filialSub?: any;
+  private filiaisSub?: any;
+  filiais: any[] = [];
+  
+  servicosDisponiveis: any[] = [];
+  categoriasSom: number[] = [];
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private filialService: FilialService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.configForm = this.fb.group({
@@ -58,7 +63,7 @@ export class SupervisorConfiguracoesComponent implements OnInit {
       modoEscuro: [false],
       sonsAlerta: [true],
       impressaoAutomatica: [true],
-      
+
       // Regras da Fila
       tempoTolerancia: [15],
       limiteAtendimentos: [50],
@@ -81,7 +86,11 @@ export class SupervisorConfiguracoesComponent implements OnInit {
     this.filialSub = this.filialService.selectedFilial$.subscribe((id: number | null) => {
       this.selectedFilialId = id;
       if (id) {
+        this.configForm.get('nomeFilial')?.enable();
         this.carregarConfiguracoes();
+      } else {
+        this.configForm.get('nomeFilial')?.disable();
+        this.configForm.patchValue({ nomeFilial: '' });
       }
     });
   }
@@ -92,7 +101,7 @@ export class SupervisorConfiguracoesComponent implements OnInit {
 
   carregarConfiguracoes() {
     const token = localStorage.getItem('token') || '';
-    this.http.get<any[]>(`${environment.apiUrl}/configuracao/filial/${this.selectedFilialId}`, {
+    this.http.get<any[]>(`${environment.apiUrl}/configuracoes/lista?filialId=${this.selectedFilialId}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (configs) => {
@@ -101,8 +110,22 @@ export class SupervisorConfiguracoesComponent implements OnInit {
           if (c.chave === 'TEMPO_TOLERANCIA') patch.tempoTolerancia = parseInt(c.valor, 10);
           if (c.chave === 'LIMITE_ATENDIMENTOS') patch.limiteAtendimentos = parseInt(c.valor, 10);
           if (c.chave === 'PRIORIDADE_AUTOMATICA') patch.prioridadePcdIdoso = c.valor === 'true';
+          if (c.chave === 'SONS_ALERTA') patch.sonsAlerta = c.valor === 'true';
+          if (c.chave === 'SONS_ALERTA_CATEGORIAS') {
+            try { this.categoriasSom = JSON.parse(c.valor); } catch (e) {}
+          }
         });
-        
+
+        // Carregar categorias (servicos)
+        this.http.get<any[]>(`${environment.apiUrl}/servicos?filialId=${this.selectedFilialId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).subscribe(servicos => {
+          this.servicosDisponiveis = servicos;
+          if (this.categoriasSom.length === 0 && servicos.length > 0) {
+             this.categoriasSom = servicos.map(s => s.id);
+          }
+        });
+
         // Carrega nome da filial
         this.filialService.getFiliais().subscribe((filiais: any[]) => {
           const f = filiais.find((fl: any) => fl.id === this.selectedFilialId);
@@ -142,27 +165,44 @@ export class SupervisorConfiguracoesComponent implements OnInit {
   }
 
   private persistirConfiguracoes() {
-    const val = this.configForm.value;
-    const items = [
-      { chave: 'TEMPO_TOLERANCIA', valor: String(val.tempoTolerancia) },
-      { chave: 'LIMITE_ATENDIMENTOS', valor: String(val.limiteAtendimentos) },
-      { chave: 'PRIORIDADE_AUTOMATICA', valor: String(val.prioridadePcdIdoso) }
-    ];
+    const vals = this.configForm.value;
+    const payload = {
+      filial_id: this.selectedFilialId,
+      configs: [
+        { chave: 'TEMPO_TOLERANCIA', valor: String(vals.tempoTolerancia) },
+        { chave: 'LIMITE_ATENDIMENTOS', valor: String(vals.limiteAtendimentos) },
+        { chave: 'PRIORIDADE_AUTOMATICA', valor: String(vals.prioridadePcdIdoso) },
+        { chave: 'FUSO_HORARIO', valor: vals.fusoHorario },
+        { chave: 'MODO_ESCURO', valor: String(vals.modoEscuro) },
+        { chave: 'SONS_ALERTA', valor: String(vals.sonsAlerta) },
+        { chave: 'SONS_ALERTA_CATEGORIAS', valor: JSON.stringify(this.categoriasSom) },
+        { chave: 'IMPRESSAO_AUTOMATICA', valor: String(vals.impressaoAutomatica) }
+      ]
+    };
 
     const token = localStorage.getItem('token') || '';
-    this.http.post(`${environment.apiUrl}/configuracao/batch`, {
-      filialId: this.selectedFilialId,
-      configs: items
-    }, {
+    this.http.post(`${environment.apiUrl}/configuracoes/bulk?filialId=${this.selectedFilialId}`, { configs: payload.configs }, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {
         this.showSuccessModal = true;
         this.successMessage = 'Configurações salvas com sucesso!';
+        this.filialService.setSelectedFilial(this.selectedFilialId);
         this.cdr.detectChanges();
       },
       error: (err) => alert('Erro ao salvar configurações')
     });
+  }
+
+  toggleCategoriaSom(servicoId: number, event: any) {
+    const checked = event.target.checked;
+    if (checked) {
+      if (!this.categoriasSom.includes(servicoId)) {
+        this.categoriasSom.push(servicoId);
+      }
+    } else {
+      this.categoriasSom = this.categoriasSom.filter(id => id !== servicoId);
+    }
   }
 
   fecharSuccessModal() {
@@ -178,7 +218,7 @@ export class SupervisorConfiguracoesComponent implements OnInit {
   confirmarZerar() {
     if (this.zerarInput.trim().toUpperCase() === 'ZERAR') {
       const token = localStorage.getItem('token') || '';
-      this.http.post(`${environment.apiUrl}/fila/reset`, { filialId: this.selectedFilialId }, {
+      this.http.post(`${environment.apiUrl}/fila/zerar`, { filialId: this.selectedFilialId }, {
         headers: { Authorization: `Bearer ${token}` }
       }).subscribe({
         next: () => {
@@ -186,6 +226,7 @@ export class SupervisorConfiguracoesComponent implements OnInit {
           this.zerarInput = '';
           this.showSuccessModal = true;
           this.successMessage = 'Fila zerada com sucesso. Numeração reiniciada.';
+          this.filialService.setSelectedFilial(this.selectedFilialId);
           this.cdr.detectChanges();
         }
       });

@@ -39,10 +39,54 @@ $border: #e5e7eb;
   
   .date-pills {
     display: flex; background: #e5e7eb; padding: 4px; border-radius: 8px;
+    align-items: center;
     button {
       padding: 6px 16px; border: none; background: transparent; border-radius: 6px;
       font-weight: 600; color: $text-sec; cursor: pointer; font-size: 0.9rem;
       &.active { background: white; color: $text-main; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    }
+
+    .dropdown-container {
+      position: relative;
+      margin-left: 2px;
+      display: flex; align-items: center;
+
+      .icon-btn {
+        padding: 6px 8px;
+        display: flex; align-items: center; justify-content: center;
+        &:hover { background: rgba(0,0,0,0.05); }
+      }
+
+      .dropdown-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 90;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 100%; right: 0;
+        margin-top: 8px;
+        background: white;
+        border: 1px solid $border;
+        border-radius: 8px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        min-width: 140px;
+        z-index: 100;
+        overflow: hidden;
+
+        .dropdown-item {
+          padding: 10px 16px;
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: $text-main;
+          cursor: pointer;
+          transition: background 0.2s;
+
+          &:hover { background: #f9fafb; color: #0ea5e9; }
+          &.empty { color: $text-light; cursor: default; &:hover { background: white; color: $text-light; } }
+        }
+      }
     }
   }
 
@@ -125,6 +169,39 @@ $border: #e5e7eb;
   display: flex; justify-content: space-between; font-size: 0.8rem; color: $text-light; margin-top: 8px;
 }
 
+// Eixo X que distribui TODOS os rótulos de hora uniformemente
+.x-axis-full {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: $text-light;
+  margin-top: 6px;
+  overflow: hidden;
+
+  span {
+    flex: 1;
+    text-align: center;
+    // Mostra apenas 1 em cada N para não sobrecarregar quando há muitas horas
+    &:nth-child(odd) { visibility: hidden; }
+    &:first-child, &:last-child { visibility: visible; }
+  }
+}
+
+// Estado vazio quando não há dados no período
+.chart-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: $text-light;
+  min-height: 140px;
+  border: 2px dashed $border;
+  border-radius: 8px;
+  text-align: center;
+  padding: 16px;
+}
+
 .category-list {
   display: flex; flex-direction: column; gap: 16px;
   .cat-item {
@@ -153,16 +230,31 @@ $border: #e5e7eb;
   display: flex; flex-direction: column; gap: 12px;
   .op-item {
      display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; border: 1px solid $border;
-     .op-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: #0ea5e9;}
+     .op-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; background: #0ea5e9;}
      .op-info {
        flex: 1; display: flex; flex-direction: column;
        strong { font-weight: 700; color: $text-main; }
-       span { font-size: 0.85rem; color: $text-sec; }
+       span { font-size: 0.85rem; color: $text-sec; display: flex; align-items: center; gap: 4px; }
+       
+       .op-efficiency-bar {
+         width: 100%; height: 6px; background: $border; border-radius: 3px; margin-top: 6px; overflow: hidden;
+         .op-efficiency-fill {
+           height: 100%; border-radius: 3px; transition: width 0.3s ease;
+           &.high { background: #22c55e; }
+           &.mid { background: #f59e0b; }
+           &.low { background: #ef4444; }
+         }
+       }
      }
      .op-score {
        display: flex; flex-direction: column; align-items: flex-end;
-       strong { font-size: 1.1rem; color: $text-main; }
-       span { font-size: 0.8rem; font-weight: 700; }
+       strong { font-size: 1.2rem; color: $text-main; line-height: 1; margin-bottom: 4px; }
+       .op-efficiency-label { 
+         font-size: 0.8rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+         &.eff-high { background: #dcfce7; color: #166534; }
+         &.eff-mid { background: #fef3c7; color: #92400e; }
+         &.eff-low { background: #fee2e2; color: #991b1b; }
+       }
      }
   }
 }
@@ -174,6 +266,9 @@ $border: #e5e7eb;
     lucide-icon { margin-top: 2px; }
     &.alert-red { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; }
     &.alert-yellow { background: #fef9c3; color: #b45309; border-left: 4px solid #f59e0b; }
+    &.alert-blue { background: #e0f2fe; color: #0284c7; border-left: 4px solid #0ea5e9; }
+    &.alert-green { background: #dcfce7; color: #166534; border-left: 4px solid #22c55e; }
+    &.alert-gray { background: #f3f4f6; color: #4b5563; border-left: 4px solid #9ca3af; }
   }
 }
 

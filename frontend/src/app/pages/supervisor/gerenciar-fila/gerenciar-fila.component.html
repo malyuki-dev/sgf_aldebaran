@@ -28,9 +28,11 @@
       <div class="tab" [class.active]="currentTab === 'guiche'" (click)="currentTab = 'guiche'">
         Status dos Guichês <span class="badge blue-bg">{{ guichesAtivos }}</span>
       </div>
+      <!-- 
       <div class="tab" [class.active]="currentTab === 'baia'" (click)="currentTab = 'baia'">
         Status das Baias <span class="badge blue-bg">{{ baiasAtivas }}</span>
       </div>
+      -->
       <div class="tab" [class.active]="currentTab === 'config'" (click)="currentTab = 'config'">
         Configurações
       </div>
@@ -50,7 +52,6 @@
             <div class="info-row">
               <lucide-icon [img]="icons.user" size="16"></lucide-icon>
               <span class="driver">{{ item.motorista }}</span>
-              <span class="plate-badge">{{ item.placa }}</span>
             </div>
             <div class="info-row text-muted">
               <span>Serviço: <strong>{{ item.servico }}</strong></span>
@@ -66,7 +67,7 @@
           </div>
 
           <div class="action-col">
-            <button class="btn-cancel">Cancelar</button>
+            <button class="btn-cancel" (click)="abrirModalCancelar(item)">Cancelar</button>
             <button class="btn-call" (click)="chamar(item)">Chamar Agora</button>
           </div>
 
@@ -74,7 +75,8 @@
       </div>
     </div>
 
-    <!-- Status das Baias -->
+    <!-- Status das Baias (Ocultado para uso futuro) -->
+    <!--
     <div class="tab-body" *ngIf="currentTab === 'baia'">
       <div class="baias-grid">
         <div class="baia-card" *ngFor="let baia of baias" [ngClass]="baia.status">
@@ -136,6 +138,7 @@
         </div>
       </div>
     </div>
+    -->
 
     <!-- Status dos Guichês -->
     <div class="tab-body" *ngIf="currentTab === 'guiche'">
@@ -379,7 +382,7 @@
       <div class="modal-body">
         <p>
           Deseja remover {{ guicheSelecionadoParaRemocao?.operador }} do Guichê
-          {{ guicheSelecionadoParaRemocao?.numero }}?
+          {{ guicheSelecionadoParaRemocao?.displayLabel || guicheSelecionadoParaRemocao?.nome || guicheSelecionadoParaRemocao?.numero }}?
         </p>
       </div>
       <div class="modal-footer">
@@ -464,4 +467,24 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Confirmação de Cancelamento de Senha -->
+  <div class="modal-overlay" *ngIf="showCancelModal" (click)="fecharModalCancelar()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Confirmar Cancelamento</h2>
+        <button class="close-btn" (click)="fecharModalCancelar()">
+          <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Deseja cancelar a senha <strong>{{ itemParaCancelar?.ticket }}</strong> de <strong>{{ itemParaCancelar?.motorista }}</strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-solid-gray" (click)="fecharModalCancelar()">Voltar</button>
+        <button class="btn-solid-red" (click)="confirmarCancelamento()">Confirmar Cancelamento</button>
+      </div>
+    </div>
+  </div>
+
 </div>

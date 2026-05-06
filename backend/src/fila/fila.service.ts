@@ -44,6 +44,13 @@ export class FilaService {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
+    // Considerar DATA_ZERAR_FILA para reiniciar a numeração hoje
+    const configZerar = await this.prisma.configuracao.findFirst({
+      where: { chave: 'DATA_ZERAR_FILA', filial_id: filialId || null },
+    });
+    const dataZerar = configZerar ? new Date(configZerar.valor) : startOfToday;
+    const effectiveStart = dataZerar > startOfToday ? dataZerar : startOfToday;
+
     const tipoFormatado =
       (tipoRaw || '').toLowerCase() === 'preferencial'
         ? 'Preferencial'
@@ -56,7 +63,7 @@ export class FilaService {
 
     const totalHoje = await this.prisma.senha.count({
       where: {
-        dataCriacao: { gte: startOfToday },
+        dataCriacao: { gte: effectiveStart },
         filial_id: filialNormalizada,
         servico_id: servico.id,
       },
@@ -408,6 +415,41 @@ export class FilaService {
 
   // Queue management and dashboard views
 
+  async zerarFila(filialId?: number) {
+    const fId = filialId ? +filialId : null;
+
+    // Remove senhas 'AGUARDANDO' que NÃO possuem agendamento_id
+    const deleted = await this.prisma.senha.deleteMany({
+      where: {
+        status: 'AGUARDANDO',
+        agendamento_id: null,
+        filial_id: fId,
+      },
+    });
+
+    // Salva o momento do "zerar" para reiniciar o contador a partir de agora
+    const agoraStr = new Date().toISOString();
+    const existingConfig = await this.prisma.configuracao.findFirst({
+      where: { chave: 'DATA_ZERAR_FILA', filial_id: fId },
+    });
+
+    if (existingConfig) {
+      await this.prisma.configuracao.update({
+        where: { id: existingConfig.id },
+        data: { valor: agoraStr },
+      });
+    } else {
+      await this.prisma.configuracao.create({
+        data: { chave: 'DATA_ZERAR_FILA', valor: agoraStr, filial_id: fId },
+      });
+    }
+
+    // Opcional: emitir para todos no WebSocket recarregarem a fila
+    this.notificacaoGateway.enviarParaTodos('fila_zerada', { filialId: fId });
+
+    return { message: 'Fila zerada com sucesso', removidas: deleted.count };
+  }
+
   async solicitarSenha(servicoId: number) {
     const servico = await this.prisma.servico.findUnique({
       where: { id: servicoId },
@@ -416,8 +458,15 @@ export class FilaService {
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
+
+    const configZerar = await this.prisma.configuracao.findFirst({
+      where: { chave: 'DATA_ZERAR_FILA', filial_id: servico.filial_id },
+    });
+    const dataZerar = configZerar ? new Date(configZerar.valor) : hoje;
+    const effectiveStart = dataZerar > hoje ? dataZerar : hoje;
+
     const count = await this.prisma.senha.count({
-      where: { servico_id: servicoId, dataCriacao: { gt: hoje } },
+      where: { servico_id: servicoId, dataCriacao: { gte: effectiveStart } },
     });
     const codigoCategoria = this.obterCodigoCategoria(
       servico.prefixo,
@@ -442,6 +491,7 @@ export class FilaService {
       mensagem: `Senha ${senha.numeroDisplay} aguardando atendimento.`,
       icon: 'ticket',
       rota: '/admin/dashboard',
+      servico_id: servicoId,
     });
 
     return senha;
@@ -491,6 +541,8 @@ export class FilaService {
       data: {
         guiche: guicheId,
         senha_id: proxima.id,
+        // Registra o operador responsável no momento em que o cliente é chamado
+        ...(guicheInfo.operadorAtualId ? { operadorId: guicheInfo.operadorAtualId } : {}),
       },
     });
 
@@ -563,6 +615,51 @@ export class FilaService {
         });
       }
     }
+  async chamarEspecifico(guicheId: number, senhaId: number) {
+    const guicheInfo = await this.prisma.guiche.findUnique({
+      where: { id: guicheId },
+    });
+    if (!guicheInfo) throw new NotFoundException('Guiche nao encontrado!');
+
+    const senha = await this.prisma.senha.findUnique({
+      where: { id: senhaId },
+      include: { servico: true },
+    });
+    if (!senha) throw new NotFoundException('Senha não encontrada!');
+    if (senha.status !== 'AGUARDANDO') throw new BadRequestException('A senha não está mais aguardando.');
+
+    const senhaAtualizada = await this.prisma.senha.update({
+      where: { id: senhaId },
+      data: { status: 'CHAMADO' },
+      include: { agendamento: true, servico: true },
+    });
+
+    await this.prisma.atendimento.create({
+      data: {
+        guiche: guicheId,
+        senha_id: senhaId,
+        ...(guicheInfo.operadorAtualId ? { operadorId: guicheInfo.operadorAtualId } : {}),
+      },
+    });
+
+    this.notificacaoGateway.broadcastTicket({
+      ticketId: senhaAtualizada.numeroDisplay,
+      category: senhaAtualizada.servico?.nome || 'Servico',
+      guicheOrDoca: guicheInfo.numero.toString(),
+      calledAt: new Date(),
+    });
+
+    return senhaAtualizada;
+  }
+
+  async cancelarSenha(senhaId: number) {
+    const senha = await this.prisma.senha.findUnique({ where: { id: senhaId } });
+    if (!senha) throw new NotFoundException('Senha não encontrada!');
+
+    return await this.prisma.senha.update({
+      where: { id: senhaId },
+      data: { status: 'CANCELADO' }
+    });
   }
 
   async iniciarAtendimento(senhaId: number) {

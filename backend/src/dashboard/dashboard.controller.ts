@@ -22,4 +22,30 @@ export class DashboardController {
   getSupervisorOverview(@Query('filialId') filialId: string) {
     return this.dashboardService.getSupervisorOverview(filialId);
   }
+
+  @Get('graficos-por-hora')
+  getGraficosPorHora(
+    @Query('periodo') periodo: string,
+    @Query('filialId') filialId: string,
+  ) {
+    return this.dashboardService.getGraficosPorHora(periodo || 'dia', filialId);
+  }
+
+  @Get('operadores')
+  getDesempenhoOperadores(
+    @Query('periodo') periodo: string,
+    @Query('filialId') filialId: string,
+  ) {
+    return this.dashboardService.getDesempenhoOperadores(periodo || 'dia', filialId);
+  }
+
+  @Get('meses-disponiveis')
+  getMesesDisponiveis(@Query('filialId') filialId: string) {
+    return this.dashboardService.getMesesDisponiveis(filialId);
+  }
+
+  @Get('fila-espera')
+  getFilaEspera(@Query('filialId') filialId: string) {
+    return this.dashboardService.getFilaEspera(filialId);
+  }
 }

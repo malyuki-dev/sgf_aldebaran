@@ -14,16 +14,35 @@
       <div class="date-pills">
         <button [class.active]="periodoAtivo === 'hoje'" (click)="selecionarPeriodo('hoje')">Hoje</button>
         <button [class.active]="periodoAtivo === 'semana'" (click)="selecionarPeriodo('semana')">Semana</button>
-        <button [class.active]="periodoAtivo === 'mes'" (click)="selecionarPeriodo('mes')">Mês</button>
+        <button [class.active]="periodoAtivo !== 'hoje' && periodoAtivo !== 'semana'" (click)="selecionarPeriodo('mes')">
+          <ng-container *ngIf="periodoAtivo !== 'hoje' && periodoAtivo !== 'semana' && periodoAtivo !== 'mes'">
+            Mês: {{ formatarMes(periodoAtivo) }}
+          </ng-container>
+          <ng-container *ngIf="periodoAtivo === 'mes' || (periodoAtivo === 'hoje' || periodoAtivo === 'semana')">
+            Mês
+          </ng-container>
+        </button>
+        <div class="dropdown-container">
+          <button class="icon-btn" (click)="toggleDropdownMeses()">
+            <lucide-icon [img]="icons.moreVertical" size="16"></lucide-icon>
+          </button>
+          
+          <div class="dropdown-backdrop" *ngIf="dropdownMesesAberto" (click)="dropdownMesesAberto = false"></div>
+          
+          <div class="dropdown-menu" *ngIf="dropdownMesesAberto">
+             <div class="dropdown-item" *ngFor="let mes of mesesDisponiveis" (click)="selecionarPeriodo(mes)">
+               {{ formatarMes(mes) }}
+             </div>
+             <div class="dropdown-item empty" *ngIf="mesesDisponiveis.length === 0">
+               Nenhum mês anterior
+             </div>
+          </div>
+        </div>
       </div>
-      <button class="btn-solid-teal">
+      <button class="btn-solid-teal" (click)="gerarPDF()">
         <lucide-icon [img]="icons.download" size="16"></lucide-icon>
         Exportar PDF
       </button>
-      <div class="language-toggle">
-        <button class="active">PT</button>
-        <button>EN</button>
-      </div>
     </div>
   </div>
 
@@ -42,7 +61,7 @@
       <div class="kpi-card">
         <div class="kpi-indicator bg-red-light"></div>
         <div class="kpi-info">
-           <strong class="kpi-value">{{ tempoMedioEsperaGeral }} min</strong>
+           <strong class="kpi-value">{{ tempoMedioEsperaGeral }}</strong>
            <span class="kpi-label">Tempo Médio de Espera</span>
         </div>
       </div>
@@ -56,72 +75,96 @@
       <div class="kpi-card">
         <div class="kpi-indicator bg-purple-light"></div>
         <div class="kpi-info">
-           <strong class="kpi-value">14h-16h</strong>
+           <strong class="kpi-value">{{ horarioPico }}</strong>
            <span class="kpi-label">Horário de Pico</span>
         </div>
       </div>
     </div>
 
-    <!-- Middle Grid -->
+    <!-- Middle Grid — Gráficos por Hora -->
     <div class="charts-grid mt-24">
+
+      <!-- Histórico da Fila -->
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Histórico da Fila (Qtd)</h3>
-         <div class="bar-chart teal-bars">
-             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.historicoFila, maxHistoricoFila)" [title]="g.historicoFila + ' atendimentos às ' + g.horaLabel"></div>
-         </div>
-         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
-            <span>{{graficosPorHora[0].horaLabel}}</span>
-            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
-         </div>
+        <h3 class="chart-title">Histórico da Fila (Qtd)</h3>
+
+        <ng-container *ngIf="graficosPorHora.length > 0; else semDadosFila">
+          <div class="bar-chart teal-bars">
+            <div
+              class="bar"
+              *ngFor="let g of graficosPorHora"
+              [style.height]="getAlturaBarra(g.historicoFila, maxHistoricoFila)"
+              [title]="g.historicoFila + ' atendimentos às ' + g.horaLabel">
+            </div>
+          </div>
+          <div class="x-axis x-axis-full">
+            <span *ngFor="let g of graficosPorHora">{{ g.horaLabel }}</span>
+          </div>
+        </ng-container>
+        <ng-template #semDadosFila>
+          <div class="chart-empty-state">Sem dados para o período selecionado</div>
+        </ng-template>
       </div>
+
+      <!-- Tempo Médio de Espera -->
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Tempo Médio de Espera (min)</h3>
-         <div class="bar-chart orange-bars">
-             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.tempoEsperaMedio, maxTempoEspera)" [title]="g.tempoEsperaMedio + ' min às ' + g.horaLabel"></div>
-         </div>
-         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
-            <span>{{graficosPorHora[0].horaLabel}}</span>
-            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
-         </div>
+        <h3 class="chart-title">Tempo Médio de Espera (min)</h3>
+
+        <ng-container *ngIf="graficosPorHora.length > 0; else semDadosEspera">
+          <div class="bar-chart orange-bars">
+            <div
+              class="bar"
+              *ngFor="let g of graficosPorHora"
+              [style.height]="getAlturaBarra(g.tempoEsperaMedio, maxTempoEspera)"
+              [title]="g.tempoEsperaMedio + ' min às ' + g.horaLabel">
+            </div>
+          </div>
+          <div class="x-axis x-axis-full">
+            <span *ngFor="let g of graficosPorHora">{{ g.horaLabel }}</span>
+          </div>
+        </ng-container>
+        <ng-template #semDadosEspera>
+          <div class="chart-empty-state">Sem dados para o período selecionado</div>
+        </ng-template>
       </div>
+
+      <!-- Tempo Médio de Atendimento -->
       <div class="chart-card fill-h">
-         <h3 class="chart-title">Tempo Médio Atend. (min)</h3>
-         <div class="bar-chart green-bars">
-             <div class="bar" *ngFor="let g of graficosPorHora" [style.height]="getAlturaBarra(g.tempoAtendimentoMedio, maxTempoAtendimento)" [title]="g.tempoAtendimentoMedio + ' min às ' + g.horaLabel"></div>
-         </div>
-         <div class="x-axis" *ngIf="graficosPorHora.length > 0">
-            <span>{{graficosPorHora[0].horaLabel}}</span>
-            <span>{{graficosPorHora[graficosPorHora.length-1].horaLabel}}</span>
-         </div>
+        <h3 class="chart-title">Tempo Médio Atend. (min)</h3>
+
+        <ng-container *ngIf="graficosPorHora.length > 0; else semDadosAtend">
+          <div class="bar-chart green-bars">
+            <div
+              class="bar"
+              *ngFor="let g of graficosPorHora"
+              [style.height]="getAlturaBarra(g.tempoAtendimentoMedio, maxTempoAtendimento)"
+              [title]="g.tempoAtendimentoMedio + ' min às ' + g.horaLabel">
+            </div>
+          </div>
+          <div class="x-axis x-axis-full">
+            <span *ngFor="let g of graficosPorHora">{{ g.horaLabel }}</span>
+          </div>
+        </ng-container>
+        <ng-template #semDadosAtend>
+          <div class="chart-empty-state">Sem dados para o período selecionado</div>
+        </ng-template>
       </div>
+
       <div class="chart-card performance-card w-2col">
          <h3 class="chart-title">Desempenho por Categoria</h3>
-         <div class="category-list">
-            <div class="cat-item">
-               <div class="cat-color bg-teal-light"></div>
+         <div class="category-list" *ngIf="categorias && categorias.length > 0; else semCategorias">
+            <div class="cat-item" *ngFor="let cat of categorias">
+               <div class="cat-color" [style.background-color]="cat.cor"></div>
                <div class="cat-info">
-                  <strong>Caminhão</strong>
-                  <span>Espera: 8 min  |  Atend: 12 min</span>
+                  <strong>{{ cat.nome }}</strong>
+                  <span>Espera: {{ cat.avgEsperaStr }} | Atend: {{ cat.avgAtendimentoStr }}</span>
                </div>
-               <div class="cat-value"><strong>42</strong><span>Atendidos</span></div>
-            </div>
-            <div class="cat-item">
-               <div class="cat-color bg-orange-light"></div>
-               <div class="cat-info">
-                  <strong>Retirada Pesada</strong>
-                  <span>Espera: 10 min  |  Atend: 15 min</span>
-               </div>
-               <div class="cat-value"><strong>28</strong><span>Atendidos</span></div>
-            </div>
-            <div class="cat-item">
-               <div class="cat-color bg-red-light"></div>
-               <div class="cat-info">
-                  <strong>Cliente Rápido</strong>
-                  <span>Espera: 3 min  |  Atend: 5 min</span>
-               </div>
-               <div class="cat-value"><strong>65</strong><span>Atendidos</span></div>
+               <div class="cat-value"><strong>{{ cat.totalAtendidos }}</strong><span>Atendidos</span></div>
             </div>
          </div>
+         <ng-template #semCategorias>
+            <div class="chart-empty-state">Sem dados para o período selecionado</div>
+         </ng-template>
       </div>
     </div>
 
@@ -129,36 +172,61 @@
     <div class="bottom-grid mt-24">
       <div class="chart-card">
         <h3 class="chart-title">Desempenho dos Operadores</h3>
-        <div class="operator-list">
-          <div class="op-item">
-             <div class="op-avatar bg-teal text-white">MS</div>
-             <div class="op-info">
-                <strong>Maria Silva</strong>
-                <span>7.5 min</span>
-             </div>
-             <div class="op-score"><strong>38</strong><span class="text-blue">94%</span></div>
-          </div>
-          <div class="op-item">
-             <div class="op-avatar bg-teal text-white">JS</div>
-             <div class="op-info">
-                <strong>João Santos</strong>
-                <span>8.2 min</span>
-             </div>
-             <div class="op-score"><strong>35</strong><span class="text-blue">91%</span></div>
-          </div>
+
+        <!-- Carregando -->
+        <div class="chart-empty-state" *ngIf="carregandoOperadores && operadores.length === 0">
+          Carregando operadores...
+        </div>
+
+        <!-- Lista real de operadores -->
+        <div class="operator-list" *ngIf="!carregandoOperadores || operadores.length > 0">
+          <ng-container *ngIf="operadores.length > 0; else semOperadores">
+            <div class="op-item" *ngFor="let op of operadores">
+              <div class="op-avatar" [style.background]="op.avatarColor || '#0ea5e9'">
+                {{ op.iniciais }}
+              </div>
+              <div class="op-info">
+                <strong>{{ op.nome }}</strong>
+                <span class="op-time">
+                  <lucide-icon [img]="icons.clock" size="12"></lucide-icon>
+                  {{ op.avgServiceTimeStr }}
+                </span>
+                <div class="op-efficiency-bar">
+                  <div class="op-efficiency-fill"
+                    [style.width]="op.efficiency + '%'"
+                    [class.high]="op.efficiency >= 70"
+                    [class.mid]="op.efficiency >= 40 && op.efficiency < 70"
+                    [class.low]="op.efficiency < 40">
+                  </div>
+                </div>
+              </div>
+              <div class="op-score">
+                <strong class="op-count">{{ op.totalAtendidos }}</strong>
+                <span class="op-efficiency-label"
+                  [class.eff-high]="op.efficiency >= 70"
+                  [class.eff-mid]="op.efficiency >= 40 && op.efficiency < 70"
+                  [class.eff-low]="op.efficiency < 40">
+                  {{ op.efficiency }}% efic.
+                </span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #semOperadores>
+            <div class="chart-empty-state">
+              Nenhum atendimento registrado no período.
+            </div>
+          </ng-template>
         </div>
       </div>
       
       <div class="chart-card">
         <h3 class="chart-title mb-16">Insights</h3>
         <div class="insights-list">
-           <div class="insight-alert alert-red">
+           <div class="insight-alert" 
+                *ngFor="let insight of insights"
+                [ngClass]="'alert-' + insight.type">
                <lucide-icon [img]="icons.alert" size="16"></lucide-icon>
-               <span>Alta demanda detectada entre 14:00-15:00. Considere alocar mais...</span>
-           </div>
-           <div class="insight-alert alert-yellow">
-               <lucide-icon [img]="icons.alert" size="16"></lucide-icon>
-               <span>2 operador(es) com eficiência abaixo de 90%. Revisar processos.</span>
+               <span>{{ insight.text }}</span>
            </div>
         </div>
       </div>

@@ -28,13 +28,7 @@ export class CronService {
       );
 
       if (limpezaAtiva) {
-        // Remove senhas de dias anteriores ou finalizadas
-        await this.prisma.senha.deleteMany({
-          where: {
-            OR: [{ status: 'FINALIZADO' }, { status: 'CANCELADO' }],
-          },
-        });
-        this.logger.log('Limpeza automática concluída.');
+        this.logger.log('Limpeza automática saltada: preservando dados históricos para relatórios.');
       }
 
       // Opcional: Resetar todos os status para cancelado ou similar se sobrar algo de hoje

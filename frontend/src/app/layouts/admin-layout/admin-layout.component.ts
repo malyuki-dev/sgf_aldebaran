@@ -9,6 +9,9 @@ import { NotificationService } from '../../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import { FilialService, Filial } from '../../services/filial.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { AlertSoundService } from '../../services/alert-sound.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -23,7 +26,7 @@ export class AdminLayoutComponent implements OnInit {
   userInitials: string = 'CA';
   userName: string = 'Carlos Admin';
   userRole: string = 'Administrador';
-  
+
   filiais: Filial[] = [];
   selectedFilialId: number | null = null;
   loadingFiliais = false;
@@ -40,7 +43,7 @@ export class AdminLayoutComponent implements OnInit {
   hasUnreadNotifications = false;
 
   // Contador para badges do Supervisor
-  atendimentoCount = 0; 
+  atendimentoCount = 0;
   agendamentoCount = 0;
 
   get notificacoesFiltradas() {
@@ -118,12 +121,14 @@ export class AdminLayoutComponent implements OnInit {
     private titleService: Title,
     private notificationService: NotificationService,
     private filialService: FilialService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private http: HttpClient,
+    private alertSoundService: AlertSoundService
   ) { }
 
   ngOnInit() {
     console.log('[HARD-DEBUG] AdminLayoutComponent Inicializado!');
-    
+
     const salvo = localStorage.getItem('usuario_sgf');
     if (!salvo) {
       console.warn('[HARD-DEBUG] Nenhum usuário encontrado no localStorage. Redirecionando para login.');
@@ -134,7 +139,7 @@ export class AdminLayoutComponent implements OnInit {
     try {
       this.usuario = JSON.parse(salvo);
       console.log('[HARD-DEBUG] Usuário logado:', this.usuario.nome, 'ID Filial:', this.usuario.filial_id);
-      
+
       this.notificationService.fetchNotifications(this.usuario.id);
       this.notificationService.notifications$.subscribe((notifs: any[]) => {
         this.notificacoes = notifs;
@@ -151,7 +156,7 @@ export class AdminLayoutComponent implements OnInit {
       // Determinar Perfil e Role
       const p = (this.usuario.perfil || '').toUpperCase();
       const t = (this.usuario.tipo || '').toUpperCase();
-      
+
       if (p === 'SUPERVISOR' || t === 'SUPERVISOR') {
         this.menuGroups = this.supervisorMenuGroups;
         this.userRole = 'Supervisor';
@@ -169,6 +174,7 @@ export class AdminLayoutComponent implements OnInit {
       this.filialService.selectedFilial$.subscribe((id: number | null) => {
         this.selectedFilialId = id;
         this.carregarContadores();
+        this.carregarConfiguracoesAlertas();
       });
 
       this.isDarkMode = localStorage.getItem('theme_sgf') === 'dark';
@@ -191,7 +197,7 @@ export class AdminLayoutComponent implements OnInit {
 
   private updateActivePageTitle() {
     const url = this.router.url;
-    
+
     // Default
     this.activePageGroup = '';
 
@@ -216,7 +222,7 @@ export class AdminLayoutComponent implements OnInit {
         this.activePageGroup = '';
       } else {
         this.activePageTitle = 'Cadastros Gerais';
-        this.activePageGroup = ''; 
+        this.activePageGroup = '';
       }
     } else if (url.includes('/admin/logs')) {
       this.activePageTitle = 'Logs e Auditoria';
@@ -231,7 +237,7 @@ export class AdminLayoutComponent implements OnInit {
       this.activePageTitle = 'Atendimento';
       this.activePageGroup = 'Operacional';
     }
-    
+
     this.titleService.setTitle(`Aldebaran - ${this.activePageTitle}`);
   }
 
@@ -313,9 +319,9 @@ export class AdminLayoutComponent implements OnInit {
       next: (data: Filial[]) => {
         this.filiais = data;
         this.loadingFiliais = false;
-        
+
         const currentId = this.filialService.getSelectedFilialId();
-        
+
         if (this.userRole === 'SUPERVISOR' && !currentId && this.usuario?.filial_id) {
           this.filialService.setSelectedFilial(this.usuario.filial_id);
           this.selectedFilialId = this.usuario.filial_id;
@@ -334,12 +340,39 @@ export class AdminLayoutComponent implements OnInit {
     console.log('Filial alterada para ID:', this.selectedFilialId);
     this.filialService.setSelectedFilial(this.selectedFilialId);
     this.carregarContadores();
-    
+    this.carregarConfiguracoesAlertas();
+
     // Opcional: Feedback visual ou recarregar dados da página atual se necessário
     if (this.selectedFilialId) {
       const filial = this.filiais.find(f => f.id === this.selectedFilialId);
       console.log('Nome da filial selecionada:', filial?.nome);
     }
+  }
+
+  carregarConfiguracoesAlertas() {
+    if (!this.selectedFilialId) {
+      this.alertSoundService.disable();
+      return;
+    }
+    const token = localStorage.getItem('token') || '';
+    this.http.get<any[]>(`${environment.apiUrl}/configuracoes/lista?filialId=${this.selectedFilialId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (configs) => {
+        const sonsAlertaStr = configs.find(c => c.chave === 'SONS_ALERTA')?.valor || 'true';
+        const categoriasStr = configs.find(c => c.chave === 'SONS_ALERTA_CATEGORIAS')?.valor || '[]';
+        
+        const sonsAlerta = sonsAlertaStr === 'true';
+        let categorias: number[] = [];
+        try { categorias = JSON.parse(categoriasStr); } catch (e) {}
+
+        if (sonsAlerta) {
+          this.alertSoundService.enable(categorias);
+        } else {
+          this.alertSoundService.disable();
+        }
+      }
+    });
   }
 
   carregarContadores() {

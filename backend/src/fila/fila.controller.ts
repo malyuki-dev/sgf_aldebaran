@@ -18,7 +18,6 @@ import { FilaService } from './fila.service';
 export class FilaController {
   constructor(private readonly filaService: FilaService) {}
 
-
   // Totem
   @Post('totem/senha')
   solicitarSenhaTotem(
@@ -111,6 +110,7 @@ export class FilaController {
   excluirServico(@Param('id') id: string) {
     return this.filaService.excluirServico(+id);
   }
+
   // Operação de Fila
   @Post('solicitar_senha')
   solicitarSenha(@Body() body: { servico_id: number }) {
@@ -120,6 +120,21 @@ export class FilaController {
   @Post('chamar_proximo')
   chamarProximo(@Body() body: { guiche: number; repetir?: boolean }) {
     return this.filaService.chamarProximo(body.guiche, !!body.repetir);
+  }
+
+  @Post('zerar')
+  zerarFila(@Body() body: { filialId?: number }) {
+    return this.filaService.zerarFila(body.filialId);
+  }
+
+  @Post('chamar_especifico')
+  chamarEspecifico(@Body() body: { guiche: number; senhaId: number }) {
+    return this.filaService.chamarEspecifico(body.guiche, body.senhaId);
+  }
+
+  @Patch('senha/:id/cancelar')
+  cancelarSenha(@Param('id') id: string) {
+    return this.filaService.cancelarSenha(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -150,7 +165,6 @@ export class FilaController {
   painel() {
     return this.filaService.listarPainel();
   }
-
 
   @Post('avaliar')
   avaliar(@Body() body: { numero: string; nota: number }) {
