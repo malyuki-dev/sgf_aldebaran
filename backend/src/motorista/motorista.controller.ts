@@ -12,20 +12,38 @@ import {
   HttpStatus,
   UseGuards,
   Patch,
+  Request,
 } from '@nestjs/common';
 import { MotoristaService } from './motorista.service';
 import { Prisma } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { LogService } from '../log/log.service';
 
 @Controller('motoristas')
 @UseGuards(JwtAuthGuard)
 export class MotoristaController {
-  constructor(private readonly motoristaService: MotoristaService) {}
+  constructor(
+    private readonly motoristaService: MotoristaService,
+    private readonly logService: LogService,
+  ) {}
 
   @Post()
-  async create(@Body() createMotoristaDto: Prisma.motoristaCreateInput) {
+  async create(
+    @Body() createMotoristaDto: Prisma.motoristaCreateInput,
+    @Request() req: any,
+  ) {
     try {
-      return await this.motoristaService.create(createMotoristaDto);
+      const res = await this.motoristaService.create(createMotoristaDto);
+      const userId = req.user?.userId ?? req.user?.id;
+      await this.logService.logAction(
+        'Criação',
+        `Criou motorista: ${res.nome}`,
+        userId,
+        'Motorista',
+        'Sucesso',
+        res.filial_id ?? undefined,
+      );
+      return res;
     } catch (error: any) {
       throw new HttpException(
         error.message || 'Erro Interno',
@@ -50,20 +68,52 @@ export class MotoristaController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateMotoristaDto: Prisma.motoristaUpdateInput,
+    @Request() req: any,
   ) {
-    return this.motoristaService.update(id, updateMotoristaDto);
+    const res = await this.motoristaService.update(id, updateMotoristaDto);
+    const userId = req.user?.userId ?? req.user?.id;
+    await this.logService.logAction(
+      'Atualização',
+      `Atualizou motorista: ${res.nome}`,
+      userId,
+      'Motorista',
+      'Sucesso',
+      res.filial_id ?? undefined,
+    );
+    return res;
   }
 
   @Patch(':id/status')
-  toggleStatus(@Param('id', ParseIntPipe) id: number) {
-    return this.motoristaService.toggleStatus(id);
+  async toggleStatus(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const res = await this.motoristaService.toggleStatus(id);
+    const userId = req.user?.userId ?? req.user?.id;
+    const acao = res.ativo ? 'Ativação' : 'Inativação';
+    await this.logService.logAction(
+      acao,
+      `Alterou status do motorista: ${res.nome}`,
+      userId,
+      'Motorista',
+      'Sucesso',
+      res.filial_id ?? undefined,
+    );
+    return res;
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.motoristaService.softDelete(id);
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const res = await this.motoristaService.softDelete(id);
+    const userId = req.user?.userId ?? req.user?.id;
+    await this.logService.logAction(
+      'Exclusão',
+      `Excluiu motorista: ${res.nome}`,
+      userId,
+      'Motorista',
+      'Sucesso',
+      res.filial_id ?? undefined,
+    );
+    return res;
   }
 }

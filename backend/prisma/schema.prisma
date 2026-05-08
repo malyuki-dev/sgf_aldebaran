@@ -210,7 +210,7 @@ model filial {
 
 model guiche {
   id                     Int               @id @default(autoincrement())
-  numero                 String            @unique @db.VarChar(20)
+  numero                 String            @db.VarChar(20)
   nome                   String?           @db.VarChar(100)
   descricao              String?           @db.VarChar(120)
   status                 String            @default("Offline") @db.VarChar(20)
@@ -226,6 +226,8 @@ model guiche {
   filial                 filial?           @relation(fields: [filial_id], references: [id], onDelete: Cascade)
   operadorAtual          usuario?          @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id])
   sessoes                operador_sessao[]
+
+  @@unique([filial_id, numero])
 }
 
 model operador_sessao {

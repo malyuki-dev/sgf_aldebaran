@@ -729,9 +729,14 @@ export class FilaService {
     });
   }
 
-  async listarPainel() {
+  async listarPainel(filialId?: number) {
     // Buscar os últimos 20 atendimentos para extrair senhas únicas recém-chamadas
+    const where: any = {};
+    if (filialId) {
+      where.guiche_rel = { filial_id: filialId };
+    }
     const recentes = await this.prisma.atendimento.findMany({
+      where,
       orderBy: { inicioAtendimento: 'desc' },
       take: 20,
       include: {
@@ -757,16 +762,23 @@ export class FilaService {
       const guicheRel = atendimento.guiche_rel;
 
       const limpo = String(guicheRel?.numero || guicheRel?.nome || '').trim();
-      let numeroGuiche = '--';
+      let tipo = 'GUICHÊ';
+      let valor = limpo;
+
       if (limpo) {
-        if (/^(Guich[êe]|Baia|Doca)/i.test(limpo)) {
-          numeroGuiche = limpo.toUpperCase();
-        } else {
-          const servNome = (senha.servico?.nome || '').toLowerCase();
-          const isCarga = servNome.includes('caminh') || servNome.includes('retirada') || servNome.includes('carga') || servNome.includes('doca') || servNome.includes('baia');
-          numeroGuiche = isCarga ? `BAIA ${limpo}` : `GUICHÊ ${limpo}`;
+        // Extrai possíveis prefixos para não duplicar e saber qual é
+        const match = limpo.match(/^(Guich[êe]|Guiche|Baia|Doca|Mens[a|e]gem|Sala|Box)\s*(.*)$/i);
+        if (match) {
+          tipo = match[1].toUpperCase();
+          if (tipo === 'GUICHE') tipo = 'GUICHÊ'; // Normaliza acentuação
+          valor = match[2].trim() || '--';
         }
+      } else {
+        valor = '--';
       }
+
+      // Se o valor ficar vazio após remover o prefixo, usamos o limpo inteiro (fallback)
+      if (!valor) valor = limpo;
 
       return {
         id: senha.id,
@@ -774,8 +786,8 @@ export class FilaService {
         senha: senha.numeroDisplay,
         categoria: senha.servico?.nome || 'Servico',
         servico: senha.servico,
-        guiche: numeroGuiche,
-        guicheNumero: numeroGuiche,
+        guiche: valor !== '--' ? `${tipo} ${valor}` : '--',
+        guicheNumero: valor !== '--' ? `${tipo} ${valor}` : '--',
         dataCriacao: senha.dataCriacao,
       };
     });

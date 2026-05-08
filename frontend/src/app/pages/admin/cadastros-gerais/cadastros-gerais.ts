@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterLink, ActivatedRoute } from '@angular/router';
 import { RouterOutlet } from '@angular/router';
-import { LucideAngularModule, Users, Building, Truck, Fingerprint, Building2, ChevronDown } from 'lucide-angular';
+import { LucideAngularModule, Users, User, Building, Truck, Building2, ChevronDown } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 
@@ -21,9 +21,9 @@ export class CadastrosGerais implements OnInit {
 
   readonly icons = { 
     users: Users, 
+    user: User,
     building: Building, 
-    truck: Truck, 
-    list: Fingerprint,
+    truck: Truck,
     buildingSelect: Building2,
     chevronDown: ChevronDown
   };
@@ -31,8 +31,8 @@ export class CadastrosGerais implements OnInit {
   tabs = [
     { id: 'usuarios', label: 'Usuários do Sistema', icon: this.icons.users, route: '/admin/cadastros/usuarios' },
     { id: 'clientes', label: 'Clientes', icon: this.icons.building, route: '/admin/cadastros/clientes' },
-    { id: 'motoristas', label: 'Caminhoneiros', icon: this.icons.truck, route: '/admin/cadastros/motoristas' },
-    { id: 'caminhoes', label: 'Caminhões', icon: this.icons.list, route: '/admin/cadastros/caminhoes' }
+    { id: 'motoristas', label: 'Caminhoneiros', icon: this.icons.user, route: '/admin/cadastros/motoristas' },
+    { id: 'caminhoes', label: 'Caminhões', icon: this.icons.truck, route: '/admin/cadastros/caminhoes' }
   ];
 
   constructor(

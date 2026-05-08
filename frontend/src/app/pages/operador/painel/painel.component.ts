@@ -229,7 +229,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             debounceTime(300),
             distinctUntilChanged(),
             switchMap(termo => {
-                if (!termo || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
+                if (!termo || termo.length < 3 || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
                     return of([]);
                 }
                 const filialId = localStorage.getItem('filialAtual') || '';

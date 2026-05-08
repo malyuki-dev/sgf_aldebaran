@@ -94,13 +94,10 @@
 
             <div class="form-row-premium">
                 <label>Status</label>
-                <div class="status-input">
-                    <input type="text" [value]="formCategoria.ativo ? 'Ativo' : 'Inativo'" readonly
-                        style="background: #f8fafc; border-radius: 8px 0 0 8px;">
-                    <button class="status-btn" (click)="formCategoria.ativo = !formCategoria.ativo">
-                        Mudar
-                    </button>
-                </div>
+                <select [(ngModel)]="formCategoria.ativo">
+                    <option [ngValue]="true">Ativo</option>
+                    <option [ngValue]="false">Inativo</option>
+                </select>
             </div>
 
             <!-- Filial Selection (Mandatory) -->

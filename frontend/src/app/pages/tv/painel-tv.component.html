@@ -1,6 +1,27 @@
-<div class="tv-start-overlay" *ngIf="!iniciado" (click)="iniciarPainel()">
-  <h1>Clique para Iniciar o Painel</h1>
-  <p>Isso é necessário para permitir que a TV toque as notificações de áudio</p>
+<div class="tv-start-overlay config" *ngIf="!configurado">
+  <div class="overlay-card">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="overlay-icon">
+      <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline>
+    </svg>
+    <h1>Painel de TV Desconfigurado</h1>
+    <p>Para exibir as chamadas, este painel precisa estar vinculado a uma filial.</p>
+    <button class="btn-config" (click)="irParaConfiguracao()">Configurar Painel</button>
+  </div>
+</div>
+
+<div class="tv-start-overlay action-overlay" *ngIf="configurado && !iniciado" (click)="iniciarPainel()">
+  <div class="overlay-card action-card">
+    <div class="icon-circle">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pulse-icon">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+    </div>
+    <h1>Iniciar Exibição do Painel</h1>
+    <span class="btn-start">Clique aqui ou Pressione ENTER para ligar</span>
+    <p class="audio-notice">Esta ação manual é exigida pelos navegadores para liberar os efeitos sonoros das chamadas.</p>
+  </div>
 </div>
 
 <div class="tv-container" *ngIf="iniciado">

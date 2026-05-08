@@ -30,7 +30,6 @@
             <th>Cliente</th>
             <th>CPF/CNPJ</th>
             <th>Contato</th>
-            <th>Responsável</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
@@ -46,7 +45,6 @@
               <span class="tb-title">{{ c.telefone || '(11) 0000-0000' }}</span>
               <span class="tb-subtitle">{{ c.email }}</span>
             </td>
-            <td>{{ c.responsavel || 'João Silva' }}</td>
             <td>
               <div class="status-badge" [ngClass]="isAtivo(c) ? 'active' : 'inactive'">
                 <lucide-icon [img]="isAtivo(c) ? icons.checkCircle : icons.shieldAlert" size="14"></lucide-icon>
@@ -99,8 +97,7 @@
     <div class="alert-info" *ngIf="!isEditing && !clienteForm.senha" style="margin: 16px 24px 0;">
       <lucide-icon [img]="icons.alertCircle" size="20"></lucide-icon>
       <div>
-        <strong>Aviso:</strong> Se nenhuma senha for informada, o sistema usará o CPF/CNPJ (apenas números) como senha
-        padrão, ou <code>123456</code> se não houver documento. O cliente deverá trocar no primeiro acesso.
+        <strong>Aviso:</strong> Se nenhuma senha for informada, o sistema usara <code>Aldebaran@123</code> como senha inicial.
       </div>
     </div>
 

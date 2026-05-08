@@ -195,7 +195,8 @@
   margin-bottom: 24px;
 
   label { font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); }
-  input {
+  
+  input, select {
     padding: 14px 18px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -204,9 +205,18 @@
     font-size: 1rem;
     color: var(--text-primary);
     transition: all 0.2s;
+    appearance: none;
     
     &::placeholder { color: #cbd5e1; }
     &:focus { border-color: #029fe4; box-shadow: 0 0 0 3px rgba(2, 159, 228, 0.1); }
+  }
+
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    cursor: pointer;
   }
 }
 

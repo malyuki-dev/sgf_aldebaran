@@ -99,6 +99,7 @@ export class AdminLayoutComponent implements OnInit {
       title: 'SISTEMA',
       items: [
         { path: '/admin/configuracoes', label: 'Configurações', icon: 'settings' },
+        { path: '/painel', label: 'Painel TV', icon: 'monitor' },
         { path: '/totem', label: 'Modo Totem', icon: 'monitor', external: true }
       ]
     }
@@ -361,10 +362,10 @@ export class AdminLayoutComponent implements OnInit {
       next: (configs) => {
         const sonsAlertaStr = configs.find(c => c.chave === 'SONS_ALERTA')?.valor || 'true';
         const categoriasStr = configs.find(c => c.chave === 'SONS_ALERTA_CATEGORIAS')?.valor || '[]';
-        
+
         const sonsAlerta = sonsAlertaStr === 'true';
         let categorias: number[] = [];
-        try { categorias = JSON.parse(categoriasStr); } catch (e) {}
+        try { categorias = JSON.parse(categoriasStr); } catch (e) { }
 
         if (sonsAlerta) {
           this.alertSoundService.enable(categorias);
