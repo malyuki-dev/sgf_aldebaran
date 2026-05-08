@@ -13,34 +13,29 @@ model agendamento {
   data        String  @db.VarChar
   hora        String  @db.VarChar
   servico_id  Int
-  filial_id   Int?
   status      String  @default("PENDENTE") @db.VarChar
   codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
+  filial_id   Int?
   servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
-
-  senha senha[]
+  filial      filial? @relation(fields: [filial_id], references: [id])
+  senha       senha[]
 }
 
 model atendimento {
   id                  Int       @id(map: "PK_ad65f895dac5fe2b905001750c2") @default(autoincrement())
   guiche              Int
-  guiche_rel          guiche    @relation("AtendimentoGuiche", fields: [guiche], references: [id])
   inicioAtendimento   DateTime  @default(now()) @db.Timestamp(6)
   fimAtendimento      DateTime? @db.Timestamp(6)
   notaAvaliacao       Int?
+  senha_id            Int?
   justificativaDemora String?   @db.VarChar(500)
   motivoDemora        String?   @db.VarChar(100)
-  senha_id            Int?
-  senha               senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
-
-  // Operador que conduziu/encerrou este atendimento (gravado no momento do encerramento)
   operadorId          Int?
-  operador            usuario?  @relation("AtendimentoOperador", fields: [operadorId], references: [id], onDelete: SetNull)
+  senha               senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
+  guiche_rel          guiche    @relation("AtendimentoGuiche", fields: [guiche], references: [id])
+  operador            usuario?  @relation("AtendimentoOperador", fields: [operadorId], references: [id])
 }
 
-// NOTE: legacy model `cliente` removed on 2026-03-04.
-// The application uses `clientes` (plural) for public clients/autocadastro.
 model clientes {
   id        String    @id(map: "PK_d76bf3571d906e4e86470482c08") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   nome      String    @db.VarChar
@@ -53,144 +48,127 @@ model clientes {
   createdAt DateTime  @default(now()) @db.Timestamp(6)
   updatedAt DateTime  @default(now()) @db.Timestamp(6)
   deletedAt DateTime? @db.Timestamp(6)
-
   filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  filial    filial?   @relation(fields: [filial_id], references: [id])
 }
 
 model senha {
-  id            Int           @id(map: "PK_b37a7066eee39372a6563da7e6d") @default(autoincrement())
-  numeroDisplay String        @db.VarChar
-  status        String        @default("AGUARDANDO") @db.VarChar
-  dataCriacao   DateTime      @default(now()) @db.Timestamp(6)
-  servico_id    Int
-  tipo          String?       @db.VarChar // Preferencial / Convencional
-  tipoOrigem    String?       @db.VarChar(20) // TOTEM, AGENDAMENTO
-  prioridade    Int           @default(0)
-  qtdeGarrafoes Int?          @default(0)
-  atendimento   atendimento[]
-  servico       servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
-
+  id             Int           @id(map: "PK_b37a7066eee39372a6563da7e6d") @default(autoincrement())
+  numeroDisplay  String        @db.VarChar
+  status         String        @default("AGUARDANDO") @db.VarChar
+  dataCriacao    DateTime      @default(now()) @db.Timestamp(6)
+  servico_id     Int
+  tipo           String?       @db.VarChar
   agendamento_id Int?
-  agendamento    agendamento? @relation(fields: [agendamento_id], references: [id], onDelete: SetNull)
+  filial_id      Int?
+  prioridade     Int           @default(0)
+  tipoOrigem     String?       @db.VarChar(20)
+  qtdeGarrafoes  Int?          @default(0)
+  atendimento    atendimento[]
+  servico        servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
+  agendamento    agendamento?  @relation(fields: [agendamento_id], references: [id])
+  filial         filial?       @relation(fields: [filial_id], references: [id])
 }
 
 model servico {
   id              Int           @id(map: "PK_289d0aa6d49f9d0fd65aefc6677") @default(autoincrement())
   nome            String        @db.VarChar
   sigla           String        @db.VarChar
-  prefixo         String?       @db.VarChar
-  icone           String?       @db.VarChar(50)
-  tipo            String?       @db.VarChar
-  cor             String?       @db.VarChar
   prioridadePeso  Int           @default(1)
-  metaEspera      Int?          @default(20) // em minutos
-  metaAtendimento Int?          @default(15) // em minutos
   ativo           Boolean       @default(true)
   deletadoEm      DateTime?     @db.Timestamp(6)
+  cor             String?       @db.VarChar
+  filial_id       Int?
+  icone           String?       @db.VarChar(50)
+  metaAtendimento Int?          @default(15)
+  metaEspera      Int?          @default(20)
+  prefixo         String?       @db.VarChar
+  tipo            String?       @db.VarChar
   agendamento     agendamento[]
   senha           senha[]
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  filial          filial?       @relation(fields: [filial_id], references: [id])
 }
 
 model motorista {
-  id             Int       @id @default(autoincrement())
-  nome           String    @db.VarChar(200)
-  cpf            String    @unique @db.VarChar(14)
-  cnh            String    @unique @db.VarChar(20)
-  email          String    @db.VarChar(100)
-  telefone       String?   @db.VarChar(15)
-  transportadora String?   @db.VarChar(100)
-  ativo          Boolean   @default(true)
-  criadoEm       DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm   DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm     DateTime? @db.Timestamp(6)
-
-  caminhoes caminhao[]
-  filial_id Int?
-  filial    filial?    @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  id             Int        @id @default(autoincrement())
+  nome           String     @db.VarChar(200)
+  cpf            String     @unique @db.VarChar(14)
+  cnh            String     @unique @db.VarChar(20)
+  email          String     @db.VarChar(100)
+  telefone       String?    @db.VarChar(15)
+  transportadora String?    @db.VarChar(100)
+  ativo          Boolean    @default(true)
+  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime?  @db.Timestamp(6)
+  filial_id      Int?
+  caminhoes      caminhao[]
+  filial         filial?    @relation(fields: [filial_id], references: [id])
 }
 
 model caminhao {
-  id             Int     @id @default(autoincrement())
-  placa          String  @unique @db.VarChar(8)
-  modelo         String  @db.VarChar(100)
-  transportadora String  @db.VarChar(100)
-  capacidade     String  @db.VarChar(20)
-  observacoes    String? @db.VarChar(300)
-  status         String  @default("ATIVO") @db.VarChar(20) // ATIVO, INATIVO
-
-  motorista_id Int?
-  motorista    motorista? @relation(fields: [motorista_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
-
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm   DateTime? @db.Timestamp(6)
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  id             Int        @id @default(autoincrement())
+  placa          String     @unique @db.VarChar(8)
+  modelo         String     @db.VarChar(100)
+  transportadora String     @db.VarChar(100)
+  capacidade     String     @db.VarChar(20)
+  observacoes    String?    @db.VarChar(300)
+  status         String     @default("ATIVO") @db.VarChar(20)
+  motorista_id   Int?
+  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime   @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime?  @db.Timestamp(6)
+  filial_id      Int?
+  filial         filial?    @relation(fields: [filial_id], references: [id])
+  motorista      motorista? @relation(fields: [motorista_id], references: [id])
 }
 
 model usuario {
-  id           Int       @id(map: "PK_a56c58e5cabaa04fb2c98d2d7e2") @default(autoincrement())
-  nome         String    @db.VarChar(150)
-  email        String?   @unique @db.VarChar(100)
-  login        String    @unique(map: "UQ_59bc805e13413e4be83be3a7752") @db.VarChar
-  senha        String    @db.VarChar
-  fotoPerfil   String?   @db.VarChar(500)
-  perfil       String    @default("OPERADOR") @db.VarChar(20) // ADMIN, SUPERVISOR, OPERADOR
-  ativo        Boolean   @default(true)
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm   DateTime? @db.Timestamp(6)
-
-  logs_auditoria log_auditoria[]
-  notificacoes   notificacao[]
-
-  guicheAtual   guiche?           @relation("OperadorGuicheAtual")
-  sessoesGuiche operador_sessao[]
-
-  atendimentosRealizados atendimento[] @relation("AtendimentoOperador")
-
-  tasksCriadas    TaskItem[] @relation("TaskCriador")
-  tasksAtribuidas TaskItem[] @relation("TaskResponsavel")
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
+  id                     Int               @id(map: "PK_a56c58e5cabaa04fb2c98d2d7e2") @default(autoincrement())
+  login                  String            @unique(map: "UQ_59bc805e13413e4be83be3a7752") @db.VarChar
+  senha                  String            @db.VarChar
+  nome                   String            @db.VarChar(150)
+  ativo                  Boolean           @default(true)
+  atualizadoEm           DateTime          @default(now()) @db.Timestamp(6)
+  criadoEm               DateTime          @default(now()) @db.Timestamp(6)
+  deletadoEm             DateTime?         @db.Timestamp(6)
+  email                  String?           @unique @db.VarChar(100)
+  perfil                 String            @default("OPERADOR") @db.VarChar(20)
+  filial_id              Int?
+  fotoPerfil             String?           @db.VarChar(500)
+  atendimentosRealizados atendimento[]     @relation("AtendimentoOperador")
+  guicheAtual            guiche?           @relation("OperadorGuicheAtual")
+  logs_auditoria         log_auditoria[]
+  notificacoes           notificacao[]
+  sessoesGuiche          operador_sessao[]
+  tasksCriadas           TaskItem[]        @relation("TaskCriador")
+  tasksAtribuidas        TaskItem[]        @relation("TaskResponsavel")
+  filial                 filial?           @relation(fields: [filial_id], references: [id])
 }
 
 model configuracao {
   id           Int      @id @default(autoincrement())
   chave        String   @db.VarChar(50)
-  valor        String   @db.Text
+  valor        String
   descricao    String?  @db.VarChar(200)
   atualizadoEm DateTime @default(now()) @db.Timestamp(6)
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+  filial_id    Int?
+  filial       filial?  @relation(fields: [filial_id], references: [id], onDelete: Cascade)
 
   @@unique([chave, filial_id])
 }
 
 model log_auditoria {
-  id        Int     @id @default(autoincrement())
-  acao      String  @db.VarChar(100)
-  descricao String  @db.VarChar(500)
-  entidade  String? @db.VarChar(100)
-  status    String? @default("Sucesso") @db.VarChar(50)
-
+  id         Int      @id @default(autoincrement())
+  acao       String   @db.VarChar(100)
+  descricao  String   @db.VarChar(500)
   usuario_id Int?
+  criadoEm   DateTime @default(now()) @db.Timestamp(6)
+  entidade   String?  @db.VarChar(100)
+  filial_id  Int?
+  status     String?  @default("Sucesso") @db.VarChar(50)
+  filial     filial?  @relation(fields: [filial_id], references: [id])
   usuario    usuario? @relation(fields: [usuario_id], references: [id])
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: SetNull)
-
-  criadoEm DateTime @default(now()) @db.Timestamp(6)
 }
 
 model notificacao {
@@ -202,60 +180,52 @@ model notificacao {
   icon       String?  @default("bell") @db.VarChar(50)
   iconClass  String?  @default("blue-icon") @db.VarChar(50)
   usuario_id Int?
-  usuario    usuario? @relation(fields: [usuario_id], references: [id])
   criadoEm   DateTime @default(now()) @db.Timestamp(6)
+  usuario    usuario? @relation(fields: [usuario_id], references: [id])
 }
 
 model filial {
-  id       Int     @id @default(autoincrement())
-  nome     String  @db.VarChar(150)
-  email    String? @db.VarChar(100)
-  telefone String? @db.VarChar(20)
-  cnpj     String? @unique @db.VarChar(20)
-  endereco String? @db.VarChar(200)
-  cor      String? @default("#0ea5e9") @db.VarChar(20)
-  ativo    Boolean @default(true)
-
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm   DateTime? @db.Timestamp(6)
-
-  guiches        guiche[]
+  id             Int             @id @default(autoincrement())
+  nome           String          @db.VarChar(150)
+  cnpj           String?         @unique @db.VarChar(20)
+  endereco       String?         @db.VarChar(200)
+  ativo          Boolean         @default(true)
+  criadoEm       DateTime        @default(now()) @db.Timestamp(6)
+  atualizadoEm   DateTime        @default(now()) @db.Timestamp(6)
+  deletadoEm     DateTime?       @db.Timestamp(6)
+  cor            String?         @default("#0ea5e9") @db.VarChar(20)
+  email          String?         @db.VarChar(100)
+  telefone       String?         @db.VarChar(20)
+  agendamentos   agendamento[]
+  caminhoes      caminhao[]
+  clientes       clientes[]
   configuracoes  configuracao[]
+  guiches        guiche[]
   logs_auditoria log_auditoria[]
-
-  // Relações adicionadas
-  usuarios     usuario[]
-  servicos     servico[]
-  senhas       senha[]
-  agendamentos agendamento[]
-  clientes     clientes[]
-  motoristas   motorista[]
-  caminhoes    caminhao[]
+  motoristas     motorista[]
+  senhas         senha[]
+  servicos       servico[]
+  usuarios       usuario[]
 }
 
 model guiche {
-  id        Int     @id @default(autoincrement())
-  numero    String  @unique @db.VarChar(20) // mantido como na HMLG (String varchhar e unico)
-  nome      String? @db.VarChar(100)
-  descricao String? @db.VarChar(120)
-  status    String  @default("Offline") @db.VarChar(20)
-  ativo     Boolean @default(true)
-
-  filial_id Int?
-  filial    filial? @relation(fields: [filial_id], references: [id], onDelete: Cascade)
-
-  operadorAtualId        Int?      @unique
-  loginOperadorEm        DateTime? @db.Timestamp(6)
-  atendimentoAtualCodigo String?   @db.VarChar(30)
-
-  criadoEm     DateTime  @default(now()) @db.Timestamp(6)
-  atualizadoEm DateTime  @default(now()) @db.Timestamp(6)
-  deletadoEm   DateTime? @db.Timestamp(6)
-
-  operadorAtual usuario?          @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  sessoes       operador_sessao[]
-  atendimentos  atendimento[]     @relation("AtendimentoGuiche")
+  id                     Int               @id @default(autoincrement())
+  numero                 String            @unique @db.VarChar(20)
+  nome                   String?           @db.VarChar(100)
+  descricao              String?           @db.VarChar(120)
+  status                 String            @default("Offline") @db.VarChar(20)
+  ativo                  Boolean           @default(true)
+  filial_id              Int?
+  operadorAtualId        Int?              @unique
+  loginOperadorEm        DateTime?         @db.Timestamp(6)
+  atendimentoAtualCodigo String?           @db.VarChar(30)
+  criadoEm               DateTime          @default(now()) @db.Timestamp(6)
+  atualizadoEm           DateTime          @default(now()) @db.Timestamp(6)
+  deletadoEm             DateTime?         @db.Timestamp(6)
+  atendimentos           atendimento[]     @relation("AtendimentoGuiche")
+  filial                 filial?           @relation(fields: [filial_id], references: [id], onDelete: Cascade)
+  operadorAtual          usuario?          @relation("OperadorGuicheAtual", fields: [operadorAtualId], references: [id])
+  sessoes                operador_sessao[]
 }
 
 model operador_sessao {
@@ -265,63 +235,26 @@ model operador_sessao {
   loginEm     DateTime  @default(now()) @db.Timestamp(6)
   logoutEm    DateTime? @db.Timestamp(6)
   ativo       Boolean   @default(true)
-  operador    usuario   @relation(fields: [operador_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  guiche      guiche    @relation(fields: [guiche_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  guiche      guiche    @relation(fields: [guiche_id], references: [id], onDelete: Cascade)
+  operador    usuario   @relation(fields: [operador_id], references: [id], onDelete: Cascade)
 
   @@index([operador_id], map: "IDX_operador_sessao_operador")
   @@index([guiche_id], map: "IDX_operador_sessao_guiche")
   @@index([ativo], map: "IDX_operador_sessao_ativo")
 }
 
-// --- NOVOS ENUMS PARA O MOTOR DE PRIORIDADE ---
-
-enum Origin {
-  TOTEM
-  SCHEDULED
-}
-
-enum TicketType {
-  PREFERENTIAL
-  CONVENTIONAL
-  NA // Usado para agendamentos onde a lei de prioridade presencial não se aplica
-}
-
-enum Category {
-  CAMINHAO
-  RETIRADA_PESADA
-  RETIRADA_RAPIDA
-  CLIENTE_RAPIDO
-}
-
-enum TicketStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
 model Ticket {
-  id       String       @id @default(uuid()) @db.Uuid
-  origin   Origin
-  type     TicketType
-  category Category
-  status   TicketStatus @default(PENDING)
-
-  scheduledTime DateTime? // Nulo se vier do Totem
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String       @id @default(uuid()) @db.Uuid
+  origin        Origin
+  type          TicketType
+  category      Category
+  status        TicketStatus @default(PENDING)
+  scheduledTime DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([status, createdAt], map: "idx_active_tickets")
   @@map("aldebaran_tickets")
-}
-
-// --- NOVOS MODELOS PARA O SISTEMA DE TAREFAS (TODO/KANBAN) ---
-
-enum Priority {
-  BAIXA
-  MEDIA
-  ALTA
 }
 
 model StatusItem {
@@ -338,23 +271,50 @@ model StatusItem {
 }
 
 model TaskItem {
-  id         Int      @id @default(autoincrement())
-  titulo     String   @db.VarChar(200)
-  descricao  String?  @db.VarChar(1000)
-  prioridade Priority @default(MEDIA)
-
-  status_id Int
-  status    StatusItem @relation(fields: [status_id], references: [id])
-
-  criadoPor_id Int
-  criadoPor    usuario @relation("TaskCriador", fields: [criadoPor_id], references: [id])
-
+  id             Int        @id @default(autoincrement())
+  titulo         String     @db.VarChar(200)
+  descricao      String?    @db.VarChar(1000)
+  prioridade     Priority   @default(MEDIA)
+  status_id      Int
+  criadoPor_id   Int
   responsavel_id Int?
-  responsavel    usuario? @relation("TaskResponsavel", fields: [responsavel_id], references: [id])
-
-  dataEntrega DateTime? @db.Timestamp(6)
-  ordem       Int       @default(0)
-  criadoEm    DateTime  @default(now()) @db.Timestamp(6)
+  dataEntrega    DateTime?  @db.Timestamp(6)
+  ordem          Int        @default(0)
+  criadoEm       DateTime   @default(now()) @db.Timestamp(6)
+  criadoPor      usuario    @relation("TaskCriador", fields: [criadoPor_id], references: [id])
+  responsavel    usuario?   @relation("TaskResponsavel", fields: [responsavel_id], references: [id])
+  status         StatusItem @relation(fields: [status_id], references: [id])
 
   @@map("task_items")
+}
+
+enum Origin {
+  TOTEM
+  SCHEDULED
+}
+
+enum TicketType {
+  PREFERENTIAL
+  CONVENTIONAL
+  NA
+}
+
+enum Category {
+  CAMINHAO
+  RETIRADA_PESADA
+  RETIRADA_RAPIDA
+  CLIENTE_RAPIDO
+}
+
+enum TicketStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
 }

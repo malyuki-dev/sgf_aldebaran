@@ -615,6 +615,8 @@ export class FilaService {
         });
       }
     }
+  }
+
   async chamarEspecifico(guicheId: number, senhaId: number) {
     const guicheInfo = await this.prisma.guiche.findUnique({
       where: { id: guicheId },

@@ -9,7 +9,7 @@ export class FilialService {
   constructor(
     private prisma: PrismaService,
     private notificacaoService: NotificacaoService,
-  ) {}
+  ) { }
 
   async create(data: CreateFilialDto) {
     const filial = await this.prisma.filial.create({
@@ -98,7 +98,7 @@ export class FilialService {
   remove(id: number) {
     return this.prisma.filial.update({
       where: { id },
-      data: { deletadoEm: new Date() },
+      data: { deletadoEm: new Date(), ativo: false, atualizadoEm: new Date() },
     });
   }
 

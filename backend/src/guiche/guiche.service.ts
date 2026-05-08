@@ -40,6 +40,39 @@ export class GuicheService {
 
   async create(data: any) {
     data = this.normalizarDadosGuiche(data);
+    // Prevent duplicate `numero` errors by checking existing records.
+    const existente = await this.prisma.guiche.findFirst({
+      where: { numero: data.numero },
+    });
+
+    if (existente) {
+      // If the existing record is soft-deleted, restore it instead of creating a new one.
+      if (existente.deletadoEm) {
+        const restored = await this.prisma.guiche.update({
+          where: { id: existente.id },
+          data: {
+            nome: data.nome,
+            status: data.status || existente.status || 'Offline',
+            ativo: data.ativo ?? true,
+            filial_id: data.filial_id ? +data.filial_id : existente.filial_id,
+            deletadoEm: null,
+            atualizadoEm: new Date(),
+          },
+          include: { filial: true },
+        });
+        await this.notificacaoService.criar({
+          titulo: 'Guichê Restaurado',
+          mensagem: `Guichê ${restored.numero} restaurado na filial ${restored.filial?.nome}.`,
+          icon: 'monitor',
+          rota: '/admin/servicos',
+        });
+        return restored;
+      }
+
+      // If it's active (not deleted), it's a true duplicate.
+      throw new BadRequestException(`Número de guichê "${data.numero}" já existe.`);
+    }
+
     const guiche = await this.prisma.guiche.create({
       data: {
         numero: data.numero,
@@ -137,7 +170,7 @@ export class GuicheService {
   async remove(id: number) {
     return await this.prisma.guiche.update({
       where: { id },
-      data: { deletadoEm: new Date() },
+      data: { deletadoEm: new Date(), ativo: false, atualizadoEm: new Date() },
     });
   }
 
