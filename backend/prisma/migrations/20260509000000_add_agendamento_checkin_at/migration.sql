@@ -1,0 +1,2 @@
+ALTER TABLE "agendamento"
+ADD COLUMN IF NOT EXISTS "checkinAt" TIMESTAMP(6);

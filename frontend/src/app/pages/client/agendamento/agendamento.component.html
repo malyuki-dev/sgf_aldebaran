@@ -6,9 +6,13 @@
       <label>Filial</label>
       <div class="select-wrapper">
         <select [(ngModel)]="form.filialId" (change)="carregarConfiguracoes()">
-          <option *ngFor="let f of filiais" [value]="f.id">{{ f.nome }}</option>
+          <option *ngFor="let f of filiais" [ngValue]="f.id">{{ f.nome }}</option>
         </select>
         <lucide-icon [img]="icons.chevronDown" size="20" class="select-arrow"></lucide-icon>
+      </div>
+
+      <div class="date-feedback error" *ngIf="erroAgendamento">
+        <span>{{ erroAgendamento }}</span>
       </div>
     </div>
 
@@ -16,7 +20,7 @@
       <label>Categoria</label>
       <div class="select-wrapper">
         <select [(ngModel)]="form.servicoId">
-          <option *ngFor="let c of categorias" [value]="c.id">{{ c.nome }}</option>
+          <option *ngFor="let c of categorias" [ngValue]="c.id">{{ c.nome }}</option>
         </select>
         <lucide-icon [img]="icons.chevronDown" size="20" class="select-arrow"></lucide-icon>
       </div>
@@ -53,8 +57,12 @@
       <div class="cal-header">
         <h3>{{ mesesLabels[mesAtual] }} {{ anoAtual }}</h3>
         <div class="nav-arrows">
-          <lucide-icon [img]="icons.left" size="20"></lucide-icon>
-          <lucide-icon [img]="icons.right" size="20"></lucide-icon>
+          <button type="button" class="calendar-nav-btn" (click)="mesAnterior()" aria-label="Mês anterior">
+            <lucide-icon [img]="icons.left" size="20"></lucide-icon>
+          </button>
+          <button type="button" class="calendar-nav-btn" (click)="proximoMes()" aria-label="Próximo mês">
+            <lucide-icon [img]="icons.right" size="20"></lucide-icon>
+          </button>
         </div>
       </div>
 
@@ -124,15 +132,14 @@
     </button>
   </footer>
 
-  <!-- MODAL DE SUCESSO REDESENHADO -->
   <div class="success-modal-overlay" *ngIf="showSuccessModal" (click)="fecharModal()">
     <div class="success-modal-card scale-up" (click)="$event.stopPropagation()">
       <div class="success-icon-wrap">
         <lucide-icon [img]="icons.check" size="44"></lucide-icon>
       </div>
-      
-      <h2>Agendamento Realizado!</h2>
-      <p class="success-desc">Sua reserva foi realizada com sucesso. Enviamos os detalhes para seu e-mail.</p>
+
+      <h2>Sucesso!</h2>
+      <p class="success-desc">Agendamento confirmado com sucesso.</p>
 
       <div class="summary-card">
         <div class="summary-item">
@@ -140,7 +147,8 @@
             <lucide-icon [img]="icons.calendar" size="18"></lucide-icon>
           </div>
           <div class="item-text">
-            {{ form.data }} de {{ mesesLabels[mesAtual] }}, {{ anoAtual }} às {{ form.hora }}
+            {{ agendamentoConfirmado?.data }} de {{ mesesLabels[agendamentoConfirmado?.mes || 0] }},
+            {{ agendamentoConfirmado?.ano }} às {{ agendamentoConfirmado?.hora }}
           </div>
         </div>
 
@@ -148,21 +156,21 @@
           <div class="item-icon">
             <lucide-icon [img]="icons.map" size="18"></lucide-icon>
           </div>
-          <div class="item-text">{{ getFilialNome() }}</div>
+          <div class="item-text">{{ agendamentoConfirmado?.filialNome }}</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="item-icon">
+            <lucide-icon [img]="icons.box" size="18"></lucide-icon>
+          </div>
+          <div class="item-text">{{ agendamentoConfirmado?.categoriaNome }}</div>
         </div>
 
         <div class="summary-item">
           <div class="item-icon">
             <lucide-icon [img]="icons.drop" size="18"></lucide-icon>
           </div>
-          <div class="item-text">{{ form.quantidade }} unidades de Garrafão 20 L</div>
-        </div>
-
-        <div class="summary-item">
-          <div class="item-icon">
-            <lucide-icon [img]="icons.truck" size="18"></lucide-icon>
-          </div>
-          <div class="item-text">Caminhão</div>
+          <div class="item-text">{{ agendamentoConfirmado?.quantidade }} unidades de Garrafão 20 L</div>
         </div>
       </div>
 

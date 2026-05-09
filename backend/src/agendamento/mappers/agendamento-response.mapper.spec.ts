@@ -113,12 +113,12 @@ describe('toAgendamentoResponse', () => {
     expect(result.status).toBe(AgendamentoStatus.EXPIRADO);
   });
 
-  it('mantém status REALIZADO quando há check-in', () => {
+  it('normaliza status de check-in realizado', () => {
     const result = toAgendamentoResponse(
       { ...base, status: AgendamentoStatus.REALIZADO },
       { now: futuro },
     );
-    expect(result.status).toBe(AgendamentoStatus.REALIZADO);
+    expect(result.status).toBe(AgendamentoStatus.CHECKIN_REALIZADO);
   });
 
   it('mantém status CANCELADO sem alteração', () => {

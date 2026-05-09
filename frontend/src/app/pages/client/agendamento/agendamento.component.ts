@@ -18,6 +18,16 @@ export class AgendamentoComponent implements OnInit {
   showSuccessModal = false;
   hoje = new Date();
   erroData: string | null = null;
+  erroAgendamento: string | null = null;
+  agendamentoConfirmado: {
+    filialNome: string;
+    categoriaNome: string;
+    quantidade: number;
+    data: number | null;
+    mes: number;
+    ano: number;
+    hora: string;
+  } | null = null;
 
   form = {
     filialId: null as number | null,
@@ -113,7 +123,6 @@ export class AgendamentoComponent implements OnInit {
         return of([]);
       })
     ).subscribe(data => {
-      console.log('Categorias recebidas:', data);
       this.categorias = data || [];
       if (this.categorias.length > 0) this.form.servicoId = this.categorias[0].id;
       this.cdr.detectChanges();
@@ -218,6 +227,36 @@ export class AgendamentoComponent implements OnInit {
     }
   }
 
+  mesAnterior() {
+    if (this.mesAtual === 0) {
+      this.mesAtual = 11;
+      this.anoAtual--;
+    } else {
+      this.mesAtual--;
+    }
+
+    this.form.data = null;
+    this.erroData = null;
+    this.horariosDisponiveis = [];
+    this.gerarCalendario();
+    this.cdr.detectChanges();
+  }
+
+  proximoMes() {
+    if (this.mesAtual === 11) {
+      this.mesAtual = 0;
+      this.anoAtual++;
+    } else {
+      this.mesAtual++;
+    }
+
+    this.form.data = null;
+    this.erroData = null;
+    this.horariosDisponiveis = [];
+    this.gerarCalendario();
+    this.cdr.detectChanges();
+  }
+
   inc() { this.form.quantidade++; }
   dec() { if (this.form.quantidade > 1) this.form.quantidade--; }
 
@@ -271,20 +310,22 @@ export class AgendamentoComponent implements OnInit {
   }
 
   getFilialNome(): string {
-    const f = this.filiais.find(x => x.id === this.form.filialId);
+    const f = this.filiais.find(x => Number(x.id) === Number(this.form.filialId));
     return f ? f.nome : 'Filial';
   }
 
   getCategoriaNome(): string {
-    const c = this.categorias.find(x => x.id === this.form.servicoId);
+    const c = this.categorias.find(x => Number(x.id) === Number(this.form.servicoId));
     return c ? c.nome : 'Categoria';
   }
 
   confirmar() {
+    this.erroAgendamento = null;
+    this.agendamentoConfirmado = null;
     // Fetch logged user data
     const userJson = localStorage.getItem('usuario_sgf');
     if (!userJson) {
-      alert('Usuário não identificado. Por favor, faça login novamente.');
+      this.erroAgendamento = 'Usuário não identificado. Por favor, faça login novamente.';
       this.router.navigate(['/login']);
       return;
     }
@@ -296,6 +337,8 @@ export class AgendamentoComponent implements OnInit {
 
     // Generate unique slot reference
     const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const filialSelecionada = this.filiais.find(x => Number(x.id) === Number(this.form.filialId));
+    const categoriaSelecionada = this.categorias.find(x => Number(x.id) === Number(this.form.servicoId));
 
     // Construct API payload
     const payload = {
@@ -308,19 +351,25 @@ export class AgendamentoComponent implements OnInit {
       codigo: codigo
     };
 
-    console.log('Enviando agendamento:', payload);
-
     // Dispatch request
     this.api.post<any>('/fila/agendamento', payload).subscribe({
-      next: (res) => {
-        console.log('Agendamento salvo com sucesso:', res);
+      next: (agendamento) => {
+        this.agendamentoConfirmado = {
+          filialNome: agendamento?.filial?.nome || filialSelecionada?.nome || this.getFilialNome(),
+          categoriaNome: agendamento?.servico?.nome || categoriaSelecionada?.nome || this.getCategoriaNome(),
+          quantidade: this.form.quantidade,
+          data: this.form.data,
+          mes: this.mesAtual,
+          ano: this.anoAtual,
+          hora: this.form.hora,
+        };
         this.showSuccessModal = true;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erro ao salvar agendamento:', err);
-        const msg = err.error?.message || 'Erro ao realizar agendamento. Tente novamente mais tarde.';
-        alert(msg);
+        this.erroAgendamento =
+          err.error?.message || 'Erro ao realizar agendamento. Tente novamente mais tarde.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -335,5 +384,7 @@ export class AgendamentoComponent implements OnInit {
 
   fecharModal() {
     this.showSuccessModal = false;
+    this.agendamentoConfirmado = null;
+    this.verAgendamentos();
   }
 }

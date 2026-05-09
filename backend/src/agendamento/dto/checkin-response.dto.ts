@@ -13,4 +13,7 @@ export class CheckinResponseDto {
   message!: string;
   agendamento!: AgendamentoVoucherResponseDto;
   ticket!: CheckinTicketDto;
+  senha!: string;
+  posicao!: number;
+  status!: string;
 }

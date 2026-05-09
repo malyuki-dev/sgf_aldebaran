@@ -168,4 +168,10 @@
       </aside>
     </div>
   </div>
+
+  <app-cliente-success-modal
+    *ngIf="successMessage"
+    [message]="successMessage"
+    (closed)="closeSuccessModal()"
+  ></app-cliente-success-modal>
 </section>

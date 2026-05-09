@@ -1,0 +1,58 @@
+.success-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(6px);
+}
+
+.success-dialog {
+  width: min(100%, 360px);
+  border-radius: 28px;
+  background: #fff;
+  padding: 32px 28px 28px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+}
+
+.success-icon {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h2 {
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+button {
+  width: 100%;
+  margin-top: 26px;
+  border: none;
+  border-radius: 16px;
+  background: #0099bd;
+  color: #fff;
+  padding: 15px 18px;
+  font-weight: 800;
+  cursor: pointer;
+}

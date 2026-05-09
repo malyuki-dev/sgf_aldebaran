@@ -30,7 +30,8 @@ export function toAgendamentoResponse(
     agendamento.status,
     inicio,
     state.now,
-    agendamento.status === AgendamentoStatus.REALIZADO,
+    agendamento.status === AgendamentoStatus.CHECKIN_REALIZADO ||
+      agendamento.status === AgendamentoStatus.REALIZADO,
   );
 
   return {
@@ -73,8 +74,12 @@ function normalizeStatus(
   now: Date,
   hasCheckIn: boolean,
 ): string {
-  if (hasCheckIn || rawStatus === AgendamentoStatus.REALIZADO) {
-    return AgendamentoStatus.REALIZADO;
+  if (
+    hasCheckIn ||
+    rawStatus === AgendamentoStatus.CHECKIN_REALIZADO ||
+    rawStatus === AgendamentoStatus.REALIZADO
+  ) {
+    return AgendamentoStatus.CHECKIN_REALIZADO;
   }
 
   if (

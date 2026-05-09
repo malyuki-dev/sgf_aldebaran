@@ -19,6 +19,7 @@ import { MobileProfileModule } from './mobile-profile/mobile-profile.module';
 import { NotificacaoModule } from './notificacao/notificacao.module';
 import { TaskManagementModule } from './task-management/task-management.module';
 import { AgendamentoModule } from './agendamento/agendamento.module';
+import { SenhaModule } from './senha/senha.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AgendamentoModule } from './agendamento/agendamento.module';
     NotificacaoModule,
     TaskManagementModule,
     AgendamentoModule,
+    SenhaModule,
   ],
   controllers: [],
   providers: [],

@@ -16,6 +16,7 @@ model agendamento {
   status      String  @default("PENDENTE") @db.VarChar
   codigo      String? @unique(map: "UQ_f629da6cac8eef92c24a738f772") @db.VarChar
   filial_id   Int?
+  checkinAt   DateTime? @db.Timestamp(6)
   servico     servico @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_65fbef35c493560dfa50ede21b2")
   filial      filial? @relation(fields: [filial_id], references: [id])
   senha       senha[]

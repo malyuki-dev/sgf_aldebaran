@@ -5,11 +5,14 @@ $text-main: #0F172A; // Um azul escuro quase preto
 $text-secondary: #64748B;
 $white: #FFFFFF;
 
-// Cores de Status
-$status-confirmado: #10B981;
-$status-pendente: #F59E0B;
-$status-cancelado: #EF4444;
-$status-expirado: #64748B;
+// Cores de status do cliente
+$status-blue: #0ea5e9;
+$status-orange: #f59e0b;
+$status-teal: #14b8a6;
+$status-green-strong: #16a34a;
+$status-green: #22c55e;
+$status-red: #ef4444;
+$status-gray: #475569;
 
 .page-container {
   min-height: 100vh;
@@ -65,6 +68,17 @@ $status-expirado: #64748B;
   max-width: 680px; // Harmonizado com a página de agendamento
   margin: 0 auto;
   padding: 32px 20px 40px; // Aumentado padding superior para não ter sobreposição
+}
+
+.feedback-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding: 12px 14px;
 }
 
 .appointments-list {
@@ -152,10 +166,13 @@ $status-expirado: #64748B;
     min-width: 90px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 
-    &.confirmado, &.concluido, &.realizado { background-color: $status-confirmado; }
-    &.pendente { background-color: $status-pendente; }
-    &.cancelado { background-color: $status-cancelado; }
-    &.expirado { background-color: $status-expirado; }
+    &.status-blue { background-color: $status-blue; }
+    &.status-orange { background-color: $status-orange; }
+    &.status-teal { background-color: $status-teal; }
+    &.status-green-strong { background-color: $status-green-strong; }
+    &.status-green { background-color: $status-green; }
+    &.status-red { background-color: $status-red; }
+    &.status-gray { background-color: $status-gray; }
   }
 
   .btn-evaluate {
@@ -222,8 +239,9 @@ $status-expirado: #64748B;
     }
   }
 
-  // Estilos "Dimmed" para Confirmado (conforme Imagem 1)
-  &.confirmado {
+  // Estilos "Dimmed" para agendamentos que ainda podem ser gerenciados.
+  &.confirmado,
+  &.aguardando_checkin {
     .btn-outline {
       opacity: 0.6;
       border-color: #F1F5F9;

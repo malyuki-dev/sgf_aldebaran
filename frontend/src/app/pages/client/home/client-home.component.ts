@@ -16,6 +16,12 @@ import {
   QrCode,
 } from 'lucide-angular';
 import { ApiService } from '../../../services/api.service';
+import { ClienteSuccessModalComponent } from '../components/cliente-success-modal/cliente-success-modal.component';
+import {
+  canManageAppointmentStatus,
+  ClientAppointmentStatus,
+  getAppointmentStatusInfo,
+} from '../shared/appointment-status-map';
 
 interface NextAppointmentView {
   id: number;
@@ -25,6 +31,8 @@ interface NextAppointmentView {
   horaInicio: string;
   horaFim?: string;
   status: string;
+  statusKey?: ClientAppointmentStatus;
+  statusLabel?: string;
   podeCancelar: boolean;
 }
 
@@ -37,6 +45,8 @@ interface ClientVoucherView {
   horaInicio: string;
   horaFim: string;
   status: string;
+  statusKey?: ClientAppointmentStatus;
+  statusLabel?: string;
   checkinRealizado: boolean;
 }
 
@@ -44,6 +54,7 @@ interface CheckinTicketView {
   id: number;
   numeroDisplay: string;
   status: string;
+  statusLabel?: string;
   dataCriacao: string;
   posicao: number;
   estimativa: number;
@@ -58,7 +69,7 @@ interface CheckinResponseView {
 @Component({
   selector: 'app-client-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, ClienteSuccessModalComponent],
   templateUrl: './client-home.component.html',
   styleUrls: ['./client-home.component.scss'],
 })
@@ -71,6 +82,8 @@ export class ClientHomeComponent implements OnInit {
   checkinLoading = false;
   voucherError: string | null = null;
   checkinSuccess: string | null = null;
+  successMessage: string | null = null;
+  cancelError: string | null = null;
   voucher: ClientVoucherView | null = null;
   ticket: CheckinTicketView | null = null;
 
@@ -83,6 +96,8 @@ export class ClientHomeComponent implements OnInit {
     id: number;
     podeCancelar: boolean;
     status: string;
+    statusKey: ClientAppointmentStatus;
+    statusLabel: string;
   } | null = null;
 
   private readonly mesesAbrev = [
@@ -168,8 +183,19 @@ export class ClientHomeComponent implements OnInit {
       .post<CheckinResponseView>(`/agendamentos/${this.voucher.id}/checkin`, {})
       .subscribe({
         next: (response) => {
-          this.voucher = response.agendamento;
-          this.ticket = response.ticket;
+          const voucherStatus = getAppointmentStatusInfo(
+            response.agendamento.status,
+          );
+          const ticketStatus = getAppointmentStatusInfo(response.ticket.status);
+          this.voucher = {
+            ...response.agendamento,
+            statusKey: voucherStatus.status,
+            statusLabel: voucherStatus.label,
+          };
+          this.ticket = {
+            ...response.ticket,
+            statusLabel: ticketStatus.label,
+          };
           this.checkinSuccess = response.message || 'Check-in realizado com sucesso.';
           this.checkinLoading = false;
           this.carregarDados();
@@ -187,19 +213,25 @@ export class ClientHomeComponent implements OnInit {
   confirmarCancelamento() {
     if (!this.proximoAgendamento?.id) return;
 
+    this.cancelError = null;
     this.apiService
       .patch(`/agendamentos/${this.proximoAgendamento.id}/cancelar`, {})
       .subscribe({
         next: () => {
           this.showCancelModal = false;
+          this.successMessage = 'Agendamento cancelado com sucesso.';
           this.carregarDados();
         },
         error: (err) => {
-          const message =
+          this.cancelError =
             err.error?.message || 'Erro ao cancelar agendamento. Tente novamente.';
-          alert(message);
+          this.cdr.detectChanges();
         },
       });
+  }
+
+  fecharSuccessModal() {
+    this.successMessage = null;
   }
 
   ngOnInit() {
@@ -232,6 +264,10 @@ export class ClientHomeComponent implements OnInit {
           }
 
           const dataObj = new Date(`${proximo.data}T12:00:00`);
+          const statusInfo = getAppointmentStatusInfo(
+            proximo.status,
+            new Date(`${proximo.data}T${proximo.horaInicio}:00`),
+          );
           this.proximoAgendamento = {
             titulo: proximo.categoriaNome || 'Atendimento',
             day: dataObj.getDate().toString().padStart(2, '0'),
@@ -239,8 +275,12 @@ export class ClientHomeComponent implements OnInit {
             hora: proximo.horaInicio,
             local: proximo.filialNome || 'Filial não informada',
             id: proximo.id,
-            podeCancelar: proximo.podeCancelar,
+            podeCancelar:
+              proximo.podeCancelar &&
+              canManageAppointmentStatus(statusInfo.status),
             status: proximo.status,
+            statusKey: statusInfo.status,
+            statusLabel: statusInfo.label,
           };
 
           this.cdr.detectChanges();

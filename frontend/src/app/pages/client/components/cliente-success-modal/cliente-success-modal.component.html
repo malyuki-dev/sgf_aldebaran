@@ -1,0 +1,17 @@
+<div class="success-backdrop" role="presentation">
+  <section
+    class="success-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cliente-success-title"
+  >
+    <div class="success-icon" aria-hidden="true">
+      <lucide-icon [img]="icon" size="38"></lucide-icon>
+    </div>
+
+    <h2 id="cliente-success-title">{{ title }}</h2>
+    <p>{{ message }}</p>
+
+    <button type="button" (click)="closed.emit()">OK, Entendi</button>
+  </section>
+</div>

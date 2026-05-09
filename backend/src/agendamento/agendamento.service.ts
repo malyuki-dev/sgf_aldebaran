@@ -6,10 +6,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SenhaService } from '../senha/senha.service';
 import { CancelAgendamentoResponseDto } from './dto/cancel-agendamento-response.dto';
 import { CheckinResponseDto, CheckinTicketDto } from './dto/checkin-response.dto';
 import { AgendamentoResponseDto } from './dto/agendamento-response.dto';
 import { AgendamentoVoucherResponseDto } from './dto/agendamento-voucher-response.dto';
+import { ClienteRegrasService } from './cliente-regras.service';
 import { AgendamentoFiltroStatus, AGENDAMENTO_STATUS_ATIVOS, AGENDAMENTO_STATUS_FINAIS, AgendamentoStatus } from './enums/agendamento-status.enum';
 import { buildAgendamentoDate, toAgendamentoResponse } from './mappers/agendamento-response.mapper';
 
@@ -29,6 +31,7 @@ type AgendamentoComRelacoes = {
   hora: string;
   status: string;
   codigo: string | null;
+  checkinAt?: Date | null;
   filial_id?: number | null;
   servico_id?: number;
   servico: { nome: string | null } | null;
@@ -42,6 +45,7 @@ type AgendamentoCheckinSource = AgendamentoComRelacoes & {
     id: number;
     nome: string | null;
     sigla: string;
+    prefixo?: string | null;
     prioridadePeso: number | null;
   };
 };
@@ -49,8 +53,13 @@ type AgendamentoCheckinSource = AgendamentoComRelacoes & {
 @Injectable()
 export class AgendamentoService {
   private static readonly ANTECEDENCIA_CANCELAMENTO_MINUTOS = 30;
+  private static readonly JANELA_CHECKIN_MINUTOS = 120;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly senhaService: SenhaService,
+    private readonly clienteRegrasService: ClienteRegrasService,
+  ) {}
 
   async listarMeusAgendamentos(
     clienteId: string,
@@ -141,6 +150,7 @@ export class AgendamentoService {
             id: true,
             nome: true,
             sigla: true,
+            prefixo: true,
             prioridadePeso: true,
           },
         },
@@ -166,7 +176,7 @@ export class AgendamentoService {
       );
     }
 
-    if (agendamento.status === AgendamentoStatus.REALIZADO) {
+    if (this.isCheckinRealizado(agendamento.status)) {
       throw new BadRequestException('Check-in já realizado');
     }
 
@@ -176,12 +186,13 @@ export class AgendamentoService {
       );
     }
 
-    const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
-    if (inicio.getTime() < new Date().getTime()) {
-      throw new BadRequestException(
-        'Agendamento expirado não permite check-in',
-      );
-    }
+    const agora = new Date();
+    await this.clienteRegrasService.validarCheckinCliente({
+      data: agendamento.data,
+      hora: agendamento.hora,
+      filialId: agendamento.filial_id,
+      now: agora,
+    });
 
     const ticket = await this.criarSenhaDeCheckin(
       agendamento as AgendamentoCheckinSource,
@@ -189,7 +200,10 @@ export class AgendamentoService {
 
     const atualizado = await this.prisma.agendamento.update({
       where: { id: agendamento.id },
-      data: { status: AgendamentoStatus.REALIZADO },
+      data: {
+        status: AgendamentoStatus.CHECKIN_REALIZADO,
+        checkinAt: agora,
+      },
       include: {
         servico: {
           select: { nome: true },
@@ -204,6 +218,9 @@ export class AgendamentoService {
       message: 'Check-in realizado com sucesso',
       agendamento: this.toVoucherResponse(atualizado, new Date()),
       ticket,
+      senha: ticket.numeroDisplay,
+      posicao: ticket.posicao,
+      status: ticket.status,
     };
   }
 
@@ -236,7 +253,7 @@ export class AgendamentoService {
 
     const agora = new Date();
     const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
-    const possuiCheckIn = agendamento.status === AgendamentoStatus.REALIZADO;
+    const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
     if (possuiCheckIn) {
       throw new BadRequestException(
@@ -289,73 +306,28 @@ export class AgendamentoService {
   private async criarSenhaDeCheckin(
     agendamento: AgendamentoCheckinSource,
   ): Promise<CheckinTicketDto> {
-    const configBonus = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'BONUS_PRIORIDADE_AGENDAMENTO',
-        filial_id: agendamento.filial_id || null,
-      },
+    const ticket = await this.senhaService.gerarSenhaCliente({
+      servico: agendamento.servico,
+      filialId: agendamento.filial_id,
+      agendamentoId: agendamento.id,
     });
-    const bonus = Number(configBonus?.valor) || 2;
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const totalHojeRows = await this.prisma.$queryRaw<Array<{ total: bigint }>>`
-      SELECT COUNT(*)::bigint AS total
-      FROM "senha"
-      WHERE "servico_id" = ${agendamento.servico.id}
-        AND "dataCriacao" > ${hoje}
-    `;
-    const totalHoje = Number(totalHojeRows[0]?.total || 0);
-
-    const configMod = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'MODIFICADOR_AGENDAMENTO',
-        filial_id: agendamento.filial_id || null,
-      },
-    });
-    const modificador = configMod?.valor || 'A';
-    const sequencial = (totalHoje + 1).toString().padStart(3, '0');
-    const numeroDisplay = `C-${agendamento.servico.sigla}${modificador}${sequencial}`;
-    const prioridade = (agendamento.servico.prioridadePeso || 0) + bonus;
-
-    const rows = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        numeroDisplay: string;
-        status: string;
-        dataCriacao: Date;
-        servico_id: number;
-      }>
-    >`
-      INSERT INTO "senha"
-        ("numeroDisplay", status, "servico_id", tipo, "tipoOrigem", prioridade)
-      VALUES
-        (${numeroDisplay}, 'AGUARDANDO', ${agendamento.servico.id}, 'Convencional', 'AGENDAMENTO', ${prioridade})
-      RETURNING id, "numeroDisplay", status, "dataCriacao", "servico_id"
-    `;
-
-    const ticket = rows[0];
     if (!ticket) {
       throw new BadRequestException('Não foi possível gerar a senha do check-in');
     }
 
-    const naFrenteRows = await this.prisma.$queryRaw<Array<{ total: bigint }>>`
-      SELECT COUNT(*)::bigint AS total
-      FROM "senha"
-      WHERE "servico_id" = ${ticket.servico_id}
-        AND status = 'AGUARDANDO'
-        AND id < ${ticket.id}
-    `;
-    const naFrente = Number(naFrenteRows[0]?.total || 0);
+    const fila = await this.senhaService.calcularPosicao(
+      ticket.id,
+      ticket.servico_id,
+      agendamento.filial_id,
+    );
 
     return {
       id: ticket.id,
       numeroDisplay: ticket.numeroDisplay,
       status: ticket.status,
       dataCriacao: ticket.dataCriacao,
-      posicao: naFrente + 1,
-      estimativa: (naFrente + 1) * 5,
+      posicao: fila.posicao,
+      estimativa: fila.estimativa,
     };
   }
 
@@ -373,7 +345,7 @@ export class AgendamentoService {
       horaInicio: response.horaInicio,
       horaFim: response.horaFim,
       status: response.status,
-      checkinRealizado: response.status === AgendamentoStatus.REALIZADO,
+      checkinRealizado: this.isCheckinRealizado(response.status),
     };
   }
 
@@ -424,7 +396,7 @@ export class AgendamentoService {
     now: Date,
   ): boolean {
     const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
-    const possuiCheckIn = agendamento.status === AgendamentoStatus.REALIZADO;
+    const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
     if (possuiCheckIn) {
       return false;
@@ -445,7 +417,7 @@ export class AgendamentoService {
     now: Date,
   ): boolean {
     const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
-    const possuiCheckIn = agendamento.status === AgendamentoStatus.REALIZADO;
+    const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
     return (
       possuiCheckIn ||
@@ -459,7 +431,7 @@ export class AgendamentoService {
     now: Date,
   ): boolean {
     const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
-    const possuiCheckIn = agendamento.status === AgendamentoStatus.REALIZADO;
+    const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
     if (
       possuiCheckIn ||
@@ -491,5 +463,12 @@ export class AgendamentoService {
     right: { data: string; hora: string },
   ): number {
     return this.compareAsc(right, left);
+  }
+
+  private isCheckinRealizado(status: string): boolean {
+    return (
+      status === AgendamentoStatus.CHECKIN_REALIZADO ||
+      status === AgendamentoStatus.REALIZADO
+    );
   }
 }

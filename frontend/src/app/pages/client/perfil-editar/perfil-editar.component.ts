@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -28,11 +33,13 @@ import {
 } from '../../../models/mobile-profile.model';
 import { AuthService, AuthenticatedUser } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
+import { ClienteSuccessModalComponent } from '../components/cliente-success-modal/cliente-success-modal.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-perfil-editar',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, ClienteSuccessModalComponent],
   templateUrl: './perfil-editar.component.html',
   styleUrl: './perfil-editar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,11 +67,13 @@ export class PerfilEditarComponent implements OnInit {
     null;
   protected passwordFeedback: { type: 'success' | 'error'; message: string } | null =
     null;
+  protected successMessage: string | null = null;
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
     private readonly profileService: ProfileService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.profileForm = this.formBuilder.nonNullable.group({
       nomeExibicao: ['', [Validators.required, Validators.maxLength(150)]],
@@ -114,13 +123,16 @@ export class PerfilEditarComponent implements OnInit {
 
   protected saveProfile(): void {
     this.profileFeedback = null;
+    this.successMessage = null;
     this.profileForm.markAllAsTouched();
 
     if (this.profileForm.invalid || !this.profile) {
+      this.changeDetectorRef.markForCheck();
       return;
     }
 
     this.savingProfile = true;
+    this.changeDetectorRef.markForCheck();
 
     const formValue = this.profileForm.getRawValue();
     const nomeExibicao = formValue.nomeExibicao.trim();
@@ -134,35 +146,40 @@ export class PerfilEditarComponent implements OnInit {
         : { nome: nomeExibicao }),
     };
 
-    this.profileService.updateProfile(payload).subscribe({
+    this.profileService.updateProfile(payload).pipe(
+      finalize(() => {
+        this.savingProfile = false;
+        this.changeDetectorRef.markForCheck();
+      }),
+    ).subscribe({
       next: (profile) => {
         this.profile = profile;
         this.patchProfileForm(profile);
-        this.profileFeedback = {
-          type: 'success',
-          message: 'Dados atualizados com sucesso.',
-        };
-        this.savingProfile = false;
+        this.successMessage = 'As informações foram atualizadas com sucesso.';
+        this.changeDetectorRef.markForCheck();
       },
       error: (error) => {
         this.profileFeedback = {
           type: 'error',
           message: error.error?.message || 'Não foi possível atualizar os dados.',
         };
-        this.savingProfile = false;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
   protected changePassword(): void {
     this.passwordFeedback = null;
+    this.successMessage = null;
     this.passwordForm.markAllAsTouched();
 
     if (this.passwordForm.invalid) {
+      this.changeDetectorRef.markForCheck();
       return;
     }
 
     this.savingPassword = true;
+    this.changeDetectorRef.markForCheck();
 
     const formValue = this.passwordForm.getRawValue();
     const payload: ChangeMobilePasswordPayload = {
@@ -171,21 +188,23 @@ export class PerfilEditarComponent implements OnInit {
       confirmarNovaSenha: formValue.confirmarNovaSenha,
     };
 
-    this.profileService.changePassword(payload).subscribe({
+    this.profileService.changePassword(payload).pipe(
+      finalize(() => {
+        this.savingPassword = false;
+        this.changeDetectorRef.markForCheck();
+      }),
+    ).subscribe({
       next: (response) => {
         this.passwordForm.reset();
-        this.passwordFeedback = {
-          type: 'success',
-          message: response.message || 'Senha alterada com sucesso.',
-        };
-        this.savingPassword = false;
+        this.successMessage = response.message || 'As informações foram atualizadas com sucesso.';
+        this.changeDetectorRef.markForCheck();
       },
       error: (error) => {
         this.passwordFeedback = {
           type: 'error',
           message: error.error?.message || 'Não foi possível alterar a senha.',
         };
-        this.savingPassword = false;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
@@ -330,5 +349,10 @@ export class PerfilEditarComponent implements OnInit {
 
       return senhaAtual !== novaSenha ? null : { samePassword: true };
     };
+  }
+
+  protected closeSuccessModal(): void {
+    this.successMessage = null;
+    this.changeDetectorRef.markForCheck();
   }
 }

@@ -20,7 +20,10 @@
   </header>
 
   <main class="main-content">
-    
+    <div class="feedback-error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
     <!-- Skeleton Loading (Premium) -->
     <div class="appointments-list skeleton-list" *ngIf="loading">
       <div class="card-appointment skeleton-card" *ngFor="let i of [1,2,3]">
@@ -40,7 +43,7 @@
     </div>
     <!-- Lista de Próximos -->
     <div class="appointments-list" *ngIf="activeTab === 'proximos' && !loading">
-      <div class="card-appointment" *ngFor="let a of proximos" [ngClass]="a.status.toLowerCase()">
+      <div class="card-appointment" *ngFor="let a of proximos" [ngClass]="a.statusKey.toLowerCase()">
         <div class="card-body">
           <div class="date-badge">
             <span class="day">{{ a.dia }}</span>
@@ -49,8 +52,8 @@
           <div class="info">
             <div class="title-row">
               <h3>{{ a.categoriaNome }}</h3>
-              <div class="status-badge" [ngClass]="a.status.toLowerCase()">
-                {{ a.status }}
+              <div class="status-badge" [ngClass]="a.statusColorClass">
+                {{ a.statusLabel }}
               </div>
             </div>
             <div class="detail">
@@ -91,8 +94,8 @@
           <div class="info">
             <div class="title-row">
               <h3>{{ a.categoriaNome }}</h3>
-              <div class="status-badge" [ngClass]="a.status.toLowerCase()">
-                {{ a.status === 'REALIZADO' ? 'Concluído' : a.status }}
+              <div class="status-badge" [ngClass]="a.statusColorClass">
+                {{ a.statusLabel }}
               </div>
             </div>
             <div class="detail">
@@ -104,7 +107,7 @@
               <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
             </div>
             
-            <button class="btn-evaluate" *ngIf="a.status === 'REALIZADO' || a.status === 'CONCLUIDO'">
+            <button class="btn-evaluate" *ngIf="a.statusKey === 'CONCLUIDO'">
               <lucide-angular [img]="icons.star" size="14"></lucide-angular>
               Avaliar Atendimento
             </button>
@@ -129,5 +132,11 @@
 
   <!-- Menu Sidebar -->
   <app-client-menu *ngIf="menuAberto" (close)="toggleMenu()"></app-client-menu>
+
+  <app-cliente-success-modal
+    *ngIf="successMessage"
+    [message]="successMessage"
+    (closed)="closeSuccessModal()"
+  ></app-cliente-success-modal>
 
 </div>

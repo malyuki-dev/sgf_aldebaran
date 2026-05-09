@@ -2,6 +2,7 @@ export enum AgendamentoStatus {
   ATIVO = 'ATIVO',
   PENDENTE = 'PENDENTE',
   CONFIRMADO = 'CONFIRMADO',
+  CHECKIN_REALIZADO = 'CHECKIN_REALIZADO',
   CANCELADO = 'CANCELADO',
   REALIZADO = 'REALIZADO',
   CONCLUIDO = 'CONCLUIDO',
@@ -22,7 +23,9 @@ export const AGENDAMENTO_STATUS_ATIVOS = new Set<string>([
 
 export const AGENDAMENTO_STATUS_FINAIS = new Set<string>([
   AgendamentoStatus.CANCELADO,
+  AgendamentoStatus.CHECKIN_REALIZADO,
   AgendamentoStatus.CONCLUIDO,
   AgendamentoStatus.FINALIZADO,
   AgendamentoStatus.EXPIRADO,
+  AgendamentoStatus.REALIZADO,
 ]);

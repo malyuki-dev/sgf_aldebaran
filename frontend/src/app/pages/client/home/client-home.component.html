@@ -84,7 +84,8 @@
       </div>
       <h2>Deseja mesmo cancelar?</h2>
       <p>Esta ação não pode ser desfeita e seu horário será liberado para outros clientes.</p>
-      
+      <p class="cancel-error" *ngIf="cancelError">{{ cancelError }}</p>
+
       <div class="cancel-actions">
         <button class="btn-confirm-cancel" (click)="confirmarCancelamento()">Sim, cancelar</button>
         <button class="btn-keep" (click)="fecharCancelModal()">Não, manter agendamento</button>
@@ -140,7 +141,7 @@
         <div class="checkin-success" *ngIf="checkinSuccess && ticket">
           <strong>{{ checkinSuccess }}</strong>
           <span>Sua senha: {{ ticket.numeroDisplay }}</span>
-          <span>Status: {{ ticket.status }} · Posição: {{ ticket.posicao }} · Estimativa: {{ ticket.estimativa }} min</span>
+          <span>Status: {{ ticket.statusLabel }} · Posição: {{ ticket.posicao }} · Estimativa: {{ ticket.estimativa }} min</span>
         </div>
 
         <button
@@ -161,4 +162,10 @@
       </button>
     </div>
   </div>
+
+  <app-cliente-success-modal
+    *ngIf="successMessage"
+    [message]="successMessage"
+    (closed)="fecharSuccessModal()"
+  ></app-cliente-success-modal>
 </div>

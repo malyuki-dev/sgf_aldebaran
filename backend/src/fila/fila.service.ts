@@ -9,7 +9,9 @@ import { NotificacaoService } from '../notificacao/notificacao.service';
 import { Ticket } from '@prisma/client';
 import { NotificacaoGateway } from '../notificacao/notificacao.gateway';
 import { AgendamentoService } from '../agendamento/agendamento.service';
+import { ClienteRegrasService } from '../agendamento/cliente-regras.service';
 import type { AuthenticatedUser } from '../common/interfaces/authenticated-request.interface';
+import { SenhaService } from '../senha/senha.service';
 
 @Injectable()
 export class FilaService {
@@ -18,6 +20,8 @@ export class FilaService {
     private notificacaoService: NotificacaoService,
     private notificacaoGateway: NotificacaoGateway,
     private agendamentoService: AgendamentoService,
+    private senhaService: SenhaService,
+    private clienteRegrasService: ClienteRegrasService,
   ) {}
 
   // Totem ticket generation logic
@@ -109,7 +113,7 @@ export class FilaService {
     if (agendamento.status === 'CANCELADO') {
       return { valido: false, mensagem: 'Agendamento cancelado.' };
     }
-    if (agendamento.status === 'CONFIRMADO') {
+    if (agendamento.status === 'CHECKIN_REALIZADO') {
       return { valido: false, mensagem: 'Check-in ja realizado.' };
     }
     if (agendamento.status === 'REALIZADO') {
@@ -121,55 +125,21 @@ export class FilaService {
         ? filialId
         : (agendamento.filial_id ?? null);
 
-    const configBonus = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'BONUS_PRIORIDADE_AGENDAMENTO',
-        filial_id: filialEfetiva,
-      },
-    });
-    const bonus = Number(configBonus?.valor) || 2;
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const count = await this.prisma.senha.count({
-      where: {
-        servico_id: agendamento.servico.id,
-        filial_id: filialEfetiva,
-        dataCriacao: { gt: hoje },
-      },
+    await this.clienteRegrasService.validarCheckinCliente({
+      data: agendamento.data,
+      hora: agendamento.hora,
+      filialId: filialEfetiva,
     });
 
-    const numeroSeq = (count + 1).toString().padStart(3, '0');
-    const configMod = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'MODIFICADOR_AGENDAMENTO',
-        filial_id: filialEfetiva,
-      },
-    });
-    const mod = configMod?.valor || 'A';
-    const codigoCategoria = this.obterCodigoCategoria(
-      agendamento.servico.prefixo,
-      agendamento.servico.sigla,
-    );
-
-    const numeroDisplay = `C-${codigoCategoria}${mod}${numeroSeq}`;
-
-    const senhaGerada = await this.prisma.senha.create({
-      data: {
-        numeroDisplay,
-        status: 'AGUARDANDO',
-        tipo: 'Convencional',
-        tipoOrigem: 'AGENDAMENTO',
-        prioridade: (agendamento.servico.prioridadePeso || 0) + bonus,
-        servico: { connect: { id: agendamento.servico.id } },
-        filial: filialEfetiva ? { connect: { id: filialEfetiva } } : undefined,
-        agendamento: { connect: { id: agendamento.id } },
-      },
+    const senhaGerada = await this.senhaService.gerarSenhaCliente({
+      servico: agendamento.servico,
+      filialId: filialEfetiva,
+      agendamentoId: agendamento.id,
     });
 
     await this.prisma.agendamento.update({
       where: { id: agendamento.id },
-      data: { status: 'CONFIRMADO' },
+      data: { status: 'CHECKIN_REALIZADO', checkinAt: new Date() },
     });
 
     await this.notificacaoService.criar({
@@ -285,9 +255,21 @@ export class FilaService {
     });
     const horariosOcupados = agendados.map((a) => a.hora);
 
-    return grade.map((hora) => ({
-      hora,
-      disponivel: !horariosOcupados.includes(hora),
+    const agora = new Date();
+
+    return Promise.all(grade.map(async (hora) => {
+      const horarioClienteValido =
+        await this.clienteRegrasService.isHorarioDisponivelParaAgendamento({
+          data,
+          hora,
+          filialId: fId,
+          now: agora,
+        });
+
+      return {
+        hora,
+        disponivel: !horariosOcupados.includes(hora) && horarioClienteValido,
+      };
     }));
   }
 
@@ -324,25 +306,11 @@ export class FilaService {
   async criarAgendamento(dados: any) {
     const fId = dados.filial_id ? Number(dados.filial_id) : null;
 
-    const configs = await this.prisma.configuracao.findMany({
-      where: { OR: [{ filial_id: fId }, { filial_id: null }] },
+    await this.clienteRegrasService.validarAgendamentoCliente({
+      data: dados.data,
+      hora: dados.hora,
+      filialId: fId,
     });
-    const getConfig = (chave: string, padrao: string) => {
-      const bV = configs.find((c) => c.chave === chave && c.filial_id === fId);
-      if (bV) return bV.valor;
-      const gV = configs.find((c) => c.chave === chave && c.filial_id === null);
-      return gV ? gV.valor : padrao;
-    };
-
-    const inicio = this.parseTime(getConfig('TOTEM_HORARIO_INICIO', '08:00'));
-    const fim = this.parseTime(getConfig('TOTEM_HORARIO_FIM', '18:00'));
-    const horaAtual = this.parseTime(dados.hora);
-
-    if (horaAtual < inicio || horaAtual >= fim) {
-      throw new BadRequestException(
-        'Horario fora do periodo de funcionamento da filial.',
-      );
-    }
 
     const ocupado = await this.prisma.agendamento.findFirst({
       where: {
@@ -360,12 +328,20 @@ export class FilaService {
         documento: dados.documento,
         data: dados.data,
         hora: dados.hora,
-        status: 'PENDENTE',
+        status: 'CONFIRMADO',
         codigo: dados.codigo
           ? String(dados.codigo).trim().toUpperCase()
           : null,
         servico: { connect: { id: Number(dados.servico_id) } },
         filial: fId ? { connect: { id: fId } } : undefined,
+      },
+      include: {
+        servico: {
+          select: { id: true, nome: true },
+        },
+        filial: {
+          select: { id: true, nome: true },
+        },
       },
     });
   }

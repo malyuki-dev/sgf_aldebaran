@@ -269,6 +269,17 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
   h2 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
   p { font-size: 0.95rem; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
 
+  .cancel-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    color: #b91c1c;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    width: 100%;
+  }
+
   .cancel-actions {
     width: 100%; display: flex; flex-direction: column; gap: 12px;
 

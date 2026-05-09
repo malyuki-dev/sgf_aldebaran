@@ -181,12 +181,7 @@ export class ClientConfiguracoesComponent implements OnInit {
     ).subscribe({
       next: (result) => {
         this.settings = result.settings;
-        this.feedback = {
-          type: 'success',
-          message: result.persistedRemotely
-            ? 'Preferências atualizadas com sucesso.'
-            : 'Preferências salvas neste navegador. A API de configurações ainda não respondeu.',
-        };
+        this.feedback = null;
       },
       error: (error) => {
         this.settings = previousSettings;
@@ -198,4 +193,5 @@ export class ClientConfiguracoesComponent implements OnInit {
       },
     });
   }
+
 }
