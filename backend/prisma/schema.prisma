@@ -35,6 +35,8 @@ model atendimento {
   senha               senha?    @relation(fields: [senha_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5a06e5ba080d56c2f08596fdae1")
   guiche_rel          guiche    @relation("AtendimentoGuiche", fields: [guiche], references: [id])
   operador            usuario?  @relation("AtendimentoOperador", fields: [operadorId], references: [id])
+
+  @@index([operadorId], map: "IDX_atendimento_operadorId")
 }
 
 model clientes {
@@ -69,6 +71,9 @@ model senha {
   servico        servico       @relation(fields: [servico_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c96ad536fb91e74faedac3a1eb")
   agendamento    agendamento?  @relation(fields: [agendamento_id], references: [id])
   filial         filial?       @relation(fields: [filial_id], references: [id])
+
+  @@index([agendamento_id], map: "IDX_senha_agendamento_id")
+  @@index([filial_id], map: "IDX_senha_filial_id")
 }
 
 model servico {

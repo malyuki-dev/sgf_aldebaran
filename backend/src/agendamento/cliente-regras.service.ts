@@ -5,7 +5,6 @@ import { buildAgendamentoDate } from './mappers/agendamento-response.mapper';
 @Injectable()
 export class ClienteRegrasService {
   private static readonly ANTECEDENCIA_MINIMA_AGENDAMENTO_MINUTOS = 120;
-  private static readonly JANELA_CHECKIN_MINUTOS = 120;
 
   constructor(private readonly configuracaoService: ConfiguracaoService) {}
 
@@ -99,14 +98,6 @@ export class ClienteRegrasService {
   private validarJanelaCheckin(dataHora: Date, now: Date): void {
     const inicioMs = dataHora.getTime();
     const nowMs = now.getTime();
-    const aberturaMs =
-      inicioMs - ClienteRegrasService.JANELA_CHECKIN_MINUTOS * 60 * 1000;
-
-    if (nowMs < aberturaMs) {
-      throw new BadRequestException(
-        'Check-in disponivel apenas nas 2 horas anteriores ao agendamento',
-      );
-    }
 
     if (inicioMs < nowMs) {
       throw new BadRequestException('Agendamento expirado nao permite check-in');

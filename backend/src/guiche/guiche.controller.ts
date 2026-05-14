@@ -46,6 +46,11 @@ export class GuicheController {
     return await this.guicheService.findAll(filialId ? +filialId : undefined);
   }
 
+  @Get('admin/lista')
+  async listAdminGuiches(@Query('filialId') filialId?: string) {
+    return await this.guicheService.findAllAdmin(filialId ? +filialId : undefined);
+  }
+
   @Get('operador/atual')
   async getCurrentOperatorGuiche(@Request() req: any) {
     const userId = req.user.userId;

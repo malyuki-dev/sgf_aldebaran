@@ -15,6 +15,11 @@
             Aguarde, carregando...
         </div>
 
+        <div class="empty-state" *ngIf="!loading && errorMessage">
+            <h3>Erro ao carregar</h3>
+            <p>{{ errorMessage }}</p>
+        </div>
+
         <div *ngFor="let f of filiaisAgrupadas" class="filial-section mb-8">
             <div class="section-title">
                 <lucide-icon [img]="icons.building" size="18"></lucide-icon>
@@ -54,7 +59,7 @@
             </div>
         </div>
 
-        <div class="empty-state" *ngIf="!loading && filiaisAgrupadas.length === 0">
+        <div class="empty-state" *ngIf="!loading && !errorMessage && filiaisAgrupadas.length === 0">
             <h3>Nenhuma filial encontrada</h3>
             <p>Cadastre filiais primeiro para gerenciar guichês.</p>
         </div>
@@ -99,7 +104,7 @@
 
         <div class="modal-footer">
             <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
-            <button class="btn-primary" (click)="salvar()" [disabled]="loading">
+            <button class="btn-primary" (click)="salvar()" [disabled]="loading || saving">
                 <lucide-icon [img]="icons.check" size="18"></lucide-icon>
                 {{ editando ? 'Salvar' : 'Cadastrar' }}
             </button>

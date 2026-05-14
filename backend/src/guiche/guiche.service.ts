@@ -132,6 +132,29 @@ export class GuicheService {
     });
   }
 
+  async findAllAdmin(filialId?: number) {
+    return await this.prisma.guiche.findMany({
+      where: {
+        deletadoEm: null,
+        filial_id: filialId ?? undefined,
+        filial: {
+          ativo: true,
+          deletadoEm: null,
+        },
+      },
+      include: {
+        filial: true,
+        operadorAtual: {
+          select: {
+            id: true,
+            nome: true,
+          },
+        },
+      },
+      orderBy: [{ filial: { nome: 'asc' } }, { numero: 'asc' }],
+    });
+  }
+
   async findOne(id: number) {
     const g = await this.prisma.guiche.findUnique({
       where: { id },

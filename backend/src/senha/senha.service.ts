@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 type ServicoSenha = {
   id: number;
+  nome?: string | null;
   sigla?: string | null;
   prefixo?: string | null;
   prioridadePeso?: number | null;
@@ -24,20 +25,19 @@ export class SenhaService {
 
   async gerarSenhaAgendamento(params: GerarSenhaAgendamentoParams) {
     const filialId = params.filialId ?? null;
-    const configBonus = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'BONUS_PRIORIDADE_AGENDAMENTO',
-        filial_id: filialId,
-      },
-    });
+    const configBonus = await this.buscarConfiguracaoComFallback(
+      'BONUS_PRIORIDADE_AGENDAMENTO',
+      filialId,
+    );
     const bonus = Number(configBonus?.valor) || 2;
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    const configZerar = await this.prisma.configuracao.findFirst({
-      where: { chave: 'DATA_ZERAR_FILA', filial_id: filialId },
-    });
+    const configZerar = await this.buscarConfiguracaoComFallback(
+      'DATA_ZERAR_FILA',
+      filialId,
+    );
     const dataZerar = configZerar ? new Date(configZerar.valor) : hoje;
     const effectiveStart = dataZerar > hoje ? dataZerar : hoje;
 
@@ -49,16 +49,15 @@ export class SenhaService {
       },
     });
 
-    const configMod = await this.prisma.configuracao.findFirst({
-      where: {
-        chave: 'MODIFICADOR_AGENDAMENTO',
-        filial_id: filialId,
-      },
-    });
+    const configMod = await this.buscarConfiguracaoComFallback(
+      'MODIFICADOR_AGENDAMENTO',
+      filialId,
+    );
     const modificador = configMod?.valor || 'A';
     const codigoCategoria = this.obterCodigoCategoria(
       params.servico.prefixo,
       params.servico.sigla,
+      params.servico.nome,
     );
     const sequencial = (count + 1).toString().padStart(3, '0');
     const numeroDisplay = `C-${codigoCategoria}${modificador}${sequencial}`;
@@ -102,9 +101,50 @@ export class SenhaService {
     };
   }
 
-  private obterCodigoCategoria(prefixo?: string | null, sigla?: string | null): string {
-    const base = (prefixo?.trim() || sigla?.trim() || 'XX').toUpperCase();
-    const codigo = base.replace(/[^A-Z0-9]/g, '');
+  private async buscarConfiguracaoComFallback(chave: string, filialId: number | null) {
+    const configs = await this.prisma.configuracao.findMany({
+      where: {
+        chave,
+        OR: [{ filial_id: filialId }, { filial_id: null }],
+      },
+    });
+
+    return (
+      configs.find((config) => config.filial_id === filialId) ||
+      configs.find((config) => config.filial_id === null) ||
+      null
+    );
+  }
+
+  private obterCodigoCategoria(
+    prefixo?: string | null,
+    sigla?: string | null,
+    nome?: string | null,
+  ): string {
+    const base =
+      prefixo?.trim() ||
+      sigla?.trim() ||
+      this.gerarCodigoPorNome(nome) ||
+      'XX';
+    const codigo = base.toUpperCase().replace(/[^A-Z0-9]/g, '');
     return codigo || 'XX';
+  }
+
+  private gerarCodigoPorNome(nome?: string | null): string {
+    const palavras = String(nome || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .split(/\s+/)
+      .map((parte) => parte.replace(/[^a-zA-Z0-9]/g, ''))
+      .filter(Boolean);
+
+    if (palavras.length >= 2) {
+      return palavras
+        .slice(0, 2)
+        .map((parte) => parte[0])
+        .join('');
+    }
+
+    return palavras[0]?.slice(0, 2) || '';
   }
 }

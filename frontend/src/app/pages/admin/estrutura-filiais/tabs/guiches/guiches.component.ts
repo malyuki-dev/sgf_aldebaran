@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../../services/api.service';
 import { LucideAngularModule, Plus, Edit2, Trash2, Power, X, Building, Check, Layout } from 'lucide-angular';
 import { ActivatedRoute } from '@angular/router';
+import { finalize, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-guiches',
@@ -17,20 +18,20 @@ export class GuichesComponent implements OnInit {
   guichesRaw: any[] = [];
   filiaisAgrupadas: any[] = [];
   loading = false;
+  saving = false;
+  errorMessage = '';
   selectedFilialId: number | null = null;
 
-  // Modais State
   showModal = false;
   editando = false;
   showConfirmDelete = false;
   showSuccessModal = false;
 
-  // Modal Form (Guiche)
   form: any = {
     id: null,
     nome: '',
     filial_id: null,
-    status: 'Ativo' // Will map to 'ativo' boolean: Ativo=true, Inativo=false
+    status: 'Ativo'
   };
 
   guicheParaExcluir: any = null;
@@ -47,7 +48,6 @@ export class GuichesComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // Escuta mudanças de queryParams em toda a rota (inclusive no pai)
     this.route.queryParamMap.subscribe(params => {
       const fid = params.get('filialId');
       this.selectedFilialId = fid ? Number(fid) : null;
@@ -57,46 +57,47 @@ export class GuichesComponent implements OnInit {
 
   carregarDados() {
     this.loading = true;
-    // Fetch both filiais and guichês
-    this.api.get<any[]>('/filiais').subscribe({
-      next: (filiais) => {
-        this.filiais = filiais;
-        const filialQuery = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
-        this.api.get<any[]>(`/guiches${filialQuery}`).subscribe({
-          next: (guiches) => {
-            this.guichesRaw = guiches;
-            this.agruparGuiches();
-            this.loading = false;
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error(err);
-            this.loading = false;
-          }
-        });
+    this.errorMessage = '';
+
+    forkJoin({
+      filiais: this.api.get<any[]>('/filiais'),
+      guiches: this.api.get<any[]>(
+        '/guiches/admin/lista',
+        this.selectedFilialId ? { filialId: this.selectedFilialId } : undefined,
+      ),
+    }).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: ({ filiais, guiches }) => {
+        this.filiais = filiais || [];
+        this.guichesRaw = guiches || [];
+        this.agruparGuiches();
       },
       error: (err) => {
         console.error(err);
-        this.loading = false;
-      }
+        this.errorMessage = 'Nao foi possivel carregar os guiches desta filial. Tente novamente.';
+        this.filiais = [];
+        this.guichesRaw = [];
+        this.filiaisAgrupadas = [];
+      },
     });
   }
 
   agruparGuiches() {
-    // Filtramos primeiro as filiais pela seleção atual
     this.filiaisAgrupadas = this.filiais
       .filter(f => {
         const ativo = f.ativo;
-        const correspondeFiltro = !this.selectedFilialId || f.id === this.selectedFilialId;
+        const correspondeFiltro =
+          !this.selectedFilialId || Number(f.id) === Number(this.selectedFilialId);
         return ativo && correspondeFiltro;
       })
-      .map(f => {
-        return {
-          ...f,
-          guiches: this.guichesRaw.filter(g => g.filial_id === f.id)
-        };
-      })
-      .filter(f => f.guiches.length > 0 || !this.loading);
+      .map(f => ({
+        ...f,
+        guiches: this.guichesRaw.filter(g => Number(g.filial_id) === Number(f.id))
+      }));
   }
 
   abrirModal(guiche?: any) {
@@ -133,35 +134,37 @@ export class GuichesComponent implements OnInit {
 
   salvar() {
     if (!this.form.nome || !this.form.filial_id) {
-      return alert("Todos os campos obrigatórios (*) devem ser preenchidos.");
+      return alert('Todos os campos obrigatorios (*) devem ser preenchidos.');
     }
 
-    this.loading = true;
+    this.saving = true;
     const valorCanonico = String(this.form.nome).replace(/^Guich[êe]\s*/i, '').trim();
 
-    // Map status back to ativo boolean for API
     const payload = {
       ...this.form,
       ativo: this.form.status === 'Ativo',
       nome: valorCanonico,
-      numero: valorCanonico // Use name as number for compatibility if backend requires it
+      numero: valorCanonico
     };
 
     const request = this.editando
       ? this.api.patch(`/guiches/${payload.id}`, payload)
       : this.api.post('/guiches', payload);
 
-    request.subscribe({
+    request.pipe(
+      finalize(() => {
+        this.saving = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
       next: () => {
         this.fecharModal();
-        this.carregarDados();
         this.showSuccessModal = true;
-        this.loading = false;
+        this.carregarDados();
         this.cdr.detectChanges();
       },
       error: (err) => {
-        alert("Erro: " + (err.error?.message || "Erro desconhecido"));
-        this.loading = false;
+        alert('Erro: ' + (err.error?.message || 'Erro desconhecido'));
         this.cdr.detectChanges();
       }
     });
@@ -172,23 +175,33 @@ export class GuichesComponent implements OnInit {
   }
 
   toggleStatus(item: any) {
-    this.api.patch(`/guiches/${item.id}`, { ativo: !item.ativo }).subscribe(() => {
-      this.carregarDados();
-      this.cdr.detectChanges();
+    this.api.patch(`/guiches/${item.id}`, { ativo: !item.ativo }).subscribe({
+      next: () => {
+        this.carregarDados();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        alert('Erro: ' + (err.error?.message || 'Erro desconhecido'));
+      }
     });
   }
 
   excluir(id: number) {
-    this.guicheParaExcluir = this.guichesRaw.find(g => g.id === id);
+    this.guicheParaExcluir = this.guichesRaw.find(g => Number(g.id) === Number(id));
     this.showConfirmDelete = true;
   }
 
   confirmarExclur() {
     if (this.guicheParaExcluir) {
-      this.api.delete(`/guiches/${this.guicheParaExcluir.id}`).subscribe(() => {
-        this.carregarDados();
-        this.fecharConfirmacao();
-        this.cdr.detectChanges();
+      this.api.delete(`/guiches/${this.guicheParaExcluir.id}`).subscribe({
+        next: () => {
+          this.carregarDados();
+          this.fecharConfirmacao();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          alert('Erro: ' + (err.error?.message || 'Erro desconhecido'));
+        }
       });
     }
   }

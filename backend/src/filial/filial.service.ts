@@ -39,7 +39,14 @@ export class FilialService {
       where: { deletadoEm: null },
       include: {
         _count: {
-          select: { guiches: true },
+          select: {
+            guiches: {
+              where: {
+                deletadoEm: null,
+                ativo: true,
+              },
+            },
+          },
         },
       },
       orderBy: { id: 'asc' },

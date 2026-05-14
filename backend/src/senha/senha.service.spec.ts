@@ -14,10 +14,10 @@ describe('SenhaService', () => {
 
   it('gera senha de agendamento usando o mesmo padrao e sequencia por filial', async () => {
     const dataCriacao = new Date('2099-01-01T10:00:00');
-    prisma.configuracao.findFirst
-      .mockResolvedValueOnce({ valor: '2' } as never)
-      .mockResolvedValueOnce(null as never)
-      .mockResolvedValueOnce({ valor: 'A' } as never);
+    prisma.configuracao.findMany
+      .mockResolvedValueOnce([{ valor: '2', filial_id: 1 }] as never)
+      .mockResolvedValueOnce([] as never)
+      .mockResolvedValueOnce([{ valor: 'A', filial_id: 1 }] as never);
     prisma.senha.count.mockResolvedValue(44);
     prisma.senha.create.mockResolvedValue({
       id: 10,
@@ -34,7 +34,7 @@ describe('SenhaService', () => {
     } as never);
 
     const result = await service.gerarSenhaCliente({
-      servico: { id: 2, sigla: 'RP', prefixo: 'RP', prioridadePeso: 1 },
+      servico: { id: 2, nome: 'Retirada Pesada', sigla: 'RP', prefixo: 'RP', prioridadePeso: 1 },
       filialId: 1,
       agendamentoId: 7,
     });
@@ -58,5 +58,42 @@ describe('SenhaService', () => {
       }),
     );
     expect(result.numeroDisplay).toBe('C-RPA045');
+  });
+
+  it('usa configuracao global e deriva codigo pelo nome quando prefixo e sigla estao vazios', async () => {
+    const dataCriacao = new Date('2099-01-01T10:00:00');
+    prisma.configuracao.findMany
+      .mockResolvedValueOnce([{ valor: '2', filial_id: null }] as never)
+      .mockResolvedValueOnce([] as never)
+      .mockResolvedValueOnce([{ valor: 'EM', filial_id: null }] as never);
+    prisma.senha.count.mockResolvedValue(0);
+    prisma.senha.create.mockResolvedValue({
+      id: 11,
+      numeroDisplay: 'C-CAEM001',
+      status: 'AGUARDANDO',
+      dataCriacao,
+      servico_id: 6,
+      filial_id: 1,
+      agendamento_id: 8,
+      tipo: 'Convencional',
+      tipoOrigem: 'AGENDAMENTO',
+      prioridade: 3,
+      qtdeGarrafoes: 0,
+    } as never);
+
+    const result = await service.gerarSenhaCliente({
+      servico: { id: 6, nome: 'Caminhão', sigla: '', prefixo: null, prioridadePeso: 1 },
+      filialId: 1,
+      agendamentoId: 8,
+    });
+
+    expect(prisma.senha.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          numeroDisplay: 'C-CAEM001',
+        }),
+      }),
+    );
+    expect(result.numeroDisplay).toBe('C-CAEM001');
   });
 });
