@@ -171,7 +171,20 @@ export class SupervisorDashboardComponent implements OnInit {
       headers: new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('token')}`)
     }).subscribe({
       next: (data) => {
-        this.filiais = data;
+        const usuarioRaw = localStorage.getItem('usuario_sgf');
+        let usuarioFilialId: number | null = null;
+        if (usuarioRaw) {
+          try {
+            const usuario = JSON.parse(usuarioRaw);
+            usuarioFilialId = usuario.filial_id || null;
+          } catch {}
+        }
+
+        if (usuarioFilialId) {
+          this.filiais = data.filter((f: any) => f.id === usuarioFilialId);
+        } else {
+          this.filiais = data;
+        }
       },
       error: (err) => console.error('Erro ao carregar filiais:', err)
     });

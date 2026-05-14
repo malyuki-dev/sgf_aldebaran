@@ -173,7 +173,7 @@ export class UsuariosComponent implements OnInit {
                 perfil: this.usuarioForm.perfil,
                 filial_id: this.usuarioForm.filial_id
             };
-            this.api.patch(`/usuarios/${this.usuarioForm.id}`, payload).subscribe({
+            this.api.put(`/usuarios/${this.usuarioForm.id}`, payload).subscribe({
                 next: () => {
                     this.showModal = false;
                     this.successMessage = 'Usuário atualizado com sucesso.';

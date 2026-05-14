@@ -890,6 +890,11 @@
 .modal-content.modal-transferir {
   max-width: 600px;
 }
+.modal-content.redesign-modal {
+  max-width: 800px;
+  width: 90%;
+}
+
 .modal-nao-compareceu {
   max-width: 375px;
 }
@@ -1896,4 +1901,146 @@
   padding: 2px 8px;
   border-radius: 6px;
   display: inline-block;
+}
+
+// =======================================================
+// MODAIS REDESIGN — copiado pixel-perfect do supervisor
+// =======================================================
+
+$text-main: #1f2937;
+$text-secondary: #6b7280;
+$border-light: #e5e7eb;
+$blue-main: #3b82f6;
+$blue-light-text: #0ea5e9;
+$teal-main: #14b8a6;
+
+.redesign-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%; max-width: 800px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column;
+
+  .modal-header-gradient {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+    color: white;
+
+    .modal-title-area {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .modal-icon-container {
+      width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    h2 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+
+    .close-btn-ghost {
+      background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: white; transition: background 0.2s;
+      &:hover { background: rgba(255,255,255,0.3); }
+    }
+  }
+
+  .modal-body {
+    padding: 24px;
+    background: white;
+    text-align: left;
+    form { display: flex; flex-direction: column; gap: 20px; }
+  }
+
+  .modal-footer-gradient {
+    display: flex; justify-content: flex-end; gap: 12px;
+    padding: 20px 24px; background: #f9fafb; border-top: 1px solid $border-light;
+    .w-full { width: 100%; justify-content: center; }
+  }
+
+  .btn-ghost, .btn-solid-blue, .btn-solid-teal {
+    padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  .btn-ghost { background: transparent; color: $text-secondary; &:hover { color: $text-main; background: #f3f4f6; } }
+  .btn-solid-blue { background: $blue-light-text; color: white; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); &:hover { background: #0284c7; } }
+  .btn-solid-teal { background: $teal-main; color: white; box-shadow: 0 2px 4px rgba(20, 184, 166, 0.2); &:hover { background: #0f766e; } }
+
+  .agendamentos-table-wrapper {
+    overflow-x: hidden;
+    padding: 0;
+  }
+
+  .agendamentos-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.85rem;
+    table-layout: fixed;
+
+    th {
+      text-align: left; padding: 12px 10px; border-bottom: 2px solid $border-light;
+      color: $text-secondary; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    
+    td {
+      padding: 12px 10px; border-bottom: 1px solid $border-light; color: $text-main;
+      vertical-align: middle;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Distribuição de larguras para caber 7 colunas em ~800px */
+    th:nth-child(1), td:nth-child(1) { width: 12%; } /* Senha */
+    th:nth-child(2), td:nth-child(2) { width: 22%; } /* Cliente */
+    th:nth-child(3), td:nth-child(3) { width: 18%; } /* Categoria/Horario */
+    th:nth-child(4), td:nth-child(4) { width: 15%; } /* Operador */
+    th:nth-child(5), td:nth-child(5) { width: 10%; } /* Espera */
+    th:nth-child(6), td:nth-child(6) { width: 15%; } /* Status */
+    th:last-child, td:last-child { width: 8%; text-align: center; overflow: visible; } /* Ações */
+
+    tr:last-child td { border-bottom: 0; }
+
+    .table-senha strong { font-size: 0.85rem; }
+
+    .status-pill {
+      padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+      white-space: nowrap; display: inline-block;
+      &.aguardando { background: #f3f4f6; color: $text-secondary; }
+      &.em-atendimento { background: #dbeafe; color: #1d4ed8; }
+      &.atrasado { background: #fee2e2; color: #dc2626; }
+      &.confirmado { background: #dcfce7; color: #16a34a; }
+      &.pendente { background: #fef9c3; color: #ca8a04; }
+      &.cancelado { background: #fee2e2; color: #dc2626; }
+    }
+
+    .actions-cell {
+      display: flex; gap: 8px; align-items: center;
+      .btn-icon {
+        width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+        &.text-blue { color: #2563eb; &:hover { background: #dbeafe; } }
+        &.text-green { color: #16a34a; &:hover { background: #dcfce7; } }
+        &.text-red { color: #dc2626; &:hover { background: #fee2e2; } }
+      }
+    }
+  }
+}
+
+// Detalhe do Atendimento
+.detalhe-atend {
+  .detalhe-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid #e5e7eb;
+    &:last-child { border-bottom: none; }
+  }
+  .detalhe-label { color: #6b7280; font-weight: 500; font-size: 0.9rem; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }

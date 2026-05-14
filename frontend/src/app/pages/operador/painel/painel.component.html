@@ -131,7 +131,7 @@
               </div>
               <div class="info-card">
                 <p class="info-label">Espera</p>
-                <p class="info-value">8 minutos</p>
+                <p class="info-value">{{ ticketAtual.tempoEsperaReal || '0 min' }}</p>
               </div>
               <div class="info-card highlight-card">
                 <div class="garrafoes-label">Quantidade de Garrafões 20 L <img src="assets/Vector (1).svg" /></div>
@@ -508,6 +508,185 @@
   </div>
 </div>
 
+<!-- MODAL: Meus Atendimentos -->
+<div class="modal-overlay" *ngIf="modalAberto === 'atendimentos'">
+  <div class="modal-content redesign-modal">
+    <div class="modal-header-gradient">
+      <div class="modal-title-area">
+        <div class="modal-icon-container">
+          <lucide-icon [img]="icons.history" size="24"></lucide-icon>
+        </div>
+        <h2>Atendimentos em Andamento</h2>
+      </div>
+      <button class="close-btn-ghost" (click)="fecharModal()">
+        <lucide-icon [img]="icons.close" size="20"></lucide-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="agendamentos-table-wrapper">
+        <table class="agendamentos-table">
+          <thead>
+            <tr>
+              <th>Senha</th><th>Cliente</th><th>Categoria</th><th>Operador</th><th>Espera</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let atend of atendimentosList">
+              <td class="table-senha"><strong>{{ atend.ticket }}</strong></td>
+              <td>{{ atend.cliente }}</td>
+              <td>{{ atend.categoria }}</td>
+              <td>{{ atend.operador }}</td>
+              <td><span>{{ atend.tempoEspera }}</span></td>
+              <td><span class="status-pill" [ngClass]="atend.status.toLowerCase().replace(' ', '-')">{{ atend.status }}</span></td>
+              <td><button class="btn-icon text-blue" (click)="verAtendimento(atend)"><lucide-icon [img]="icons.eye" size="16"></lucide-icon></button></td>
+            </tr>
+            <tr *ngIf="atendimentosList.length === 0">
+              <td colspan="7" style="text-align:center;padding:20px;">Nenhum atendimento registrado.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer-gradient">
+      <button class="btn-solid-blue w-full" (click)="fecharModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Agendamentos -->
+<div class="modal-overlay" *ngIf="modalAberto === 'agendamentos'">
+  <div class="modal-content redesign-modal">
+    <div class="modal-header-gradient">
+      <div class="modal-title-area">
+        <div class="modal-icon-container">
+          <lucide-icon [img]="icons.calendar" size="24"></lucide-icon>
+        </div>
+        <h2>Agendamentos do Dia</h2>
+      </div>
+      <button class="close-btn-ghost" (click)="fecharModal()">
+        <lucide-icon [img]="icons.close" size="20"></lucide-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="agendamentos-table-wrapper">
+        <table class="agendamentos-table">
+          <thead>
+            <tr>
+              <th>Senha</th><th>Cliente</th><th>Horário</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let agenda of agendamentos">
+              <td class="table-senha"><strong>{{ agenda.senha }}</strong></td>
+              <td>{{ agenda.cliente || agenda.transportadora || '-' }}</td>
+              <td>{{ agenda.horario }}</td>
+              <td><span class="status-pill" [ngClass]="agenda.status.toLowerCase()">{{ agenda.status }}</span></td>
+              <td>
+                <div class="actions-cell">
+                  <button class="btn-icon text-green" title="Confirmar presença" (click)="confirmarPresencaAgendamento(agenda)"><lucide-icon [img]="icons.check" size="16"></lucide-icon></button>
+                  <button class="btn-icon text-red" title="Cancelar agendamento" (click)="cancelarAgendamento(agenda)"><lucide-icon [img]="icons.x" size="16"></lucide-icon></button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="agendamentos.length === 0">
+              <td colspan="5" style="text-align:center;padding:20px;">Nenhum agendamento para hoje.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer-gradient">
+      <button class="btn-solid-blue w-full" (click)="fecharModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Detalhe do Atendimento -->
+<div class="modal-overlay" *ngIf="atendimentoSelecionado && !showJustificativaModal">
+  <div class="modal-content redesign-modal" style="max-width: 500px;">
+    <div class="modal-header-gradient">
+      <div class="modal-title-area">
+        <div class="modal-icon-container">
+          <lucide-icon [img]="icons.alert" size="24"></lucide-icon>
+        </div>
+        <h2>Detalhe do Atendimento</h2>
+      </div>
+      <button class="close-btn-ghost" (click)="fecharAtendimentoDetalhe()">
+        <lucide-icon [img]="icons.close" size="20"></lucide-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="detalhe-atend">
+        <div class="detalhe-row">
+          <span class="detalhe-label">Senha</span>
+          <strong>{{ atendimentoSelecionado?.ticket }}</strong>
+        </div>
+        <div class="detalhe-row">
+          <span class="detalhe-label">Cliente</span>
+          <span>{{ atendimentoSelecionado?.cliente }}</span>
+        </div>
+        <div class="detalhe-row">
+          <span class="detalhe-label">Categoria</span>
+          <span>{{ atendimentoSelecionado?.categoria }}</span>
+        </div>
+        <div class="detalhe-row">
+          <span class="detalhe-label">Operador</span>
+          <span>{{ atendimentoSelecionado?.operador }}</span>
+        </div>
+        <div class="detalhe-row">
+          <span class="detalhe-label">Tempo de Espera</span>
+          <span>{{ atendimentoSelecionado?.tempoEspera }}</span>
+        </div>
+        <div class="detalhe-row">
+          <span class="detalhe-label">Status</span>
+          <span class="status-pill" [ngClass]="atendimentoSelecionado?.status?.toLowerCase().replace(' ', '-')">{{ atendimentoSelecionado?.status }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer-gradient">
+      <button class="btn-ghost" (click)="fecharAtendimentoDetalhe()">Fechar</button>
+      <button class="btn-solid-blue" (click)="abrirJustificativa()">Justificar Demora</button>
+    </div>
+  </div>
+</div>
 
 
-  
+<!-- MODAL: Justificar Demora -->
+<div class="modal-overlay" *ngIf="showJustificativaModal">
+  <div class="modal-content redesign-modal">
+    <div class="modal-header-gradient">
+      <div class="modal-title-area">
+        <div class="modal-icon-container">
+          <lucide-icon [img]="icons.fileText" size="24"></lucide-icon>
+        </div>
+        <h2>Justificar Demora</h2>
+      </div>
+      <button class="close-btn-ghost" (click)="fecharAtendimentoDetalhe()">
+        <lucide-icon [img]="icons.x" size="20"></lucide-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="justificativaForm">
+        <div class="form-group full-width">
+          <label>Motivo <span>*</span></label>
+          <select formControlName="motivo">
+            <option value="">Selecione um motivo...</option>
+            <option value="alto_volume">Alto volume de atendimentos</option>
+            <option value="problema_tecnico">Problema tecnico</option>
+            <option value="cliente_dificultando">Cliente dificultando atendimento</option>
+            <option value="falta_operador">Falta de operador</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>Observacoes Adicionais</label>
+          <textarea formControlName="observacoes" placeholder="Descreva mais detalhes sobre a situacao..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer-gradient">
+      <button class="btn-ghost" (click)="fecharAtendimentoDetalhe()">Cancelar</button>
+      <button class="btn-solid-blue" (click)="salvarJustificativa()" [disabled]="justificativaForm.invalid">Salvar</button>
+    </div>
+  </div>
+</div>

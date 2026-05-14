@@ -111,7 +111,12 @@ export class CategoriasFilaComponent implements OnInit {
     
     this.loading = true;
     const payload = {
-      ...this.formCategoria,
+      id: this.formCategoria.id,
+      nome: this.formCategoria.nome,
+      prefixo: this.formCategoria.prefixo,
+      tipo: this.formCategoria.tipo,
+      cor: this.formCategoria.cor,
+      ativo: this.formCategoria.ativo,
       filial_id: this.formCategoria.filial_id ? Number(this.formCategoria.filial_id) : null
     };
 

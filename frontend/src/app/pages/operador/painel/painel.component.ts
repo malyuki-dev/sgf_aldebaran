@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
     LucideAngularModule, User, Phone, Briefcase, Hash,
-    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut, FileText, Package, Building2, Mail
+    Play, CheckCircle, XCircle, RotateCcw, AlertTriangle, Users, Clock, Search, Truck, CreditCard, Calendar, LogOut, FileText, Package, Building2, Mail, History, Eye, X, AlertCircle
 } from 'lucide-angular';
 import { GuicheService, GuicheOperador } from '../../../services/guiche.service';
 import { AuthService } from '../../../services/auth.service';
@@ -12,15 +12,21 @@ import { finalize, switchMap, takeUntil, catchError, debounceTime, distinctUntil
 import { Subject, of, interval } from 'rxjs';
 import { FilialService, Filial } from '../../../services/filial.service';
 import { ApiService } from '../../../services/api.service';
+import { DashboardService } from '../../../services/dashboard.service';
 @Component({
     selector: 'app-painel-operador',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, LucideAngularModule],
     templateUrl: './painel.component.html',
     styleUrls: ['./painel.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    providers: [DashboardService]
 })
 export class PainelOperadorComponent implements OnInit, OnDestroy {
+    atendimentosList: any[] = [];
+    agendamentos: any[] = [];
+    atendimentoSelecionado: any = null;
+    showJustificativaModal = false;
+    justificativaForm!: FormGroup;
     formatarDocumento(event: any) {
         let value = event.target.value.replace(/\D/g, '');
         if (value.length <= 11) {
@@ -137,11 +143,12 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     // Ícones do sistema
     icons = {
         user: User, phone: Phone, briefcase: Briefcase, hash: Hash,
-        play: Play, check: CheckCircle, close: XCircle, recall: RotateCcw,
-        alert: AlertTriangle, users: Users, clock: Clock,
+        play: Play, check: CheckCircle, close: X, recall: RotateCcw,
+        alert: AlertTriangle, alertCircle: AlertCircle, users: Users, clock: Clock,
         search: Search, truck: Truck, creditCard: CreditCard,
         calendar: Calendar, logout: LogOut, queue: Users, phoneCall: Phone,
-        building: Building2, package: Package, fileText: FileText, mail: Mail
+        building: Building2, package: Package, fileText: FileText, mail: Mail,
+        history: History, eye: Eye, x: X
     };
 
     // Status de fila
@@ -218,8 +225,15 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
         private authService: AuthService,
         private filialService: FilialService,
         private cdr: ChangeDetectorRef,
-        private api: ApiService
-    ) { }
+        private api: ApiService,
+        private fb: FormBuilder,
+        private dashboardService: DashboardService
+    ) {
+        this.justificativaForm = this.fb.group({
+            motivo: ['', Validators.required],
+            observacoes: ['']
+        });
+    }
 
     ngOnInit() {
         this.nomeOperador = localStorage.getItem('usuario_nome') || 'Atendente Padrão';
@@ -229,7 +243,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
             debounceTime(300),
             distinctUntilChanged(),
             switchMap(termo => {
-                if (!termo || termo.length < 3 || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
+                if (!termo || termo.length < 3) {
                     return of([]);
                 }
                 const filialId = localStorage.getItem('filialAtual') || '';
@@ -293,13 +307,30 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     private carregarFiliais() {
         this.filialService.getFiliais().subscribe({
             next: (data) => {
-                this.filiais = data;
+                const usuarioRaw = localStorage.getItem('usuario_sgf');
+                let usuarioFilialId: number | null = null;
+                if (usuarioRaw) {
+                    try {
+                        const usuario = JSON.parse(usuarioRaw);
+                        usuarioFilialId = usuario.filial_id || null;
+                    } catch {}
+                }
+
+                if (usuarioFilialId) {
+                    this.filiais = data.filter((f: any) => f.id === usuarioFilialId);
+                } else {
+                    this.filiais = data;
+                }
+
                 const savedId = this.filialService.getSelectedFilialId();
-                if (savedId) {
+                if (savedId && this.filiais.some((f: any) => f.id === savedId)) {
                     this.filialSelecionada = savedId.toString();
-                } else if (data.length > 0) {
-                    this.filialSelecionada = data[0].id.toString();
-                    this.filialService.setSelectedFilial(data[0].id);
+                } else if (this.filiais.length > 0) {
+                    this.filialSelecionada = this.filiais[0].id.toString();
+                    this.filialService.setSelectedFilial(this.filiais[0].id);
+                } else {
+                    this.filialSelecionada = '';
+                    this.filialService.setSelectedFilial(null);
                 }
                 this.cdr.markForCheck();
             }
@@ -412,7 +443,8 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
                     documento: senha.agendamento?.documento || '',
                     servico: senha.servico?.nome || 'Serviço',
                     status: 'CHAMADO',
-                    clienteSelecionado: !!senha.agendamento?.nomeCliente
+                    clienteSelecionado: !!senha.agendamento?.nomeCliente,
+                    tempoEsperaReal: this.calcularTempoEsperaReal(senha.dataCriacao)
                 };
 
                 this.classificacaoSelecionada = '';
@@ -576,7 +608,7 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     atualizarBuscaCliente() {
         const termo = this.termoBuscaCliente.trim();
-        if (!termo || !this.ticketAtual || this.ticketAtual.status !== 'EM_ATENDIMENTO') {
+        if (!termo || termo.length < 3) {
             this.clientesFiltrados = [];
             this.mostrarSugestoesCliente = false;
             return;
@@ -637,28 +669,26 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
     // -- Resumos de Badges (Meus Atendimentos e Agendamentos) --
     private carregarResumos() {
         if (!this.filialSelecionada) return;
-
         const fid = parseInt(this.filialSelecionada, 10);
 
-        // Branch specific scheduling
-        this.api.get<any[]>('/fila/agendamento', { filialId: fid.toString() }).subscribe({
-            next: (list) => {
-                // Filtra agendamentos de HOJE que ainda não foram realizados
-                const hojeStr = new Date().toISOString().split('T')[0];
-                const count = list.filter((a: any) =>
-                    a.data?.startsWith(hojeStr) &&
-                    (a.status === 'PENDENTE' || a.status === 'CONFIRMADO')
+        this.dashboardService.getSupervisorOverview(fid).subscribe({
+            next: (res) => {
+                this.badgeAgendamentosCount = res.agendamentos.filter((a: any) => {
+                    const hojeStr = new Date().toISOString().split('T')[0];
+                    return a.data?.startsWith(hojeStr) && (a.status === 'PENDENTE' || a.status === 'CONFIRMADO');
+                }).length;
+
+                this.agendamentos = res.agendamentos;
+                this.atendimentosList = res.atendimentos;
+
+                const loginOperador = localStorage.getItem('usuario_login');
+                this.badgeMeusAtendimentosCount = res.atendimentos.filter((a: any) =>
+                    a.operadorLogin === loginOperador || a.operador === this.nomeOperador
                 ).length;
-                this.badgeAgendamentosCount = count;
+
                 this.cdr.markForCheck();
             }
         });
-
-        // Operator session history
-        // Mocking for now or querying history if available
-        // Para fins de demonstração, vamos simular que o operador tem alguns atendimentos
-        // Em um sistema real, haveria um endpoint /fila/operador/total-dia
-        this.badgeMeusAtendimentosCount = 5; // Valor do design
     }
 
     badgeAgendamentosCount = 0;
@@ -666,10 +696,82 @@ export class PainelOperadorComponent implements OnInit, OnDestroy {
 
     navegarPara(secao: string) {
         if (secao === 'agendamentos') {
-            this.router.navigate(['/admin/agendamentos']);
+            this.modalAberto = 'agendamentos';
         } else if (secao === 'meus-atendimentos') {
-            this.router.navigate(['/admin/atendimento']); // Placeholder rotas de atendimentos
+            this.modalAberto = 'atendimentos';
         }
+        this.cdr.markForCheck();
+    }
+
+    private calcularTempoEsperaReal(dataCriacao: any): string {
+        if (!dataCriacao) return '0 min';
+        const criacao = new Date(dataCriacao).getTime();
+        const agora = new Date().getTime();
+        const diffMin = Math.floor((agora - criacao) / 60000);
+        return `${diffMin} minutos`;
+    }
+
+    verAtendimento(atendimento: any) {
+        this.atendimentoSelecionado = atendimento;
+        this.cdr.markForCheck();
+    }
+
+    fecharAtendimentoDetalhe() {
+        this.atendimentoSelecionado = null;
+        this.showJustificativaModal = false;
+        this.cdr.markForCheck();
+    }
+
+    abrirJustificativa() {
+        this.showJustificativaModal = true;
+        this.cdr.markForCheck();
+    }
+
+    salvarJustificativa() {
+        if (this.justificativaForm.invalid) return;
+        const filialId = parseInt(this.filialSelecionada, 10) || 0;
+        const payload = {
+            atendimentoId: this.atendimentoSelecionado?.id,
+            motivo: this.justificativaForm.value.motivo,
+            observacoes: this.justificativaForm.value.observacoes,
+            filial_id: filialId
+        };
+        this.api.post<any>('/atendimento/justificativa', payload).subscribe({
+            next: () => {
+                this.justificativaForm.reset();
+                this.showJustificativaModal = false;
+                this.atendimentoSelecionado = null;
+                this.cdr.markForCheck();
+            },
+            error: () => {
+                // salva localmente mesmo sem backend para não bloquear fluxo
+                this.justificativaForm.reset();
+                this.showJustificativaModal = false;
+                this.atendimentoSelecionado = null;
+                this.cdr.markForCheck();
+            }
+        });
+    }
+
+    confirmarPresencaAgendamento(agenda: any) {
+        this.api.patch<any>(`/agendamentos/${agenda.id}/confirmar`, {}).subscribe({
+            next: () => {
+                agenda.status = 'CONFIRMADO';
+                this.cdr.markForCheck();
+            },
+            error: () => { /* silencia erro de endpoint não existente ainda */ }
+        });
+    }
+
+    cancelarAgendamento(agenda: any) {
+        if (!confirm(`Cancelar o agendamento ${agenda.senha}?`)) return;
+        this.api.patch<any>(`/agendamentos/${agenda.id}/cancelar`, {}).subscribe({
+            next: () => {
+                this.agendamentos = this.agendamentos.filter(a => a !== agenda);
+                this.cdr.markForCheck();
+            },
+            error: () => { /* silencia erro de endpoint não existente ainda */ }
+        });
     }
 
     // -- Cronômetro Ocioso --

@@ -139,12 +139,13 @@ export class GuichesComponent implements OnInit {
     this.loading = true;
     const valorCanonico = String(this.form.nome).replace(/^Guich[êe]\s*/i, '').trim();
 
-    // Map status back to ativo boolean for API
     const payload = {
-      ...this.form,
+      id: this.form.id,
       ativo: this.form.status === 'Ativo',
+      status: this.form.status,
       nome: valorCanonico,
-      numero: valorCanonico // Use name as number for compatibility if backend requires it
+      numero: valorCanonico,
+      filial_id: this.form.filial_id
     };
 
     const request = this.editando

@@ -35,11 +35,10 @@ export class SupervisorConfiguracoesComponent implements OnInit {
     { id: 'usuarios', label: 'Gestão de Usuários' }
   ];
 
-  usuariosMock = [
-    { nome: 'Ana Costa', email: 'ana.costa@fila.com', perfil: 'Operador', status: 'Ativo' },
-    { nome: 'Carlos Mendes', email: 'carlos.m@fila.com', perfil: 'Supervisor', status: 'Ativo' },
-    { nome: 'Julia Farias', email: 'julia.f@fila.com', perfil: 'Operador', status: 'Inativo' }
-  ];
+  usuarios: any[] = [];
+  usuariosFiltrados: any[] = [];
+  buscaUsuario = '';
+  filtroPerfil = '';
 
   selectedFilialId: number | null = null;
   private filialSub?: any;
@@ -88,6 +87,7 @@ export class SupervisorConfiguracoesComponent implements OnInit {
       if (id) {
         this.configForm.get('nomeFilial')?.enable();
         this.carregarConfiguracoes();
+        this.carregarUsuarios();
       } else {
         this.configForm.get('nomeFilial')?.disable();
         this.configForm.patchValue({ nomeFilial: '' });
@@ -97,6 +97,41 @@ export class SupervisorConfiguracoesComponent implements OnInit {
 
   ngOnDestroy() {
     if (this.filialSub) this.filialSub.unsubscribe();
+  }
+
+  carregarUsuarios() {
+    const token = localStorage.getItem('token') || '';
+    const query = this.selectedFilialId ? `?filialId=${this.selectedFilialId}` : '';
+    this.http.get<any[]>(`${environment.apiUrl}/usuarios${query}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (data) => {
+        this.usuarios = data;
+        this.aplicarFiltros();
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erro ao carregar usuários:', err)
+    });
+  }
+
+  aplicarFiltros() {
+    let filtrados = this.usuarios;
+
+    if (this.buscaUsuario && this.buscaUsuario.length >= 3) {
+      const termo = this.buscaUsuario.toLowerCase();
+      filtrados = filtrados.filter(u => 
+        (u.nome && u.nome.toLowerCase().includes(termo)) || 
+        (u.email && u.email.toLowerCase().includes(termo))
+      );
+    }
+
+    if (this.filtroPerfil) {
+      filtrados = filtrados.filter(u => 
+        u.perfil && u.perfil.toUpperCase() === this.filtroPerfil.toUpperCase()
+      );
+    }
+
+    this.usuariosFiltrados = filtrados;
   }
 
   carregarConfiguracoes() {

@@ -230,15 +230,15 @@
         <div class="users-controls">
           <div class="search-box">
             <lucide-icon [img]="icons.search" size="18" class="text-sec"></lucide-icon>
-            <input type="text" placeholder="Buscar por nome ou e-mail...">
+            <input type="text" [(ngModel)]="buscaUsuario" (ngModelChange)="aplicarFiltros()" placeholder="Buscar por nome ou e-mail...">
           </div>
 
           <div class="filter-box custom-select">
-            <select>
-              <option>Todos os Perfis</option>
-              <option>Admin</option>
-              <option>Supervisor</option>
-              <option>Operador</option>
+            <select [(ngModel)]="filtroPerfil" (ngModelChange)="aplicarFiltros()">
+              <option value="">Todos os Perfis</option>
+              <option value="Admin">Admin</option>
+              <option value="Supervisor">Supervisor</option>
+              <option value="Operador">Operador</option>
             </select>
           </div>
         </div>
@@ -254,10 +254,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let u of usuariosMock">
+              <tr *ngFor="let u of usuariosFiltrados">
                 <td>
                   <div class="user-cell">
-                    <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
+                    <div class="user-avatar">{{ u.nome ? u.nome.charAt(0) : 'U' }}</div>
                     <div class="user-info">
                       <span class="user-name">{{ u.nome }}</span>
                       <span class="user-email">{{ u.email }}</span>
@@ -266,8 +266,9 @@
                 </td>
                 <td><span class="badge badge-role">{{ u.perfil }}</span></td>
                 <td>
-                  <span class="badge" [ngClass]="u.status === 'Ativo' ? 'badge-green' : 'badge-gray'">{{ u.status
-                    }}</span>
+                  <span class="badge" [ngClass]="(u.status === 'Ativo' || u.ativo === true) ? 'badge-green' : 'badge-gray'">
+                    {{ (u.status === 'Ativo' || u.ativo === true) ? 'Ativo' : 'Inativo' }}
+                  </span>
                 </td>
                 <td class="text-right">
                   <button class="action-btn text-blue" title="Editar"><lucide-icon [img]="icons.edit"
@@ -275,6 +276,9 @@
                   <button class="action-btn text-red" title="Excluir"><lucide-icon [img]="icons.trash"
                       size="16"></lucide-icon></button>
                 </td>
+              </tr>
+              <tr *ngIf="usuariosFiltrados.length === 0">
+                <td colspan="4" class="text-center py-4 text-gray-500">Nenhum usuário encontrado.</td>
               </tr>
             </tbody>
           </table>

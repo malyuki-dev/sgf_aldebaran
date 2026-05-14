@@ -137,12 +137,32 @@ export class EscolhaGuiches implements OnInit, OnDestroy {
   private carregarFiliais() {
     this.filialService.getFiliais().subscribe({
       next: (data) => {
-        this.filiais = data;
+        const usuarioRaw = localStorage.getItem('usuario_sgf');
+        let usuarioFilialId: number | null = null;
+        if (usuarioRaw) {
+          try {
+            const usuario = JSON.parse(usuarioRaw);
+            usuarioFilialId = usuario.filial_id || null;
+          } catch {}
+        }
 
-        // Inicializa com a filial salva se existir
+        // Filtra para exibir apenas a filial do operador (se tiver) ou todas se for global (null)
+        if (usuarioFilialId) {
+          this.filiais = data.filter((f: any) => f.id === usuarioFilialId);
+        } else {
+          this.filiais = data;
+        }
+
+        // Inicializa com a filial salva se existir e for válida
         const savedId = this.filialService.getSelectedFilialId();
-        if (savedId) {
+        if (savedId && this.filiais.some((f: any) => f.id === savedId)) {
           this.filialSelecionada = savedId.toString();
+        } else if (this.filiais.length > 0) {
+          this.filialSelecionada = this.filiais[0].id.toString();
+          this.filialService.setSelectedFilial(this.filiais[0].id);
+        } else {
+          this.filialSelecionada = '';
+          this.filialService.setSelectedFilial(null);
         }
 
         this.cdr.markForCheck();

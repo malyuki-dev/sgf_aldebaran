@@ -434,8 +434,9 @@ export class DashboardService {
         alertaSla: tAtendMin > metaEspera || atendimentosQueue.some(s => Math.floor((new Date().getTime() - s.dataCriacao.getTime()) / 60000) > metaEspera),
       },
       agendamentos: agendamentos.map((a) => ({
+        id: a.id,
         senha: a.codigo || 'S/N',
-        transportadora: a.nomeCliente || 'Pessoa Física',
+        cliente: a.nomeCliente || 'Não informado',
         horario: a.hora,
         status: a.status,
       })),

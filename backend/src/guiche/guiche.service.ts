@@ -143,11 +143,16 @@ export class GuicheService {
   }
 
   async update(id: number, data: any) {
-    const { id: _, filial, criadoEm, deletadoEm, ...updateDataRaw } = data;
-    const updateData = this.normalizarDadosGuiche(updateDataRaw);
+    // Pegar apenas os dados permitidos para update
+    const updateDataRaw: any = {};
+    if (data.numero !== undefined) updateDataRaw.numero = data.numero;
+    if (data.nome !== undefined) updateDataRaw.nome = data.nome;
+    if (data.descricao !== undefined) updateDataRaw.descricao = data.descricao;
+    if (data.status !== undefined) updateDataRaw.status = data.status;
+    if (data.ativo !== undefined) updateDataRaw.ativo = data.ativo;
+    if (data.filial_id !== undefined) updateDataRaw.filial_id = +data.filial_id;
 
-    // Ensure filial_id is numeric if provided
-    if (updateData.filial_id) updateData.filial_id = +updateData.filial_id;
+    const updateData = this.normalizarDadosGuiche(updateDataRaw);
 
     const guiche = await this.prisma.guiche.update({
       where: { id },
