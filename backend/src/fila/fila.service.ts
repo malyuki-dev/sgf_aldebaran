@@ -305,6 +305,10 @@ export class FilaService {
 
   async criarAgendamento(dados: any) {
     const fId = dados.filial_id ? Number(dados.filial_id) : null;
+    const qtdeGarrafoes = Math.max(
+      0,
+      Number(dados.qtdeGarrafoes ?? dados.quantidade ?? 0) || 0,
+    );
 
     await this.clienteRegrasService.validarAgendamentoCliente({
       data: dados.data,
@@ -332,6 +336,7 @@ export class FilaService {
         codigo: dados.codigo
           ? String(dados.codigo).trim().toUpperCase()
           : null,
+        qtdeGarrafoes,
         servico: { connect: { id: Number(dados.servico_id) } },
         filial: fId ? { connect: { id: fId } } : undefined,
       },

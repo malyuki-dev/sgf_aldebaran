@@ -54,6 +54,7 @@ describe('SenhaService', () => {
           tipoOrigem: 'AGENDAMENTO',
           agendamento: { connect: { id: 7 } },
           filial: { connect: { id: 1 } },
+          qtdeGarrafoes: 0,
         }),
       }),
     );
@@ -78,19 +79,21 @@ describe('SenhaService', () => {
       tipo: 'Convencional',
       tipoOrigem: 'AGENDAMENTO',
       prioridade: 3,
-      qtdeGarrafoes: 0,
+      qtdeGarrafoes: 4,
     } as never);
 
     const result = await service.gerarSenhaCliente({
       servico: { id: 6, nome: 'Caminhão', sigla: '', prefixo: null, prioridadePeso: 1 },
       filialId: 1,
       agendamentoId: 8,
+      qtdeGarrafoes: 4,
     });
 
     expect(prisma.senha.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           numeroDisplay: 'C-CAEM001',
+          qtdeGarrafoes: 4,
         }),
       }),
     );

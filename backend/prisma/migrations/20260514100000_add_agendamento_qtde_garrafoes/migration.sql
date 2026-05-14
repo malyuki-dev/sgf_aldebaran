@@ -1,0 +1,2 @@
+ALTER TABLE "agendamento"
+ADD COLUMN IF NOT EXISTS "qtdeGarrafoes" INTEGER DEFAULT 0;

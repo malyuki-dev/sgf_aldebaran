@@ -339,6 +339,7 @@ export class AgendamentoComponent implements OnInit {
     const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
     const filialSelecionada = this.filiais.find(x => Number(x.id) === Number(this.form.filialId));
     const categoriaSelecionada = this.categorias.find(x => Number(x.id) === Number(this.form.servicoId));
+    const quantidade = Math.max(0, Number(this.form.quantidade) || 0);
 
     // Construct API payload
     const payload = {
@@ -348,6 +349,7 @@ export class AgendamentoComponent implements OnInit {
       hora: this.form.hora,
       servico_id: this.form.servicoId,
       filial_id: this.form.filialId,
+      qtdeGarrafoes: quantidade,
       codigo: codigo
     };
 
@@ -357,7 +359,7 @@ export class AgendamentoComponent implements OnInit {
         this.agendamentoConfirmado = {
           filialNome: agendamento?.filial?.nome || filialSelecionada?.nome || this.getFilialNome(),
           categoriaNome: agendamento?.servico?.nome || categoriaSelecionada?.nome || this.getCategoriaNome(),
-          quantidade: this.form.quantidade,
+          quantidade,
           data: this.form.data,
           mes: this.mesAtual,
           ano: this.anoAtual,

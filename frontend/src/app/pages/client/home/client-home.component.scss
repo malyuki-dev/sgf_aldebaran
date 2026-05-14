@@ -311,7 +311,9 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
 .voucher-modal-card {
   background: white;
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   border-radius: 32px;
   padding: 28px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
@@ -388,6 +390,31 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
       font-size: 2rem;
       letter-spacing: 2px;
     }
+
+    &.secondary {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+      padding: 14px 16px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+
+      span {
+        color: #64748b;
+        opacity: 1;
+        margin-bottom: 0;
+        font-size: 0.72rem;
+      }
+
+      strong {
+        color: #334155;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+      }
+    }
   }
 
   .voucher-details {
@@ -440,6 +467,120 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
     }
   }
 
+  .checkin-panel {
+    background: linear-gradient(180deg, #ecfdf5 0%, #f7fefb 100%);
+    border: 1px solid #bbf7d0;
+    border-radius: 24px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 14px 30px rgba(22, 163, 74, 0.08);
+    animation: successIn 0.32s ease-out both;
+  }
+
+  .checkin-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    .checkin-icon-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: #16a34a;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 10px 22px rgba(22, 163, 74, 0.22);
+    }
+
+    span {
+      display: block;
+      color: #15803d;
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    strong {
+      display: block;
+      color: #0f172a;
+      font-size: 1rem;
+      line-height: 1.3;
+    }
+  }
+
+  .ticket-highlight {
+    background: white;
+    border: 1px solid #dcfce7;
+    border-radius: 22px;
+    padding: 20px 16px;
+    text-align: center;
+
+    span {
+      display: block;
+      color: #15803d;
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    strong {
+      display: block;
+      color: #064e3b;
+      font-size: 2.55rem;
+      line-height: 1;
+      letter-spacing: 1px;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .queue-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    div {
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid #dcfce7;
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    span {
+      display: block;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
+    }
+
+    strong {
+      color: #0f172a;
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+  }
+
+  .checkin-guidance {
+    margin: 0;
+    color: #166534;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    font-weight: 600;
+    text-align: center;
+  }
+
   .btn-checkin,
   .btn-keep {
     width: 100%;
@@ -459,12 +600,31 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
       opacity: 0.7;
       cursor: wait;
     }
+
+    &:hover:not(:disabled) {
+      background: #008bad;
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
   }
 
   .btn-keep {
-    background: #f8fafc;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
+    background: #0f172a;
+    color: white;
+    border: 1px solid #0f172a;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+
+    &:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
   }
 }
 
@@ -473,6 +633,14 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
     padding: 24px;
 
     .voucher-details {
+      grid-template-columns: 1fr;
+    }
+
+    .ticket-highlight strong {
+      font-size: 2.15rem;
+    }
+
+    .queue-summary {
       grid-template-columns: 1fr;
     }
   }
@@ -485,4 +653,9 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes successIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

@@ -279,6 +279,7 @@ describe('AgendamentoService', () => {
       hora: horaLocal,
       filial_id: 1,
       servico_id: 2,
+      qtdeGarrafoes: 3,
       servico: {
         id: 2,
         nome: 'Retirada Manual',
@@ -315,6 +316,7 @@ describe('AgendamentoService', () => {
       servico: agendamento.servico,
       filialId: agendamento.filial_id,
       agendamentoId: agendamento.id,
+      qtdeGarrafoes: agendamento.qtdeGarrafoes,
     });
     expect(prisma.agendamento.update).toHaveBeenCalledWith(
       expect.objectContaining({

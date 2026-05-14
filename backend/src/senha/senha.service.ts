@@ -13,6 +13,7 @@ type GerarSenhaAgendamentoParams = {
   servico: ServicoSenha;
   filialId?: number | null;
   agendamentoId: number;
+  qtdeGarrafoes?: number | null;
 };
 
 @Injectable()
@@ -61,6 +62,10 @@ export class SenhaService {
     );
     const sequencial = (count + 1).toString().padStart(3, '0');
     const numeroDisplay = `C-${codigoCategoria}${modificador}${sequencial}`;
+    const qtdeGarrafoes = Math.max(
+      0,
+      Number(params.qtdeGarrafoes ?? 0) || 0,
+    );
 
     return this.prisma.senha.create({
       data: {
@@ -72,6 +77,7 @@ export class SenhaService {
         servico: { connect: { id: params.servico.id } },
         filial: filialId ? { connect: { id: filialId } } : undefined,
         agendamento: { connect: { id: params.agendamentoId } },
+        qtdeGarrafoes,
       },
     });
   }

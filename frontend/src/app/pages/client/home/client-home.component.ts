@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import {
   Bell,
   Calendar,
+  CheckCircle2,
   ChevronRight,
   Clock,
   HelpCircle,
@@ -14,6 +15,7 @@ import {
   Menu,
   Plus,
   QrCode,
+  Ticket,
 } from 'lucide-angular';
 import { ApiService } from '../../../services/api.service';
 import { ClienteSuccessModalComponent } from '../components/cliente-success-modal/cliente-success-modal.component';
@@ -130,6 +132,8 @@ export class ClientHomeComponent implements OnInit {
     chevron: ChevronRight,
     grid: LayoutGrid,
     qrcode: QrCode,
+    success: CheckCircle2,
+    ticket: Ticket,
     map: MapPin,
     clock: Clock,
   };

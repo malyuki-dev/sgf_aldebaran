@@ -32,6 +32,7 @@ type AgendamentoComRelacoes = {
   status: string;
   codigo: string | null;
   checkinAt?: Date | null;
+  qtdeGarrafoes?: number | null;
   filial_id?: number | null;
   servico_id?: number;
   servico: { nome: string | null } | null;
@@ -310,6 +311,7 @@ export class AgendamentoService {
       servico: agendamento.servico,
       filialId: agendamento.filial_id,
       agendamentoId: agendamento.id,
+      qtdeGarrafoes: agendamento.qtdeGarrafoes,
     });
     if (!ticket) {
       throw new BadRequestException('Não foi possível gerar a senha do check-in');
