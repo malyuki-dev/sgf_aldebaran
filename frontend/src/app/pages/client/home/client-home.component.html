@@ -14,6 +14,12 @@
 
         <div class="appointment-info">
           <h3>{{ proximoAgendamento.titulo }}</h3>
+          <div
+            class="appointment-status"
+            [ngClass]="proximoAgendamento.statusColorClass"
+            *ngIf="proximoAgendamento.statusLabel">
+            {{ proximoAgendamento.statusLabel }}
+          </div>
           <div class="info-row">
             <lucide-icon [img]="icons.clock" size="14"></lucide-icon>
             <span>{{ proximoAgendamento.hora }}</span>
@@ -27,7 +33,7 @@
 
       <button class="btn-voucher" (click)="abrirVoucher()">
         <lucide-icon [img]="icons.qrcode" size="20"></lucide-icon>
-        Abrir Voucher / Check-in
+        {{ proximoAgendamento.actionLabel }}
       </button>
 
       <button class="btn-cancel" *ngIf="proximoAgendamento && proximoAgendamento.podeCancelar" (click)="cancelarAgendamento()">
@@ -108,35 +114,37 @@
       </div>
 
       <ng-container *ngIf="voucher && !voucherLoading">
-        <div class="checkin-panel" *ngIf="checkinSuccess && ticket">
+        <div class="checkin-panel" *ngIf="checkinSuccess || voucher.checkinRealizado || ticket">
           <div class="checkin-panel-header">
             <div class="checkin-icon-wrap" aria-hidden="true">
               <lucide-icon [img]="icons.success" size="30"></lucide-icon>
             </div>
             <div>
-              <span>Check-in concluído</span>
-              <strong>Você entrou na fila de atendimento</strong>
+              <span>{{ voucher.checkinRealizado ? 'Check-in realizado' : (voucher.statusLabel || 'Check-in realizado') }}</span>
+              <strong>
+                {{ checkinSuccess ? 'Você entrou na fila de atendimento' : 'Seu check-in já foi confirmado' }}
+              </strong>
             </div>
           </div>
 
-          <div class="ticket-highlight">
+          <div class="ticket-highlight" *ngIf="ticket?.numeroDisplay">
             <span>Senha</span>
-            <strong>{{ ticket.numeroDisplay }}</strong>
+            <strong>{{ ticket?.numeroDisplay }}</strong>
           </div>
 
-          <div class="queue-summary">
-            <div>
+          <div class="queue-summary" *ngIf="ticket && (ticket.posicao || ticket.estimativa)">
+            <div *ngIf="ticket.posicao">
               <span>Posição</span>
               <strong>{{ ticket.posicao }}</strong>
             </div>
-            <div>
+            <div *ngIf="ticket.estimativa">
               <span>Estimativa</span>
               <strong>{{ ticket.estimativa }} min</strong>
             </div>
           </div>
 
           <p class="checkin-guidance">
-            Acompanhe o painel para sua chamada. Dirija-se à área de espera e mantenha sua senha visível.
+            Seu check-in já foi confirmado. Acompanhe sua senha e aguarde ser chamado.
           </p>
         </div>
 

@@ -35,6 +35,10 @@ interface NextAppointmentView {
   status: string;
   statusKey?: ClientAppointmentStatus;
   statusLabel?: string;
+  senha?: string | null;
+  senhaStatus?: string | null;
+  posicao?: number | null;
+  estimativa?: number | null;
   podeCancelar: boolean;
 }
 
@@ -49,6 +53,10 @@ interface ClientVoucherView {
   status: string;
   statusKey?: ClientAppointmentStatus;
   statusLabel?: string;
+  senha?: string | null;
+  senhaStatus?: string | null;
+  posicao?: number | null;
+  estimativa?: number | null;
   checkinRealizado: boolean;
 }
 
@@ -100,6 +108,8 @@ export class ClientHomeComponent implements OnInit {
     status: string;
     statusKey: ClientAppointmentStatus;
     statusLabel: string;
+    statusColorClass: string;
+    actionLabel: string;
   } | null = null;
 
   private readonly mesesAbrev = [
@@ -116,6 +126,16 @@ export class ClientHomeComponent implements OnInit {
     'NOV',
     'DEZ',
   ];
+
+  private readonly statusAtivos = new Set<ClientAppointmentStatus>([
+    'CONFIRMADO',
+    'CHECKIN_REALIZADO',
+    'AGUARDANDO_CHECKIN',
+    'NA_FILA',
+    'CHAMADO',
+    'EM_ATENDIMENTO',
+    'PENDENTE',
+  ]);
 
   constructor(
     private readonly apiService: ApiService,
@@ -156,8 +176,16 @@ export class ClientHomeComponent implements OnInit {
 
     this.apiService.get<ClientVoucherView>('/agendamentos/voucher/ativo').subscribe({
       next: (voucher) => {
-        this.voucher = voucher;
+        const statusInfo = getAppointmentStatusInfo(voucher.status);
+        this.voucher = {
+          ...voucher,
+          statusKey: statusInfo.status,
+          statusLabel: statusInfo.label,
+        };
         this.voucherLoading = false;
+        if (voucher.checkinRealizado) {
+          this.carregarTicketDoVoucher(voucher.id);
+        }
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -259,7 +287,13 @@ export class ClientHomeComponent implements OnInit {
       })
       .subscribe({
         next: (data) => {
-          const proximo = (data || [])[0];
+          const proximo = (data || []).find((item) => {
+            const statusInfo = getAppointmentStatusInfo(
+              item.status,
+              new Date(`${item.data}T${item.horaInicio}:00`),
+            );
+            return this.statusAtivos.has(statusInfo.status);
+          });
 
           if (!proximo) {
             this.proximoAgendamento = null;
@@ -285,6 +319,10 @@ export class ClientHomeComponent implements OnInit {
             status: proximo.status,
             statusKey: statusInfo.status,
             statusLabel: statusInfo.label,
+            statusColorClass: statusInfo.colorClass,
+            actionLabel: canManageAppointmentStatus(statusInfo.status)
+              ? 'Abrir Voucher / Check-in'
+              : 'Ver check-in',
           };
 
           this.cdr.detectChanges();
@@ -292,6 +330,57 @@ export class ClientHomeComponent implements OnInit {
         error: (err) => {
           console.error('Erro ao carregar próximo agendamento:', err);
           this.proximoAgendamento = null;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  private carregarTicketDoVoucher(agendamentoId: number) {
+    this.apiService
+      .get<NextAppointmentView[]>('/agendamentos', {
+        meus: 'true',
+        status: 'active',
+      })
+      .subscribe({
+        next: (agendamentos) => {
+          const agendamento = (agendamentos || []).find(
+            (item) => item.id === agendamentoId,
+          );
+          if (!agendamento || !this.voucher) {
+            this.cdr.detectChanges();
+            return;
+          }
+
+          const statusInfo = getAppointmentStatusInfo(
+            agendamento.status,
+            new Date(`${agendamento.data}T${agendamento.horaInicio}:00`),
+          );
+          this.voucher = {
+            ...this.voucher,
+            status: agendamento.status,
+            statusKey: statusInfo.status,
+            statusLabel: statusInfo.label,
+            senha: agendamento.senha,
+            senhaStatus: agendamento.senhaStatus,
+            posicao: agendamento.posicao,
+            estimativa: agendamento.estimativa,
+          };
+
+          if (agendamento.senha) {
+            this.ticket = {
+              id: agendamento.id,
+              numeroDisplay: agendamento.senha,
+              status: agendamento.senhaStatus || agendamento.status,
+              statusLabel: statusInfo.label,
+              dataCriacao: '',
+              posicao: agendamento.posicao || 0,
+              estimativa: agendamento.estimativa || 0,
+            };
+          }
+
+          this.cdr.detectChanges();
+        },
+        error: () => {
           this.cdr.detectChanges();
         },
       });

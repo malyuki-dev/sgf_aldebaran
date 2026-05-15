@@ -37,6 +37,12 @@ type AgendamentoComRelacoes = {
   servico_id?: number;
   servico: { nome: string | null } | null;
   filial: { nome: string | null } | null;
+  senha?: {
+    id: number;
+    numeroDisplay: string;
+    status: string;
+    servico_id: number;
+  }[];
 };
 
 type AgendamentoCheckinSource = AgendamentoComRelacoes & {
@@ -83,6 +89,16 @@ export class AgendamentoService {
         filial: {
           select: { nome: true },
         },
+        senha: {
+          orderBy: { dataCriacao: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            numeroDisplay: true,
+            status: true,
+            servico_id: true,
+          },
+        },
       },
     });
 
@@ -98,12 +114,14 @@ export class AgendamentoService {
         : this.compareDesc(left, right),
     );
 
-    return filtrados.map((agendamento) => {
+    return Promise.all(filtrados.map(async (agendamento) => {
       const item = toAgendamentoResponse(agendamento, { now: agora });
+      this.aplicarStatusDaSenha(item);
+      await this.aplicarPosicaoDaFila(item, agendamento);
       item.podeCancelar = this.podeCancelar(agendamento, agora);
-      item.podeReagendar = true;
+      item.podeReagendar = this.podeReagendar(agendamento, agora);
       return item;
-    });
+    }));
   }
 
   async buscarVoucherAtivo(
@@ -124,12 +142,26 @@ export class AgendamentoService {
         filial: {
           select: { nome: true },
         },
+        senha: {
+          orderBy: { dataCriacao: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            numeroDisplay: true,
+            status: true,
+            servico_id: true,
+          },
+        },
       },
     });
 
     const agendamento = agendamentos
       .filter((item) => this.isAgendamentoAtivo(item, agora))
-      .sort((left, right) => this.compareAsc(left, right))[0];
+      .sort((left, right) => {
+        const leftComCheckin = this.isCheckinRealizado(left.status) ? 1 : 0;
+        const rightComCheckin = this.isCheckinRealizado(right.status) ? 1 : 0;
+        return leftComCheckin - rightComCheckin || this.compareAsc(left, right);
+      })[0];
 
     if (!agendamento || !agendamento.codigo) {
       throw new NotFoundException('Nenhum voucher ativo encontrado');
@@ -400,12 +432,12 @@ export class AgendamentoService {
     const inicio = buildAgendamentoDate(agendamento.data, agendamento.hora);
     const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
-    if (possuiCheckIn) {
+    if (AGENDAMENTO_STATUS_FINAIS.has(agendamento.status)) {
       return false;
     }
 
-    if (AGENDAMENTO_STATUS_FINAIS.has(agendamento.status)) {
-      return false;
+    if (possuiCheckIn) {
+      return true;
     }
 
     return (
@@ -422,9 +454,10 @@ export class AgendamentoService {
     const possuiCheckIn = this.isCheckinRealizado(agendamento.status);
 
     return (
-      possuiCheckIn ||
       AGENDAMENTO_STATUS_FINAIS.has(agendamento.status) ||
-      inicio.getTime() < now.getTime()
+      (!possuiCheckIn &&
+        AGENDAMENTO_STATUS_ATIVOS.has(agendamento.status) &&
+        inicio.getTime() < now.getTime())
     );
   }
 
@@ -450,6 +483,57 @@ export class AgendamentoService {
     );
   }
 
+  private podeReagendar(
+    agendamento: AgendamentoComRelacoes,
+    now: Date,
+  ): boolean {
+    return this.podeCancelar(agendamento, now);
+  }
+
+  private aplicarStatusDaSenha(item: AgendamentoResponseDto): void {
+    if (item.status !== AgendamentoStatus.CHECKIN_REALIZADO) {
+      return;
+    }
+
+    switch (item.senhaStatus) {
+      case 'AGUARDANDO':
+        item.status = AgendamentoStatus.NA_FILA;
+        break;
+      case 'CHAMADO':
+        item.status = AgendamentoStatus.CHAMADO;
+        break;
+      case 'EM_ATENDIMENTO':
+        item.status = AgendamentoStatus.EM_ATENDIMENTO;
+        break;
+      case 'FINALIZADO':
+        item.status = AgendamentoStatus.CONCLUIDO;
+        break;
+      case 'CANCELADO':
+        item.status = AgendamentoStatus.NAO_COMPARECEU;
+        break;
+      default:
+        break;
+    }
+  }
+
+  private async aplicarPosicaoDaFila(
+    item: AgendamentoResponseDto,
+    agendamento: AgendamentoComRelacoes,
+  ): Promise<void> {
+    const senha = agendamento.senha?.[0];
+    if (!senha || senha.status !== 'AGUARDANDO') {
+      return;
+    }
+
+    const fila = await this.senhaService.calcularPosicao(
+      senha.id,
+      senha.servico_id,
+      agendamento.filial_id,
+    );
+    item.posicao = fila.posicao;
+    item.estimativa = fila.estimativa;
+  }
+
   private compareAsc(
     left: { data: string; hora: string },
     right: { data: string; hora: string },
@@ -468,9 +552,6 @@ export class AgendamentoService {
   }
 
   private isCheckinRealizado(status: string): boolean {
-    return (
-      status === AgendamentoStatus.CHECKIN_REALIZADO ||
-      status === AgendamentoStatus.REALIZADO
-    );
+    return status === AgendamentoStatus.CHECKIN_REALIZADO;
   }
 }

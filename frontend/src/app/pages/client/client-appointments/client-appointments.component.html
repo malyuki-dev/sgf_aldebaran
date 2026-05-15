@@ -64,9 +64,23 @@
               <lucide-angular [img]="icons.clock" size="16"></lucide-angular>
               <span>{{ a.horaInicio }} - {{ a.horaFim }}</span>
             </div>
+            <div class="queue-summary" *ngIf="a.senha">
+              <div class="queue-pill">
+                <span>Senha</span>
+                <strong>{{ a.senha }}</strong>
+              </div>
+              <div class="queue-pill" *ngIf="a.posicao">
+                <span>Posição</span>
+                <strong>{{ a.posicao }}</strong>
+              </div>
+              <div class="queue-pill" *ngIf="a.estimativa">
+                <span>Estimativa</span>
+                <strong>{{ a.estimativa }} min</strong>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" *ngIf="a.podeCancelar || a.podeReagendar">
           <button class="btn-outline" [disabled]="cancelandoId === a.id || !a.podeCancelar" (click)="cancelarAgendamento(a.id)">
             {{ cancelandoId === a.id ? 'Cancelando...' : 'Cancelar' }}
           </button>

@@ -68,7 +68,7 @@ describe('AgendamentoService', () => {
     expect(result.every((item) => item.podeCancelar)).toBe(true);
   });
 
-  it('lista histórico em ordem decrescente', async () => {
+  it('lista histórico em ordem decrescente sem mover check-in para histórico', async () => {
     prisma.clientes.findUnique.mockResolvedValue(clienteAutenticado as never);
     prisma.agendamento.findMany.mockResolvedValue([
       { ...baseAgendamento, id: 1, data: '2025-04-20', hora: '09:00' },
@@ -81,11 +81,43 @@ describe('AgendamentoService', () => {
       AgendamentoFiltroStatus.HISTORY,
     );
 
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe(2);
-    expect(result[1]?.id).toBe(3);
-    expect(result[2]?.id).toBe(1);
+    expect(result[1]?.id).toBe(1);
     expect(result.every((item) => item.podeCancelar === false)).toBe(true);
+  });
+
+  it('mantem agendamento com check-in realizado em proximos', async () => {
+    prisma.clientes.findUnique.mockResolvedValue(clienteAutenticado as never);
+    prisma.agendamento.findMany.mockResolvedValue([
+      {
+        ...baseAgendamento,
+        id: 3,
+        status: AgendamentoStatus.CHECKIN_REALIZADO,
+        senha: [
+          {
+            id: 99,
+            numeroDisplay: 'C-RPA001',
+            status: 'AGUARDANDO',
+            servico_id: 2,
+          },
+        ],
+        filial_id: 1,
+      },
+    ] as never);
+    senhaService.calcularPosicao.mockResolvedValue({ posicao: 2, estimativa: 10 });
+
+    const result = await service.listarMeusAgendamentos(
+      clienteAutenticado.id,
+      AgendamentoFiltroStatus.ACTIVE,
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.status).toBe(AgendamentoStatus.NA_FILA);
+    expect(result[0]?.senha).toBe('C-RPA001');
+    expect(result[0]?.posicao).toBe(2);
+    expect(result[0]?.podeCancelar).toBe(false);
+    expect(result[0]?.podeReagendar).toBe(false);
   });
 
   it('cancela um agendamento com sucesso', async () => {
@@ -265,6 +297,32 @@ describe('AgendamentoService', () => {
 
     expect(result.id).toBe(baseAgendamento.id);
     expect(result.codigo).toBe(baseAgendamento.codigo);
+    expect(result.checkinRealizado).toBe(false);
+  });
+
+  it('prioriza voucher sem check-in quando tambem existe agendamento em fila', async () => {
+    prisma.clientes.findUnique.mockResolvedValue(clienteAutenticado as never);
+    prisma.agendamento.findMany.mockResolvedValue([
+      {
+        ...baseAgendamento,
+        id: 1,
+        status: AgendamentoStatus.CHECKIN_REALIZADO,
+        data: '2099-04-19',
+        codigo: 'CHECK1',
+      },
+      {
+        ...baseAgendamento,
+        id: 2,
+        status: AgendamentoStatus.CONFIRMADO,
+        data: '2099-04-20',
+        codigo: 'NOVO12',
+      },
+    ] as never);
+
+    const result = await service.buscarVoucherAtivo(clienteAutenticado.id);
+
+    expect(result.id).toBe(2);
+    expect(result.codigo).toBe('NOVO12');
     expect(result.checkinRealizado).toBe(false);
   });
 

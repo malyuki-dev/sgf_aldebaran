@@ -15,6 +15,12 @@ export interface AgendamentoListItemSource {
   filial?: {
     nome: string | null;
   } | null;
+  senha?: {
+    id: number;
+    numeroDisplay: string;
+    status: string;
+    servico_id: number;
+  }[];
 }
 
 export interface AgendamentoPresentationState {
@@ -44,6 +50,10 @@ export function toAgendamentoResponse(
     status: statusNormalizado,
     podeCancelar: false,
     podeReagendar: true,
+    senha: agendamento.senha?.[0]?.numeroDisplay || null,
+    senhaStatus: agendamento.senha?.[0]?.status || null,
+    posicao: null,
+    estimativa: null,
   };
 }
 
@@ -75,9 +85,20 @@ function normalizeStatus(
   hasCheckIn: boolean,
 ): string {
   if (
+    rawStatus === AgendamentoStatus.REALIZADO ||
+    rawStatus === AgendamentoStatus.FINALIZADO ||
+    rawStatus === AgendamentoStatus.CONCLUIDO
+  ) {
+    return AgendamentoStatus.CONCLUIDO;
+  }
+
+  if (rawStatus === AgendamentoStatus.NAO_COMPARECEU) {
+    return AgendamentoStatus.NAO_COMPARECEU;
+  }
+
+  if (
     hasCheckIn ||
-    rawStatus === AgendamentoStatus.CHECKIN_REALIZADO ||
-    rawStatus === AgendamentoStatus.REALIZADO
+    rawStatus === AgendamentoStatus.CHECKIN_REALIZADO
   ) {
     return AgendamentoStatus.CHECKIN_REALIZADO;
   }

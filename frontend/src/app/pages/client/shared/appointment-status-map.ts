@@ -1,17 +1,22 @@
 export type ClientAppointmentStatus =
   | 'CONFIRMADO'
+  | 'CHECKIN_REALIZADO'
   | 'AGUARDANDO_CHECKIN'
   | 'NA_FILA'
   | 'CHAMADO'
+  | 'EM_ATENDIMENTO'
   | 'CONCLUIDO'
   | 'CANCELADO'
+  | 'NAO_COMPARECEU'
   | 'EXPIRADO'
   | 'PENDENTE';
 
 export type ClientAppointmentStatusColor =
   | 'blue'
+  | 'purple'
   | 'orange'
   | 'teal'
+  | 'dark-blue'
   | 'green-strong'
   | 'green'
   | 'red'
@@ -30,9 +35,15 @@ export const appointmentStatusMap: Record<
 > = {
   CONFIRMADO: {
     status: 'CONFIRMADO',
-    label: 'Confirmado',
+    label: 'Agendado',
     color: 'blue',
     colorClass: 'status-blue',
+  },
+  CHECKIN_REALIZADO: {
+    status: 'CHECKIN_REALIZADO',
+    label: 'Check-in realizado',
+    color: 'purple',
+    colorClass: 'status-purple',
   },
   AGUARDANDO_CHECKIN: {
     status: 'AGUARDANDO_CHECKIN',
@@ -52,6 +63,12 @@ export const appointmentStatusMap: Record<
     color: 'green-strong',
     colorClass: 'status-green-strong',
   },
+  EM_ATENDIMENTO: {
+    status: 'EM_ATENDIMENTO',
+    label: 'Em atendimento',
+    color: 'dark-blue',
+    colorClass: 'status-dark-blue',
+  },
   CONCLUIDO: {
     status: 'CONCLUIDO',
     label: 'Concluído',
@@ -64,9 +81,15 @@ export const appointmentStatusMap: Record<
     color: 'red',
     colorClass: 'status-red',
   },
+  NAO_COMPARECEU: {
+    status: 'NAO_COMPARECEU',
+    label: 'Não compareceu',
+    color: 'gray',
+    colorClass: 'status-gray-dark',
+  },
   EXPIRADO: {
     status: 'EXPIRADO',
-    label: 'Não compareceu',
+    label: 'Expirado',
     color: 'gray',
     colorClass: 'status-gray',
   },
@@ -121,13 +144,18 @@ export function normalizeAppointmentStatus(
 
     case 'CHECKIN_REALIZADO':
     case 'CHECK_IN_REALIZADO':
+      return 'CHECKIN_REALIZADO';
+
     case 'NA_FILA':
     case 'AGUARDANDO':
       return 'NA_FILA';
 
     case 'CHAMADO':
-    case 'EM_ATENDIMENTO':
       return 'CHAMADO';
+
+    case 'EM_ATENDIMENTO':
+    case 'ATENDENDO':
+      return 'EM_ATENDIMENTO';
 
     case 'CONCLUIDO':
     case 'CONCLUIDA':
@@ -141,10 +169,11 @@ export function normalizeAppointmentStatus(
     case 'CANCELADA':
       return 'CANCELADO';
 
+    case 'NAO_COMPARECEU':
+      return 'NAO_COMPARECEU';
+
     case 'EXPIRADO':
     case 'EXPIRADA':
-    case 'NAO_COMPARECEU':
-    case 'NÃO_COMPARECEU':
       return 'EXPIRADO';
 
     case 'PENDENTE':

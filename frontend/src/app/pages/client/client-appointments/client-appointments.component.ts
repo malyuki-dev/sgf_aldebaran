@@ -39,6 +39,10 @@ interface ClientAppointmentView {
   statusColorClass: string;
   podeCancelar: boolean;
   podeReagendar: boolean;
+  senha?: string | null;
+  senhaStatus?: string | null;
+  posicao?: number | null;
+  estimativa?: number | null;
   dia: string;
   mes: string;
 }
@@ -94,15 +98,18 @@ export class ClientAppointmentsComponent implements OnInit {
 
   private readonly statusProximos = new Set<ClientAppointmentStatus>([
     'CONFIRMADO',
+    'CHECKIN_REALIZADO',
     'AGUARDANDO_CHECKIN',
     'NA_FILA',
     'CHAMADO',
+    'EM_ATENDIMENTO',
     'PENDENTE',
   ]);
 
   private readonly statusHistorico = new Set<ClientAppointmentStatus>([
     'CONCLUIDO',
     'CANCELADO',
+    'NAO_COMPARECEU',
     'EXPIRADO',
   ]);
 

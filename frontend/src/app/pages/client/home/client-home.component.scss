@@ -105,6 +105,27 @@ $bg-page: #f8f9fa; /* Fundo cinza claro */
     .appointment-info {
       flex: 1;
       h3 { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+
+      .appointment-status {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 0.72rem;
+        font-weight: 900;
+        margin-bottom: 8px;
+
+        &.status-blue { background: #e0f2fe; color: #0369a1; }
+        &.status-purple { background: #f5f3ff; color: #6d28d9; }
+        &.status-orange { background: #fff7ed; color: #c2410c; }
+        &.status-teal { background: #ccfbf1; color: #0f766e; }
+        &.status-dark-blue { background: #dbeafe; color: #1d4ed8; }
+        &.status-green-strong { background: #dcfce7; color: #15803d; }
+        &.status-red { background: #fee2e2; color: #b91c1c; }
+        &.status-gray,
+        &.status-gray-dark { background: #e2e8f0; color: #334155; }
+      }
       
       .info-row {
         display: flex;

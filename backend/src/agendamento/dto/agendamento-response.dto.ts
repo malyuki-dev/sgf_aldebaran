@@ -8,4 +8,8 @@ export class AgendamentoResponseDto {
   status!: string;
   podeCancelar!: boolean;
   podeReagendar!: boolean;
+  senha?: string | null;
+  senhaStatus?: string | null;
+  posicao?: number | null;
+  estimativa?: number | null;
 }

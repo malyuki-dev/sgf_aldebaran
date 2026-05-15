@@ -7,8 +7,10 @@ $white: #FFFFFF;
 
 // Cores de status do cliente
 $status-blue: #0ea5e9;
+$status-purple: #8b5cf6;
 $status-orange: #f59e0b;
 $status-teal: #14b8a6;
+$status-dark-blue: #1d4ed8;
 $status-green-strong: #16a34a;
 $status-green: #22c55e;
 $status-red: #ef4444;
@@ -167,12 +169,44 @@ $status-gray: #475569;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 
     &.status-blue { background-color: $status-blue; }
+    &.status-purple { background-color: $status-purple; }
     &.status-orange { background-color: $status-orange; }
     &.status-teal { background-color: $status-teal; }
+    &.status-dark-blue { background-color: $status-dark-blue; }
     &.status-green-strong { background-color: $status-green-strong; }
     &.status-green { background-color: $status-green; }
     &.status-red { background-color: $status-red; }
     &.status-gray { background-color: $status-gray; }
+    &.status-gray-dark { background-color: #334155; }
+  }
+
+  .queue-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .queue-pill {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 12px;
+
+    span {
+      display: block;
+      color: #64748b;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    strong {
+      color: $text-main;
+      font-size: 0.95rem;
+      font-weight: 900;
+    }
   }
 
   .btn-evaluate {
@@ -252,6 +286,14 @@ $status-gray: #475569;
       color: #7DD3FC !important;
       box-shadow: none !important;
       cursor: default;
+    }
+  }
+}
+
+@media (max-width: 520px) {
+  .card-appointment {
+    .queue-summary {
+      grid-template-columns: 1fr;
     }
   }
 }

@@ -135,6 +135,7 @@ export class FilaService {
       servico: agendamento.servico,
       filialId: filialEfetiva,
       agendamentoId: agendamento.id,
+      qtdeGarrafoes: agendamento.qtdeGarrafoes,
     });
 
     await this.prisma.agendamento.update({
@@ -683,7 +684,7 @@ export class FilaService {
     if (senha.agendamento_id) {
       await this.prisma.agendamento.update({
         where: { id: senha.agendamento_id },
-        data: { status: 'CANCELADO' },
+        data: { status: 'NAO_COMPARECEU' },
       });
     }
 

@@ -3,11 +3,15 @@ export enum AgendamentoStatus {
   PENDENTE = 'PENDENTE',
   CONFIRMADO = 'CONFIRMADO',
   CHECKIN_REALIZADO = 'CHECKIN_REALIZADO',
+  NA_FILA = 'NA_FILA',
+  CHAMADO = 'CHAMADO',
+  EM_ATENDIMENTO = 'EM_ATENDIMENTO',
   CANCELADO = 'CANCELADO',
   REALIZADO = 'REALIZADO',
   CONCLUIDO = 'CONCLUIDO',
   FINALIZADO = 'FINALIZADO',
   EXPIRADO = 'EXPIRADO',
+  NAO_COMPARECEU = 'NAO_COMPARECEU',
 }
 
 export enum AgendamentoFiltroStatus {
@@ -23,9 +27,9 @@ export const AGENDAMENTO_STATUS_ATIVOS = new Set<string>([
 
 export const AGENDAMENTO_STATUS_FINAIS = new Set<string>([
   AgendamentoStatus.CANCELADO,
-  AgendamentoStatus.CHECKIN_REALIZADO,
   AgendamentoStatus.CONCLUIDO,
   AgendamentoStatus.FINALIZADO,
   AgendamentoStatus.EXPIRADO,
   AgendamentoStatus.REALIZADO,
+  AgendamentoStatus.NAO_COMPARECEU,
 ]);

@@ -113,9 +113,17 @@ describe('toAgendamentoResponse', () => {
     expect(result.status).toBe(AgendamentoStatus.EXPIRADO);
   });
 
-  it('normaliza status de check-in realizado', () => {
+  it('normaliza status REALIZADO como concluido', () => {
     const result = toAgendamentoResponse(
       { ...base, status: AgendamentoStatus.REALIZADO },
+      { now: futuro },
+    );
+    expect(result.status).toBe(AgendamentoStatus.CONCLUIDO);
+  });
+
+  it('mantem status de check-in realizado como fluxo ativo', () => {
+    const result = toAgendamentoResponse(
+      { ...base, status: AgendamentoStatus.CHECKIN_REALIZADO },
       { now: futuro },
     );
     expect(result.status).toBe(AgendamentoStatus.CHECKIN_REALIZADO);
