@@ -1,0 +1,29 @@
+<section class="legal-page" aria-labelledby="legal-document-title">
+  <div class="legal-shell">
+    <button type="button" class="back-button" (click)="back()">
+      <lucide-icon [img]="icons.back" size="18"></lucide-icon>
+      <span>Voltar</span>
+    </button>
+
+    <article class="legal-card">
+      <header class="legal-header">
+        <span class="legal-icon" aria-hidden="true">
+          <lucide-icon [img]="icons.document" size="24"></lucide-icon>
+        </span>
+
+        <div>
+          <p class="legal-eyebrow">Portal do Cliente</p>
+          <h2 id="legal-document-title">{{ content.title }}</h2>
+          <p class="legal-updated">{{ content.updatedAt }}</p>
+        </div>
+      </header>
+
+      <div class="legal-content">
+        <section class="legal-section" *ngFor="let section of content.sections">
+          <h3 *ngIf="section.heading">{{ section.heading }}</h3>
+          <p *ngFor="let paragraph of section.paragraphs">{{ paragraph }}</p>
+        </section>
+      </div>
+    </article>
+  </div>
+</section>

@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
 } from 'lucide-angular';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ClientSettings } from '../../../models/client-settings.model';
 import { ClientSettingsService } from '../../../services/client-settings.service';
@@ -59,6 +60,7 @@ export class ClientConfiguracoesComponent implements OnInit {
   protected feedback: SettingsFeedback | null = null;
 
   constructor(
+    private readonly router: Router,
     private readonly settingsService: ClientSettingsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
@@ -82,13 +84,12 @@ export class ClientConfiguracoesComponent implements OnInit {
   }
 
   protected openLegalDocument(type: 'terms' | 'privacy'): void {
-    this.feedback = {
-      type: 'success',
-      message:
-        type === 'terms'
-          ? 'Termos de Uso preparados para a próxima rota legal.'
-          : 'Política de Privacidade preparada para a próxima rota legal.',
-    };
+    const route =
+      type === 'terms'
+        ? '/client/configuracoes/termos-de-uso'
+        : '/client/configuracoes/politica-de-privacidade';
+
+    this.router.navigate([route]);
   }
 
   private loadSettings(): void {

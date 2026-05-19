@@ -62,6 +62,20 @@ export const routes: Routes = [
             (m) => m.ClientConfiguracoesComponent,
           ),
       },
+      {
+        path: 'configuracoes/termos-de-uso',
+        loadComponent: () =>
+          import('./pages/client/configuracoes/legal/termos-de-uso.component').then(
+            (m) => m.TermosDeUsoComponent,
+          ),
+      },
+      {
+        path: 'configuracoes/politica-de-privacidade',
+        loadComponent: () =>
+          import(
+            './pages/client/configuracoes/legal/politica-privacidade.component'
+          ).then((m) => m.PoliticaPrivacidadeComponent),
+      },
       { path: 'suporte', component: SuporteComponent },
     ],
   },

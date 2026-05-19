@@ -165,6 +165,10 @@ export class ClientLayoutComponent implements OnInit {
       this.activePageTitle = 'Meus Agendamentos';
     } else if (url.includes('/client/perfil/editar')) {
       this.activePageTitle = 'Editar Dados';
+    } else if (url.includes('/client/configuracoes/termos-de-uso')) {
+      this.activePageTitle = 'Termos de Uso';
+    } else if (url.includes('/client/configuracoes/politica-de-privacidade')) {
+      this.activePageTitle = 'Política de Privacidade';
     } else if (url.includes('/client/configuracoes')) {
       this.activePageTitle = 'Configurações';
     } else if (url.includes('/client/suporte')) {
