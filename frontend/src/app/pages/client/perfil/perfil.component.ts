@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideAngularModule, ChevronRight, Languages, LogOut, Mail, Phone, Settings, SquarePen, HelpCircle } from 'lucide-angular';
+import { LucideAngularModule, ChevronRight, Languages, LogOut, Mail, Phone, Settings, SquarePen } from 'lucide-angular';
 import { AuthService, AuthenticatedUser } from '../../../services/auth.service';
 
 interface ClientProfile {
@@ -12,7 +12,7 @@ interface ClientProfile {
 }
 
 interface ProfileActionItem {
-  id: 'edit' | 'settings' | 'support' | 'logout';
+  id: 'edit' | 'settings' | 'logout';
   titulo: string;
   descricao: string;
   icon: typeof SquarePen;
@@ -33,7 +33,6 @@ export class ClientPerfilComponent implements OnInit {
     phone: Phone,
     edit: SquarePen,
     settings: Settings,
-    support: HelpCircle,
     logout: LogOut,
     chevron: ChevronRight,
     languages: Languages,
@@ -60,13 +59,6 @@ export class ClientPerfilComponent implements OnInit {
       descricao: 'Preferências da conta e futuras opções do portal.',
       icon: Settings,
       route: '/client/configuracoes',
-    },
-    {
-      id: 'support',
-      titulo: 'Ajuda e Suporte',
-      descricao: 'Acesse os canais de atendimento e dúvidas frequentes.',
-      icon: HelpCircle,
-      route: '/client/suporte',
     },
   ];
 

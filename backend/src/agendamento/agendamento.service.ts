@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificacaoService } from '../notificacao/notificacao.service';
 import { SenhaService } from '../senha/senha.service';
 import { CancelAgendamentoResponseDto } from './dto/cancel-agendamento-response.dto';
 import { CheckinResponseDto, CheckinTicketDto } from './dto/checkin-response.dto';
@@ -66,6 +67,7 @@ export class AgendamentoService {
     private readonly prisma: PrismaService,
     private readonly senhaService: SenhaService,
     private readonly clienteRegrasService: ClienteRegrasService,
+    private readonly notificacaoService: NotificacaoService,
   ) {}
 
   async listarMeusAgendamentos(
@@ -247,6 +249,15 @@ export class AgendamentoService {
       },
     });
 
+    await this.notificacaoService.criar({
+      titulo: 'Check-in realizado',
+      mensagem: `Sua senha ${ticket.numeroDisplay} foi gerada. Acompanhe o painel para sua chamada.`,
+      icon: 'checkCircle',
+      iconClass: 'purple-icon',
+      rota: '/client/meus-agendamentos',
+      cliente_id: cliente.id,
+    });
+
     return {
       message: 'Check-in realizado com sucesso',
       agendamento: this.toVoucherResponse(atualizado, new Date()),
@@ -329,6 +340,15 @@ export class AgendamentoService {
     const response = toAgendamentoResponse(atualizado, { now: agora });
     response.podeCancelar = false;
     response.podeReagendar = true;
+
+    await this.notificacaoService.criar({
+      titulo: 'Agendamento cancelado',
+      mensagem: `Seu agendamento de ${response.categoriaNome} em ${response.data} às ${response.horaInicio} foi cancelado.`,
+      icon: 'xCircle',
+      iconClass: 'gray-icon',
+      rota: '/client/meus-agendamentos',
+      cliente_id: cliente.id,
+    });
 
     return {
       message: 'Agendamento cancelado com sucesso',

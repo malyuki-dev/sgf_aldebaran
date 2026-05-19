@@ -69,13 +69,20 @@
         <div class="notification-container">
           <button class="notification-btn circular" (click)="toggleNotifications($event)" [class.active]="showNotifications">
             <lucide-icon [img]="icons['bell']" size="20"></lucide-icon>
-            <span class="dot" *ngIf="hasUnreadNotifications"></span>
+            <span class="notification-count" *ngIf="hasUnreadNotifications">
+              {{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}
+            </span>
           </button>
 
           <div class="notifications-dropdown" *ngIf="showNotifications" (click)="$event.stopPropagation()">
             <div class="dropdown-header">
-              <h3>Notificações</h3>
-              <button class="btn-link" (click)="marcarTodasLidas()">Marcar como lidas</button>
+              <div>
+                <h3>Notificações</h3>
+                <span class="header-subtitle" *ngIf="hasUnreadNotifications">
+                  {{ unreadNotificationsCount }} não lida{{ unreadNotificationsCount === 1 ? '' : 's' }}
+                </span>
+              </div>
+              <button class="btn-link" [disabled]="!hasUnreadNotifications" (click)="marcarTodasLidas()">Marcar como lidas</button>
             </div>
             <div class="dropdown-body">
               <div class="empty-notif" *ngIf="notificacoesFiltradas.length === 0">
@@ -86,10 +93,15 @@
                   <lucide-icon [img]="icons[n.icon] || icons['bell']" size="18"></lucide-icon>
                 </div>
                 <div class="item-content">
-                  <div class="item-title">{{ n.titulo }}</div>
+                  <div class="item-title-row">
+                    <div class="item-title">{{ n.titulo }}</div>
+                    <span class="read-status" [class.unread-status]="!n.lida">
+                      {{ n.lida ? 'Lida' : 'Nova' }}
+                    </span>
+                  </div>
                   <div class="item-desc">{{ n.mensagem }}</div>
+                  <div class="item-meta">{{ getNotificationTime(n.criadoEm) }}</div>
                 </div>
-                <div class="item-time">{{ n.criadoEm | date:'HH:mm' }}</div>
               </div>
             </div>
           </div>

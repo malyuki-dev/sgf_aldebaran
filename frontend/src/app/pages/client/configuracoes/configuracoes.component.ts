@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,14 +9,10 @@ import {
   Moon,
   Settings,
   Shield,
-  Trash2,
-  X,
 } from 'lucide-angular';
 import { finalize } from 'rxjs';
 import { ClientSettings } from '../../../models/client-settings.model';
-import { AuthService } from '../../../services/auth.service';
 import { ClientSettingsService } from '../../../services/client-settings.service';
-import { SettingsDangerZoneComponent } from './components/settings-danger-zone/settings-danger-zone.component';
 import { SettingsLinkItemComponent } from './components/settings-link-item/settings-link-item.component';
 import { SettingsSectionCardComponent } from './components/settings-section-card/settings-section-card.component';
 import { SettingsToggleItemComponent } from './components/settings-toggle-item/settings-toggle-item.component';
@@ -38,7 +33,6 @@ interface SettingsFeedback {
     SettingsSectionCardComponent,
     SettingsToggleItemComponent,
     SettingsLinkItemComponent,
-    SettingsDangerZoneComponent,
   ],
   templateUrl: './configuracoes.component.html',
   styleUrl: './configuracoes.component.scss',
@@ -53,8 +47,6 @@ export class ClientConfiguracoesComponent implements OnInit {
     success: CheckCircle2,
     error: AlertCircle,
     loader: LoaderCircle,
-    close: X,
-    trash: Trash2,
   };
 
   protected settings: ClientSettings = {
@@ -64,14 +56,10 @@ export class ClientConfiguracoesComponent implements OnInit {
 
   protected loading = true;
   protected saving = false;
-  protected deleting = false;
-  protected showDeleteModal = false;
   protected feedback: SettingsFeedback | null = null;
 
   constructor(
     private readonly settingsService: ClientSettingsService,
-    private readonly authService: AuthService,
-    private readonly router: Router,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
@@ -101,47 +89,6 @@ export class ClientConfiguracoesComponent implements OnInit {
           ? 'Termos de Uso preparados para a próxima rota legal.'
           : 'Política de Privacidade preparada para a próxima rota legal.',
     };
-  }
-
-  protected requestDeleteAccount(): void {
-    this.feedback = null;
-    this.showDeleteModal = true;
-  }
-
-  protected closeDeleteModal(): void {
-    if (this.deleting) {
-      return;
-    }
-
-    this.showDeleteModal = false;
-  }
-
-  protected confirmDeleteAccount(): void {
-    this.deleting = true;
-    this.feedback = null;
-
-    this.settingsService.deleteAccount().pipe(
-      finalize(() => {
-        this.deleting = false;
-        this.changeDetectorRef.markForCheck();
-      }),
-    ).subscribe({
-      next: () => {
-        this.showDeleteModal = false;
-        this.authService.logout();
-        this.router.navigate(['/login']);
-      },
-      error: (error) => {
-        this.feedback = {
-          type: 'error',
-          message:
-            error.error?.message ||
-            'Não foi possível excluir a conta. Endpoint ainda pode estar pendente na API.',
-        };
-        this.showDeleteModal = false;
-        this.changeDetectorRef.markForCheck();
-      },
-    });
   }
 
   private loadSettings(): void {
@@ -193,5 +140,4 @@ export class ClientConfiguracoesComponent implements OnInit {
       },
     });
   }
-
 }

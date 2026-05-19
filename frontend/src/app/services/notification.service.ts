@@ -43,8 +43,8 @@ export class NotificationService {
     });
   }
 
-  fetchNotifications(usuario_id?: number) {
-    const params = usuario_id ? { usuario_id } : {};
+  fetchNotifications(usuario_id?: number | string) {
+    const params = this.buildDestinatarioParams(usuario_id);
     this.api.get<Notificacao[]>('/notificacoes', params).subscribe(notifications => {
       this.notificationsSubject.next(notifications);
     });
@@ -64,18 +64,30 @@ export class NotificationService {
     });
   }
 
-  markAllAsRead(usuario_id?: number) {
+  markAllAsRead(usuario_id?: number | string) {
     // Atualização otimista no frontend
     const current = this.notificationsSubject.value;
     const updated = current.map(n => ({ ...n, lida: true }));
     this.notificationsSubject.next(updated);
 
-    this.api.post('/notificacoes/todas-lidas', { usuario_id }).subscribe({
+    this.api.post('/notificacoes/todas-lidas', this.buildDestinatarioParams(usuario_id)).subscribe({
       error: (err) => {
         console.error('Erro ao marcar todas como lidas:', err);
         // Rollback opcional se necessário
         this.notificationsSubject.next(current);
       }
     });
+  }
+
+  private buildDestinatarioParams(usuario_id?: number | string): Record<string, number | string> {
+    const value = String(usuario_id || '').trim();
+    if (!value) return {};
+
+    const numeric = Number(value);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      return { usuario_id: numeric };
+    }
+
+    return { cliente_id: value };
   }
 }

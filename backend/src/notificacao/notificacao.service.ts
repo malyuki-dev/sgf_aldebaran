@@ -16,6 +16,7 @@ export class NotificacaoService {
     icon?: string;
     iconClass?: string;
     usuario_id?: number;
+    cliente_id?: string;
     servico_id?: number;
   }) {
     const notificacao = await this.prisma.notificacao.create({
@@ -26,22 +27,22 @@ export class NotificacaoService {
         icon: dados.icon || 'bell',
         iconClass: dados.iconClass || 'blue-icon',
         usuario_id: dados.usuario_id,
+        cliente_id: dados.cliente_id,
       },
     });
 
-    // Emitir via WebSocket para tempo real com servico_id anexado
-    this.gateway.enviarParaTodos('nova_notificacao', { ...notificacao, servico_id: dados.servico_id });
+    this.gateway.enviarParaTodos('nova_notificacao', {
+      ...notificacao,
+      servico_id: dados.servico_id,
+    });
 
     return notificacao;
   }
 
-  async listarParaUsuario(usuario_id?: number) {
+  async listarParaUsuario(usuario_id?: number, cliente_id?: string) {
     return this.prisma.notificacao.findMany({
       where: {
-        OR: [
-          { usuario_id: usuario_id },
-          { usuario_id: null }, // Notificações globais
-        ],
+        OR: this.buildFiltroDestinatario(usuario_id, cliente_id),
       },
       orderBy: { criadoEm: 'desc' },
       take: 20,
@@ -55,13 +56,28 @@ export class NotificacaoService {
     });
   }
 
-  async marcarTodasComoLidas(usuario_id?: number) {
+  async marcarTodasComoLidas(usuario_id?: number, cliente_id?: string) {
     return this.prisma.notificacao.updateMany({
       where: {
-        OR: [{ usuario_id: usuario_id }, { usuario_id: null }],
+        OR: this.buildFiltroDestinatario(usuario_id, cliente_id),
         lida: false,
       },
       data: { lida: true },
     });
+  }
+
+  private buildFiltroDestinatario(usuario_id?: number, cliente_id?: string) {
+    const filtros: Array<{ usuario_id?: number | null; cliente_id?: string | null }> = [
+      { usuario_id: null, cliente_id: null },
+    ];
+
+    if (usuario_id) {
+      filtros.push({ usuario_id });
+    }
+    if (cliente_id) {
+      filtros.push({ cliente_id });
+    }
+
+    return filtros;
   }
 }

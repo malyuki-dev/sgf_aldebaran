@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, NotFoundException, Unauthorize
 import { DeepMockProxy } from 'jest-mock-extended';
 import { createPrismaMock } from '../prisma/prisma.mock';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificacaoService } from '../notificacao/notificacao.service';
 import { SenhaService } from '../senha/senha.service';
 import { ClienteRegrasService } from './cliente-regras.service';
 import { AgendamentoService } from './agendamento.service';
@@ -12,6 +13,7 @@ describe('AgendamentoService', () => {
   let prisma: DeepMockProxy<PrismaService>;
   let senhaService: jest.Mocked<Pick<SenhaService, 'gerarSenhaCliente' | 'calcularPosicao'>>;
   let clienteRegrasService: jest.Mocked<Pick<ClienteRegrasService, 'validarCheckinCliente'>>;
+  let notificacaoService: jest.Mocked<Pick<NotificacaoService, 'criar'>>;
 
   beforeEach(() => {
     prisma = createPrismaMock() as unknown as DeepMockProxy<PrismaService>;
@@ -22,10 +24,14 @@ describe('AgendamentoService', () => {
     clienteRegrasService = {
       validarCheckinCliente: jest.fn().mockResolvedValue(undefined),
     };
+    notificacaoService = {
+      criar: jest.fn().mockResolvedValue({}),
+    };
     service = new AgendamentoService(
       prisma as unknown as PrismaService,
       senhaService as unknown as SenhaService,
       clienteRegrasService as unknown as ClienteRegrasService,
+      notificacaoService as unknown as NotificacaoService,
     );
   });
 

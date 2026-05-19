@@ -656,6 +656,25 @@
       border: 2px solid #fff;
       border-radius: 50%;
     }
+
+    .notification-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: #ef4444;
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 800;
+      line-height: 1;
+    }
   }
 
   .notification-container {
@@ -688,6 +707,14 @@
           color: var(--text-primary);
         }
 
+        .header-subtitle {
+          display: block;
+          margin-top: 3px;
+          color: var(--text-secondary);
+          font-size: 0.72rem;
+          font-weight: 600;
+        }
+
         .btn-link {
           background: none;
           border: none;
@@ -700,6 +727,15 @@
 
           &:hover {
             background: rgba(14, 165, 233, 0.1);
+          }
+
+          &:disabled {
+            color: #94a3b8;
+            cursor: default;
+
+            &:hover {
+              background: transparent;
+            }
           }
         }
       }
@@ -757,26 +793,52 @@
           flex: 1;
           min-width: 0;
 
+          .item-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 2px;
+          }
+
           .item-title {
             font-weight: 700;
             font-size: 0.85rem;
             color: var(--text-primary);
-            margin-bottom: 2px;
+            min-width: 0;
+          }
+
+          .read-status {
+            flex-shrink: 0;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 999px;
+            padding: 2px 7px;
+            font-size: 0.65rem;
+            font-weight: 800;
+
+            &.unread-status {
+              background: #dbeafe;
+              color: #2563eb;
+            }
           }
 
           .item-desc {
             font-size: 0.75rem;
             color: var(--text-secondary);
-            white-space: nowrap;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
           }
-        }
 
-        .item-time {
-          font-size: 0.7rem;
-          color: #94a3b8;
-          white-space: nowrap;
+          .item-meta {
+            margin-top: 6px;
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 700;
+          }
         }
       }
 

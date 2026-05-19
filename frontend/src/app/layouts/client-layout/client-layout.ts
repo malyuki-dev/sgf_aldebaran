@@ -1,10 +1,23 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Ticket, Settings, LogOut, Menu, User, Bell, ChevronDown, ChevronUp, Moon, Power, Home, CalendarPlus, History, HelpCircle, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Ticket, Settings, LogOut, Menu, User, Bell, ChevronDown, ChevronUp, Moon, Power, Home, CalendarPlus, History, ChevronRight, CheckCircle, XCircle, Clock } from 'lucide-angular';
 import { Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { NotificationService } from '../../services/notification.service';
+
+interface ClientMenuItem {
+  path: string;
+  label: string;
+  icon: string;
+  class?: string;
+  divided?: boolean;
+}
+
+interface ClientMenuGroup {
+  title: string;
+  items: ClientMenuItem[];
+}
 
 @Component({
   selector: 'app-client-layout',
@@ -30,14 +43,17 @@ export class ClientLayoutComponent implements OnInit {
   hasUnreadNotifications = false;
 
   get notificacoesFiltradas() {
-    return this.notificacoes.filter(n => !n.lida);
+    return this.notificacoes;
+  }
+
+  get unreadNotificationsCount() {
+    return this.notificacoes.filter(n => !n.lida).length;
   }
 
   readonly icons: Record<string, any> = {
     home: Home,
     calendarPlus: CalendarPlus,
     history: History,
-    help: HelpCircle,
     settings: Settings,
     logout: LogOut,
     menu: Menu,
@@ -47,10 +63,14 @@ export class ClientLayoutComponent implements OnInit {
     chevronUp: ChevronUp,
     moon: Moon,
     power: Power,
-    chevronRight: ChevronRight
+    chevronRight: ChevronRight,
+    ticket: Ticket,
+    checkCircle: CheckCircle,
+    xCircle: XCircle,
+    clock: Clock
   };
 
-  menuGroups = [
+  menuGroups: ClientMenuGroup[] = [
     {
       title: '',
       items: [
@@ -58,8 +78,7 @@ export class ClientLayoutComponent implements OnInit {
         { path: '/client/agendar', label: 'Agendar', icon: 'calendarPlus' },
         { path: '/client/meus-agendamentos', label: 'Meus Agendamentos', icon: 'history' },
         { path: '/client/perfil', label: 'Perfil', icon: 'user' },
-        { path: '/client/configuracoes', label: 'Configurações', icon: 'settings' },
-        { path: '/client/suporte', label: 'Ajuda e Suporte', icon: 'help', class: 'highlight-yellow', divided: true }
+        { path: '/client/configuracoes', label: 'Configurações', icon: 'settings' }
       ]
     }
   ];
@@ -79,20 +98,13 @@ export class ClientLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const salvo = localStorage.getItem('usuario_nome');
-    const idSalvo = localStorage.getItem('usuario_id');
-    
-    if (salvo) {
-      this.userName = salvo;
-      this.userInitials = salvo.substring(0, 2).toUpperCase();
-      this.usuario = { nome: salvo, id: idSalvo };
-    }
+    this.carregarUsuarioCliente();
 
     if (this.usuario && this.usuario.id) {
       this.notificationService.fetchNotifications(this.usuario.id);
       this.notificationService.notifications$.subscribe(notifs => {
         this.notificacoes = notifs;
-        this.hasUnreadNotifications = notifs.some(n => !n.lida);
+        this.hasUnreadNotifications = this.unreadNotificationsCount > 0;
       });
     }
 
@@ -106,6 +118,39 @@ export class ClientLayoutComponent implements OnInit {
     });
 
     this.updateActivePageTitle();
+  }
+
+  private carregarUsuarioCliente() {
+    const usuarioJson = localStorage.getItem('client_user') || localStorage.getItem('usuario_sgf');
+    const nomeSalvo = localStorage.getItem('usuario_nome');
+    const idSalvo = localStorage.getItem('usuario_id');
+
+    if (usuarioJson) {
+      try {
+        const usuario = JSON.parse(usuarioJson);
+        const nome = usuario.nome || usuario.name || nomeSalvo || 'Cliente';
+
+        this.usuario = usuario;
+        this.userName = nome;
+        this.userInitials = nome.substring(0, 2).toUpperCase();
+
+        if (usuario.id) {
+          localStorage.setItem('usuario_id', String(usuario.id));
+        }
+        localStorage.setItem('usuario_nome', nome);
+        localStorage.setItem('usuario_sgf', JSON.stringify(usuario));
+        return;
+      } catch (error) {
+        console.warn('Erro ao carregar dados do cliente:', error);
+      }
+    }
+
+    if (nomeSalvo || idSalvo) {
+      const nome = nomeSalvo || 'Cliente';
+      this.userName = nome;
+      this.userInitials = nome.substring(0, 2).toUpperCase();
+      this.usuario = { nome, id: idSalvo };
+    }
   }
 
   private updateActivePageTitle() {
@@ -136,12 +181,38 @@ export class ClientLayoutComponent implements OnInit {
   toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
   toggleProfileMenu(event: Event) { event.stopPropagation(); this.showProfileMenu = !this.showProfileMenu; this.showNotifications = false; }
   toggleNotifications(event: Event) { event.stopPropagation(); this.showNotifications = !this.showNotifications; this.showProfileMenu = false; }
-  marcarTodasLidas() { this.notificationService.markAllAsRead(this.usuario?.id); }
+  marcarTodasLidas() {
+    if (!this.hasUnreadNotifications) return;
+    this.notificationService.markAllAsRead(this.usuario?.id);
+  }
   
   onNotificationClick(n: any) {
     if (!n.lida) { this.notificationService.markAsRead(n.id); }
     this.showNotifications = false;
     if (n.rota) { this.router.navigate([n.rota]); }
+  }
+
+  getNotificationTime(criadoEm?: string): string {
+    if (!criadoEm) return '';
+
+    const created = new Date(criadoEm);
+    const diffMs = Date.now() - created.getTime();
+    if (Number.isNaN(diffMs)) return '';
+
+    const minutes = Math.floor(diffMs / 60000);
+    if (minutes < 1) return 'agora';
+    if (minutes < 60) return `${minutes} min`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} h`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} d`;
+
+    return created.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+    });
   }
 
   @HostListener('document:click')
@@ -171,6 +242,9 @@ export class ClientLayoutComponent implements OnInit {
     this.showLogoutModal = false;
     localStorage.removeItem('usuario_sgf');
     localStorage.removeItem('usuario_nome');
+    localStorage.removeItem('usuario_id');
+    localStorage.removeItem('client_user');
+    localStorage.removeItem('client_token');
     this.router.navigate(['/login']);
   }
 }

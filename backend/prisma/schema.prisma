@@ -54,6 +54,7 @@ model clientes {
   deletedAt DateTime? @db.Timestamp(6)
   filial_id Int?
   filial    filial?   @relation(fields: [filial_id], references: [id])
+  notificacoes notificacao[]
 }
 
 model senha {
@@ -187,8 +188,10 @@ model notificacao {
   icon       String?  @default("bell") @db.VarChar(50)
   iconClass  String?  @default("blue-icon") @db.VarChar(50)
   usuario_id Int?
+  cliente_id String?  @db.Uuid
   criadoEm   DateTime @default(now()) @db.Timestamp(6)
   usuario    usuario? @relation(fields: [usuario_id], references: [id])
+  cliente    clientes? @relation(fields: [cliente_id], references: [id])
 }
 
 model filial {

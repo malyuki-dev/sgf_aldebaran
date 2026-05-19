@@ -42,7 +42,15 @@ export class ClientLoginComponent {
         // Salva o token
         if (res.access_token) {
            localStorage.setItem('client_token', res.access_token);
-           if(res.user) localStorage.setItem('client_user', JSON.stringify(res.user));
+           if (res.user) {
+             const nome = res.user.nome || res.user.name || 'Cliente';
+             localStorage.setItem('client_user', JSON.stringify(res.user));
+             localStorage.setItem('usuario_sgf', JSON.stringify(res.user));
+             localStorage.setItem('usuario_nome', nome);
+             if (res.user.id) {
+               localStorage.setItem('usuario_id', String(res.user.id));
+             }
+           }
         }
 
         // Redireciona para a Home (conforme criamos no passo anterior)

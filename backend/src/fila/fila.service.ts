@@ -327,7 +327,7 @@ export class FilaService {
     });
     if (ocupado) throw new BadRequestException('Horario ocupado.');
 
-    return await this.prisma.agendamento.create({
+    const agendamento = await this.prisma.agendamento.create({
       data: {
         nomeCliente: dados.nome,
         documento: dados.documento,
@@ -350,6 +350,16 @@ export class FilaService {
         },
       },
     });
+
+    await this.notificarClientePorDocumento(agendamento.documento, {
+      titulo: 'Agendamento confirmado',
+      mensagem: `Seu agendamento de ${agendamento.servico?.nome || 'atendimento'} foi confirmado para ${agendamento.data} às ${agendamento.hora}.`,
+      icon: 'calendarPlus',
+      iconClass: 'blue-icon',
+      rota: '/client/meus-agendamentos',
+    });
+
+    return agendamento;
   }
 
   async listarAgendamentos(
@@ -540,6 +550,15 @@ export class FilaService {
       calledAt: new Date(),
     });
 
+    await this.notificarClientePorDocumento(senhaAtualizada.agendamento?.documento, {
+      titulo: 'Senha chamada',
+      mensagem: `Sua senha ${senhaAtualizada.numeroDisplay} foi chamada. Dirija-se ao guichê ${guicheInfo.numero}.`,
+      icon: 'bell',
+      iconClass: 'orange-icon',
+      rota: '/client/meus-agendamentos',
+    });
+    await this.notificarProximoDaFila(guicheInfo.filial_id, senhaAtualizada.id);
+
     return senhaAtualizada;
   }
 
@@ -633,6 +652,15 @@ export class FilaService {
       calledAt: new Date(),
     });
 
+    await this.notificarClientePorDocumento(senhaAtualizada.agendamento?.documento, {
+      titulo: 'Senha chamada',
+      mensagem: `Sua senha ${senhaAtualizada.numeroDisplay} foi chamada. Dirija-se ao guichê ${guicheInfo.numero}.`,
+      icon: 'bell',
+      iconClass: 'orange-icon',
+      rota: '/client/meus-agendamentos',
+    });
+    await this.notificarProximoDaFila(guicheInfo.filial_id, senhaAtualizada.id);
+
     return senhaAtualizada;
   }
 
@@ -660,6 +688,7 @@ export class FilaService {
     const senha = await this.prisma.senha.update({
       where: { id: senhaId },
       data: { status: 'FINALIZADO' },
+      include: { agendamento: true, servico: true },
     });
 
     if (senha.agendamento_id) {
@@ -672,6 +701,14 @@ export class FilaService {
     await this.encerrarAtendimentoAbertoPorSenha(senhaId);
     this.notificacaoGateway.broadcastRefresh();
 
+    await this.notificarClientePorDocumento(senha.agendamento?.documento, {
+      titulo: 'Atendimento concluído',
+      mensagem: `O atendimento da senha ${senha.numeroDisplay} foi concluído.`,
+      icon: 'checkCircle',
+      iconClass: 'blue-icon',
+      rota: '/client/meus-agendamentos',
+    });
+
     return senha;
   }
 
@@ -679,6 +716,7 @@ export class FilaService {
     const senha = await this.prisma.senha.update({
       where: { id: senhaId },
       data: { status: 'CANCELADO' },
+      include: { agendamento: true, servico: true },
     });
 
     if (senha.agendamento_id) {
@@ -690,6 +728,14 @@ export class FilaService {
 
     await this.encerrarAtendimentoAbertoPorSenha(senhaId);
     this.notificacaoGateway.broadcastRefresh();
+
+    await this.notificarClientePorDocumento(senha.agendamento?.documento, {
+      titulo: 'Não comparecimento registrado',
+      mensagem: `Sua senha ${senha.numeroDisplay} foi encerrada por não comparecimento.`,
+      icon: 'xCircle',
+      iconClass: 'gray-icon',
+      rota: '/client/meus-agendamentos',
+    });
 
     return senha;
   }
@@ -948,6 +994,63 @@ export class FilaService {
         ],
       },
       include: { servico: true },
+    });
+  }
+
+  private async notificarClientePorDocumento(
+    documento: string | null | undefined,
+    dados: {
+      titulo: string;
+      mensagem: string;
+      rota?: string;
+      icon?: string;
+      iconClass?: string;
+    },
+  ) {
+    const documentoNormalizado = documento?.trim();
+    if (!documentoNormalizado) return;
+
+    const cliente = await this.prisma.clientes.findFirst({
+      where: {
+        OR: [
+          { email: documentoNormalizado },
+          { cpf: documentoNormalizado },
+          { cnpj: documentoNormalizado },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!cliente) return;
+
+    await this.notificacaoService.criar({
+      ...dados,
+      cliente_id: cliente.id,
+    });
+  }
+
+  private async notificarProximoDaFila(filialId?: number | null, senhaChamadaId?: number) {
+    if (!filialId) return;
+
+    const proxima = await this.prisma.senha.findFirst({
+      where: {
+        status: 'AGUARDANDO',
+        filial_id: filialId,
+        id: senhaChamadaId ? { not: senhaChamadaId } : undefined,
+        agendamento_id: { not: null },
+      },
+      orderBy: [{ prioridade: 'desc' }, { id: 'asc' }],
+      include: { agendamento: true },
+    });
+
+    if (!proxima?.agendamento?.documento) return;
+
+    await this.notificarClientePorDocumento(proxima.agendamento.documento, {
+      titulo: 'Sua vez está se aproximando',
+      mensagem: `A senha ${proxima.numeroDisplay} está próxima de ser chamada. Fique atento ao painel.`,
+      icon: 'clock',
+      iconClass: 'blue-icon',
+      rota: '/client/meus-agendamentos',
     });
   }
 
